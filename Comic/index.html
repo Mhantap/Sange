@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comic Note</title>
+    <title>Chapter Note</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -11,7 +11,6 @@
             padding: 0;
             background-color: #f0f4f8;
             color: #333;
-            display: none; /* Hide body initially */
         }
         h1 {
             text-align: center;
@@ -19,8 +18,8 @@
             margin-top: 20px;
         }
         nav {
-            background-color: white;
-            color: black;
+            background-color: white; /* Changed to white */
+            color: black; /* Changed text to black */
             position: relative;
             border-bottom: 1px solid #ccc;
         }
@@ -33,19 +32,19 @@
         .menu {
             display: none;
             flex-direction: column;
-            background-color: white;
+            background-color: white; /* Changed to white */
             position: absolute;
             width: 100%;
             top: 60px;
             left: 0;
             border-radius: 5px;
             z-index: 10;
-            border: 1px solid #ccc;
+            border: 1px solid #ccc; /* Optional: Add border for better visibility */
         }
         .menu button {
             padding: 15px;
             border: none;
-            color: black;
+            color: black; /* Changed button text to black */
             text-align: center;
             cursor: pointer;
             margin: 0;
@@ -58,7 +57,7 @@
             background-color: gray;
         }
         .h-belum {
-            background-color: #ffb3b3;
+            background-color: #ffb3b3; /* Lighter pink */
         }
         .h-sudah {
             background-color: green;
@@ -118,48 +117,9 @@
             text-decoration: none;
             cursor: pointer;
         }
-        /* Loading Screen Styles */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(240, 244, 248, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 1000;
-        }
-        .loading {
-            width: 80px;
-            height: 80px;
-            border: 8px solid transparent;
-            border-top-color: #4a90e2;
-            border-left-color: #e94e77; /* Pink */
-            border-bottom-color: #f5a623; /* Orange */
-            border-right-color: #50e3c2; /* Green */
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loading-text {
-            margin-top: 20px;
-            font-size: 24px;
-            color: #4a90e2;
-        }
     </style>
 </head>
 <body>
-
-    <div class="loading-screen" id="loading-screen">
-        <div class="loading"></div>
-        <div class="loading-text">PLEASE WAIT...</div>
-    </div>
 
     <nav>
         <div class="hamburger" onclick="toggleMenu()">☰ Chapter Note</div>
@@ -169,12 +129,12 @@
         </div>
     </nav>
 
-    <h1 id="welcome-message">Welcome to Comic Note</h1>
+    <h1>Welcome to Comic Note</h1>
 
     <section id="non-h" style="display: none;">
         <h2>Non H</h2>
         <ul>
-            <li><button class="non-h" onclick="openModal('Academy\'s Genius Swordmaster Chapter 21')">Academy's Genius Swordmaster Chapter 21</button></li>
+            <li><button class="non-h" onclick="openModal('Academy's Genius Swordmaster Chapter 21')">Academy's Genius Swordmaster Chapter 21</button></li>
             <li><button class="non-h" onclick="openModal('Moon Shadow Sword Emperor Chapter 85')">Moon Shadow Sword Emperor Chapter 85</button></li>
         </ul>
     </section>
@@ -199,7 +159,52 @@
         <ul>
             <li><button class="h-belum" onclick="openModal('Trap')">Trap</button></li>
             <li><button class="h-belum" onclick="openModal('She Wants to Get Drunk')">She Wants to Get Drunk</button></li>
-            <!-- Add the rest of your buttons here -->
+            <li><button class="h-belum" onclick="openModal('Mom Instead of Daughter')">Mom Instead of Daughter</button></li>
+            <li><button class="h-belum" onclick="openModal('Is There No Goddess in My College?')">Is There No Goddess in My College?</button></li>
+            <li><button class="h-belum" onclick="openModal('My Sister\'s Friends')">My Sister's Friends</button></li>
+            <li><button class="h-belum" onclick="openModal('My Sister-in-law\'s Skirt')">My Sister-in-law's Skirt</button></li>
+            <li><button class="h-belum" onclick="openModal('Troublesome Sister')">Troublesome Sister</button></li>
+            <li><button class="h-belum" onclick="openModal('Secret Lesson with My Sister')">Secret Lesson with My Sister</button></li>
+            <li><button class="h-belum" onclick="openModal('Your Wife')">Your Wife</button></li>
+            <li><button class="h-belum" onclick="openModal('Please Scan Here')">Please Scan Here</button></li>
+            <li><button class="h-belum" onclick="openModal('Missy Neighbors')">Missy Neighbors</button></li>
+            <li><button class="h-belum" onclick="openModal('I\'m a Pseudo Leader')">I'm a Pseudo Leader</button></li>
+            <li><button class="h-belum" onclick="openModal('Prison Girl')">Prison Girl</button></li>
+            <li><button class="h-belum" onclick="openModal('The Bathhouse')">The Bathhouse</button></li>
+            <li><button class="h-belum" onclick="openModal('Strongly Sexed Women')">Strongly Sexed Women</button></li>
+            <li><button class="h-belum" onclick="openModal('Absolute Smartwatch')">Absolute Smartwatch</button></li>
+            <li><button class="h-belum" onclick="openModal('Sexy Man and Woman')">Sexy Man and Woman</button></li>
+            <li><button class="h-belum" onclick="openModal('Department Store Misses')">Department Store Misses</button></li>
+            <li><button class="h-belum" onclick="openModal('Relationship Reverse Button')">Relationship Reverse Button: Let's Make Her Submissive</button></li>
+            <li><button class="h-belum" onclick="openModal('The Four of Us Can\'t Live Together')">The Four of Us Can't Live Together</button></li>
+            <li><button class="h-belum" onclick="openModal('Mom Eat First')">Mom Eat First</button></li>
+            <li><button class="h-belum" onclick="openModal('Wind Cloud Wuxia')">Wind Cloud Wuxia</button></li>
+            <li><button class="h-belum" onclick="openModal('Your Wife Was Delicious')">Your Wife Was Delicious</button></li>
+            <li><button class="h-belum" onclick="openModal('Sextudy Group')">Sextudy Group</button></li>
+            <li><button class="h-belum" onclick="openModal('Mother Hunting')">Mother Hunting</button></li>
+            <li><button class="h-belum" onclick="openModal('Wreck My Bias')">Wreck My Bias</button></li>
+            <li><button class="h-belum" onclick="openModal('Milf Hunter from Another World')">Milf Hunter from Another World</button></li>
+            <li><button class="h-belum" onclick="openModal('Revenge by Harem')">Revenge by Harem</button></li>
+            <li><button class="h-belum" onclick="openModal('Obsessive Romance')">Obsessive Romance</button></li>
+            <li><button class="h-belum" onclick="openModal('Could You Please Touch Me There?')">Could You Please Touch Me There?</button></li>
+            <li><button class="h-belum" onclick="openModal('Harem Boy')">Harem Boy</button></li>
+            <li><button class="h-belum" onclick="openModal('Park Moojik Hit the Jackpot')">Park Moojik Hit the Jackpot</button></li>
+            <li><button class="h-belum" onclick="openModal('An Invisible Kiss')">An Invisible Kiss</button></li>
+            <li><button class="h-belum" onclick="openModal('The Billionaire\'s Monster Cock Son-in-Law')">The Billionaire's Monster Cock Son-in-Law</button></li>
+            <li><button class="h-belum" onclick="openModal('Start Casting Couch')">Start Casting Couch</button></li>
+            <li><button class="h-belum" onclick="openModal('You Won\'t Get Me Twice')">You Won't Get Me Twice</button></li>
+            <li><button class="h-belum" onclick="openModal('Idiot Virus')">Idiot Virus</button></li>
+            <li><button class="h-belum" onclick="openModal('My Eyes Now See Desires')">My Eyes Now See Desires</button></li>
+            <li><button class="h-belum" onclick="openModal('The Servant\'s Story')">The Servant's Story</button></li>
+            <li><button class="h-belum" onclick="openModal('Love Gacha')">Love Gacha</button></li>
+            <li><button class="h-belum" onclick="openModal('Global Sexual Culture Research Institute')">Global Sexual Culture Research Institute</button></li>
+            <li><button class="h-belum" onclick="openModal('The Protagonist Gets Stronger When He Fucks the Female Hunter')">The Protagonist Gets Stronger When He Fucks the Female Hunter</button></li>
+            <li><button class="h-belum" onclick="openModal('Brothel')">Brothel</button></li>
+            <li><button class="h-belum" onclick="openModal('Family with Benefits')">Family with Benefits</button></li>
+            <li><button class="h-belum" onclick="openModal('The Warrior is Disappointed in You')">The Warrior is Disappointed in You</button></li>
+            <li><button class="h-belum" onclick="openModal('Athletes Village: The Trap')">Athletes Village: The Trap</button></li>
+            <li><button class="h-belum" onclick="openModal('Human Scum')">Human Scum</button></li>
+            <li><button class="h-belum" onclick="openModal('Turning My Life Around with Crypto')">Turning My Life Around with Crypto</button></li>
         </ul>
     </section>
 
@@ -211,32 +216,7 @@
         </div>
     </div>
 
-    <div id="usernameModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeUsernameModal()">&times;</span>
-            <h2>Please Enter Your Name</h2>
-            <input type="text" id="username" placeholder="Enter your name" />
-            <button onclick="submitName()">Submit</button>
-        </div>
-    </div>
-
     <script>
-        window.onload = function() {
-            document.getElementById('usernameModal').style.display = 'block';
-        };
-
-        function submitName() {
-            const name = document.getElementById('username').value || "Guest";
-            document.getElementById('welcome-message').innerText = `Welcome to Comic Note, ${name}!`;
-            document.getElementById('loading-screen').style.display = 'none';
-            document.body.style.display = 'block'; // Show body content
-            closeUsernameModal();
-        }
-
-        function closeUsernameModal() {
-            document.getElementById('usernameModal').style.display = "none";
-        }
-
         function toggleMenu() {
             const menu = document.getElementById('menu');
             menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
@@ -261,12 +241,8 @@
 
         window.onclick = function(event) {
             const modal = document.getElementById('myModal');
-            const usernameModal = document.getElementById('usernameModal');
             if (event.target == modal) {
                 modal.style.display = "none";
-            }
-            if (event.target == usernameModal) {
-                usernameModal.style.display = "none";
             }
         }
     </script>
