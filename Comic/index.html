@@ -18,9 +18,10 @@
             margin-top: 20px;
         }
         nav {
-            background-color: #4a90e2;
-            color: white;
+            background-color: white; /* Changed to white */
+            color: black; /* Changed text to black */
             position: relative;
+            border-bottom: 1px solid #ccc;
         }
         .hamburger {
             display: inline-block;
@@ -31,18 +32,19 @@
         .menu {
             display: none;
             flex-direction: column;
-            background-color: #4a90e2;
+            background-color: white; /* Changed to white */
             position: absolute;
             width: 100%;
             top: 60px;
             left: 0;
             border-radius: 5px;
             z-index: 10;
+            border: 1px solid #ccc; /* Optional: Add border for better visibility */
         }
         .menu button {
             padding: 15px;
             border: none;
-            color: white;
+            color: black; /* Changed button text to black */
             text-align: center;
             cursor: pointer;
             margin: 0;
