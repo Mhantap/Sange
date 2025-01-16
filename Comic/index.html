@@ -120,37 +120,37 @@
         }
         /* Loading Screen Styles */
         .loading-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(240, 244, 248, 0.9); /* Slightly darker for contrast */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        z-index: 1000;
-    }
-    .loading {
-        width: 80px;
-        height: 80px;
-        border: 8px solid transparent;
-        border-top-color: #4a90e2;
-        border-left-color: #e94e77; /* Pink */
-        border-bottom-color: #f5a623; /* Orange */
-        border-right-color: #50e3c2; /* Green */
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(240, 244, 248, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .loading {
+            width: 80px;
+            height: 80px;
+            border: 8px solid transparent;
+            border-top-color: #4a90e2;
+            border-left-color: #e94e77; /* Pink */
+            border-bottom-color: #f5a623; /* Orange */
+            border-right-color: #50e3c2; /* Green */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
         .loading-text {
-        margin-top: 20px;
-        font-size: 24px;
-        color: #4a90e2;
+            margin-top: 20px;
+            font-size: 24px;
+            color: #4a90e2;
         }
     </style>
 </head>
@@ -158,7 +158,7 @@
 
     <div class="loading-screen" id="loading-screen">
         <div class="loading"></div>
-        <div class="loading-text">Loading...</div>
+        <div class="loading-text">PLEASE WAIT...</div>
     </div>
 
     <nav>
@@ -174,7 +174,7 @@
     <section id="non-h" style="display: none;">
         <h2>Non H</h2>
         <ul>
-            <li><button class="non-h" onclick="openModal('Academy's Genius Swordmaster Chapter 21')">Academy's Genius Swordmaster Chapter 21</button></li>
+            <li><button class="non-h" onclick="openModal('Academy\'s Genius Swordmaster Chapter 21')">Academy's Genius Swordmaster Chapter 21</button></li>
             <li><button class="non-h" onclick="openModal('Moon Shadow Sword Emperor Chapter 85')">Moon Shadow Sword Emperor Chapter 85</button></li>
         </ul>
     </section>
@@ -211,15 +211,31 @@
         </div>
     </div>
 
+    <div id="usernameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUsernameModal()">&times;</span>
+            <h2>Please Enter Your Name</h2>
+            <input type="text" id="username" placeholder="Enter your name" />
+            <button onclick="submitName()">Submit</button>
+        </div>
+    </div>
+
     <script>
         window.onload = function() {
-            setTimeout(() => {
-                const name = prompt("Please enter your name:") || "Guest";
-                document.getElementById('welcome-message').innerText = `Welcome to Comic Note, ${name}!`;
-                document.getElementById('loading-screen').style.display = 'none';
-                document.body.style.display = 'block'; // Show body content
-            }, 5000); // Simulate loading time of 5 seconds
+            document.getElementById('usernameModal').style.display = 'block';
         };
+
+        function submitName() {
+            const name = document.getElementById('username').value || "Guest";
+            document.getElementById('welcome-message').innerText = `Welcome to Comic Note, ${name}!`;
+            document.getElementById('loading-screen').style.display = 'none';
+            document.body.style.display = 'block'; // Show body content
+            closeUsernameModal();
+        }
+
+        function closeUsernameModal() {
+            document.getElementById('usernameModal').style.display = "none";
+        }
 
         function toggleMenu() {
             const menu = document.getElementById('menu');
@@ -245,8 +261,12 @@
 
         window.onclick = function(event) {
             const modal = document.getElementById('myModal');
+            const usernameModal = document.getElementById('usernameModal');
             if (event.target == modal) {
                 modal.style.display = "none";
+            }
+            if (event.target == usernameModal) {
+                usernameModal.style.display = "none";
             }
         }
     </script>
