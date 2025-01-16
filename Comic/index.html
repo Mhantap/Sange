@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter Note</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+            margin-top: 20px;
+        }
+        nav {
+            background-color: #4a90e2;
+            color: white;
+            position: relative;
+        }
+        .hamburger {
+            display: inline-block;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .menu {
+            display: none;
+            flex-direction: column;
+            background-color: #4a90e2;
+            position: absolute;
+            width: 100%;
+            top: 60px;
+            left: 0;
+            border-radius: 5px;
+            z-index: 10;
+        }
+        .menu a {
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+            text-align: center;
+            border-bottom: 1px solid #fff;
+            transition: background 0.2s;
+        }
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        section {
+            margin: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        section:hover {
+            transform: scale(1.02);
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4a90e2;
+            padding-bottom: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        a {
+            color: #4a90e2;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: #d0021b;
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="hamburger" onclick="toggleMenu()">☰ Menu</div>
+        <div class="menu" id="menu">
+            <a href="#non-h">Non H</a>
+            <a href="#h">H</a>
+            <a href="https://doujindesu.tv" target="_blank">Doujindesu</a>
+        </div>
+    </nav>
+
+    <h1>Chapter Note</h1>
+
+    <section id="non-h">
+        <h2>Non H</h2>
+        <ul>
+            <li><a href="https://komikcast.net/academys-genius-swordmaster-chapter-21/">Academy's Genius Swordmaster Chapter 21</a></li>
+            <li><a href="https://komikindo.tv/moon-shadow-sword-emperor-chapter-85/">Moon Shadow Sword Emperor Chapter 85</a></li>
+        </ul>
+    </section>
+
+    <section id="h">
+        <h2>H</h2>
+        <p>(No entries)</p>
+    </section>
+
+    <section>
+        <h2>Sudah dibaca</h2>
+        <ul>
+            <li><a href="https://doujindesu.tv/mom-addiction-chapter-795/">Mom Addiction Chapter 795</a></li>
+            <li><a href="https://doujindesu.tv/stop-smoking-chapter-25/">Stop Smoking Chapter 25</a></li>
+            <li><a href="https://doujindesu.tv/corruption-in-the-dungeon-chapter-47/">Corruption in the Dungeon Chapter 47</a></li>
+            <li><a href="https://doujindesu.tv/yogurt-delivery-lady-chapter-43/">Yogurt Delivery Lady Chapter 43</a></li>
+            <li><a href="https://doujindesu.tv/pervert-diary-chapter-108/">Pervert Diary Chapter 108</a></li>
+            <li><a href="https://doujindesu.tv/heroine-app-chapter-39/">Heroine App Chapter 39 (gak di baca dulu Author hiatus)</a></li>
+            <li><a href="https://doujindesu.tv/the-hole-diary-chapter-22/">The Hole Diary Chapter 22</a></li>
+            <li><a href="https://doujindesu.tv/ero-game-becomes-reality-chapter-48/">Ero Game Becomes Reality Chapter 48</a></li>
+            <li><a href="https://doujindesu.tv/moby-dick-chapter-37/">Moby Dick Chapter 37</a></li>
+            <li><a href="https://doujindesu.tv/isekai-dragondick-knight-commander-chapter-16/">Isekai Dragondick Knight Commander Chapter 16</a></li>
+            <li><a href="https://doujindesu.tv/manager-please-scold-me-chapter-15/">Manager Please Scold Me Chapter 15</a></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Belum dibaca</h2>
+        <ul>
+            <li><a href="https://doujindesu.tv/manga/trap/">Trap</a></li>
+            <li><a href="https://doujindesu.tv/manga/she-wants-to-get-drunk/">She Wants to Get Drunk</a></li>
+            <li><a href="https://doujindesu.tv/manga/mom-instead-of-daughter/">Mom Instead of Daughter</a></li>
+            <li><a href="https://doujindesu.tv/manga/is-there-no-goddess-in-my-college/">Is There No Goddess in My College?</a></li>
+            <li><a href="https://doujindesu.tv/manga/my-sisters-friends/">My Sister's Friends</a></li>
+            <li><a href="https://doujindesu.tv/manga/my-sister-in-laws-skirt/">My Sister-in-law's Skirt</a></li>
+            <li><a href="https://doujindesu.tv/manga/troublesome-sister/">Troublesome Sister</a></li>
+            <li><a href="https://doujindesu.tv/manga/secret-lesson-with-my-sister/">Secret Lesson with My Sister</a></li>
+            <li><a href="https://doujindesu.tv/manga/your-wife/">Your Wife</a></li>
+            <li><a href="https://doujindesu.tv/manga/please-scan-here/">Please Scan Here</a></li>
+            <li><a href="https://doujindesu.tv/manga/missy-neighbors/">Missy Neighbors</a></li>
+            <li><a href="https://doujindesu.tv/manga/im-a-pseudo-leader/">I'm a Pseudo Leader</a></li>
+            <li><a href="https://doujindesu.tv/manga/prison-girl/">Prison Girl</a></li>
+            <li><a href="https://doujindesu.tv/manga/the-bathhouse/">The Bathhouse</a></li>
+            <li><a href="https://doujindesu.tv/manga/strongly-sexed-women/">Strongly Sexed Women</a></li>
+            <li><a href="https://doujindesu.tv/manga/absolute-smartwatch/">Absolute Smartwatch</a></li>
+            <li><a href="https://doujindesu.tv/manga/sexy-man-and-woman/">Sexy Man and Woman</a></li>
+            <li><a href="https://doujindesu.tv/manga/department-store-misses/">Department Store Misses</a></li>
+            <li><a href="https://doujindesu.tv/manga/relationship-reverse-button-lets-make-her-submissive/">Relationship Reverse Button: Let's Make Her Submissive</a></li>
+            <li><a href="https://doujindesu.tv/manga/the-four-of-us-cant-live-together/">The Four of Us Can't Live Together</a></li>
+            <li><a href="https://doujindesu.tv/manga/mom-eat-first/">Mom Eat First</a></li>
+            <li><a href="https://doujindesu.tv/manga/wind-cloud-wuxia/">Wind Cloud Wuxia</a></li>
+            <li><a href="https://doujindesu.tv/manga/your-wife-was-delicious/">Your Wife Was Delicious</a></li>
+            <li><a href="https://doujindesu.tv/manga/sextudy-group/">Sextudy Group</a></li>
+            <li><a href="https://doujindesu.tv/manga/mother-hunting/">Mother Hunting</a></li>
+            <li><a href="https://doujindesu.tv/?s=Wreck+My+Bias">Wreck My Bias</a></li>
+            <li><a href="https://doujindesu.tv/manga/milf-hunter-from-another-world/">Milf Hunter from Another World</a></li>
+            <li><a href="https://doujindesu.tv/manga/revenge-by-harem/">Revenge by Harem</a></li>
+            <li><a href="https://doujindesu.tv/manga/obsessive-romance/">Obsessive Romance</a></li>
+            <li><a href="https://doujindesu.tv/manga/could-you-please-touch-me-there/">Could You Please Touch Me There?</a></li>
+            <li><a href="https://doujindesu.tv/manga/harem-boy/">Harem Boy</a></li>
+            <li><a href="https://doujindesu.tv/manga/park-moojik-hit-the-jackpot/">Park Moojik Hit the Jackpot</a></li>
+            <li><a href="https://doujindesu.tv/manga/an-invisible-kiss/">An Invisible Kiss</a></li>
+            <li><a href="https://doujindesu.tv/manga/the-billionaires-monster-cock-soninlaw/">The Billionaire's Monster Cock Son-in-Law</a></li>
+            <li><a href="https://doujindesu.tv/manga/start-casting-couch/">Start Casting Couch</a></li>
+            <li><a href="https://doujindesu.tv/manga/you-wont-get-me-twice/">You Won't Get Me Twice</a></li>
+            <li><a href="https://doujindesu.tv/manga/idiot-virus/">Idiot Virus</a></li>
+            <li><a href="https://doujindesu.tv/manga/my-eyes-now-see-desires/">My Eyes Now See Desires</a></li>
+            <li><a href="https://doujindesu.tv/manga/the-servants-story/">The Servant's Story</a></li>
+            <li><a href="https://doujindesu.tv/manga/love-gacha/">Love Gacha</a></li>
+            <li><a href="https://doujindesu.tv/manga/global-sexual-culture-research-institute/">Global Sexual Culture Research Institute</a></li>
+            <li><a href="https://doujindesu.tv/manga/the-protagonist-gets-stronger-when-he-fucks-the-female-hunter/">The Protagonist Gets Stronger When He Fucks the Female Hunter</a></li>
+            <li><a href="https://doujindesu.tv/manga/brothel/">Brothel</a></li>
+            <li><a href="https://doujindesu.tv/manga/family-with-benefits/">Family with Benefits</a></li>
+            <li><a href="https://doujindesu.tv/manga/the-warrior-is-disappointed-in-you/">The Warrior is Disappointed in You</a></li>
+            <li><a href="https://doujindesu.tv/manga/athletes-village-the-trap/">Athletes Village: The Trap</a></li>
+            <li><a href="https://doujindesu.tv/manga/human-scum/">Human Scum</a></li>
+            <li><a href="https://doujindesu.tv/manga/turning-my-life-around-with-crypto/">Turning My Life Around with Crypto</a></li>
+        </ul>
+    </section>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+    </script>
+
+</body>
+</html>
