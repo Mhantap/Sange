@@ -95,17 +95,16 @@
 <body>
 
     <nav>
-        <div class="hamburger" onclick="toggleMenu()">☰ Menu</div>
+        <div class="hamburger" onclick="toggleMenu()">☰ Chapter Note</div>
         <div class="menu" id="menu">
-            <a href="#non-h">Non H</a>
-            <a href="#h">H</a>
-            <a href="https://doujindesu.tv" target="_blank">Doujindesu</a>
+            <a href="#non-h" onclick="showSection('non-h')">Non H</a>
+            <a href="#h" onclick="showSection('h')">H</a>
         </div>
     </nav>
 
-    <h1>Chapter Note</h1>
+    <h1>Welcome to Comic Note</h1>
 
-    <section id="non-h">
+    <section id="non-h" style="display: none;">
         <h2>Non H</h2>
         <ul>
             <li><a href="https://komikcast.net/academys-genius-swordmaster-chapter-21/">Academy's Genius Swordmaster Chapter 21</a></li>
@@ -113,7 +112,7 @@
         </ul>
     </section>
 
-    <section id="h">
+    <section id="h" style="display: none;">
         <h2>H</h2>
         <p>(No entries)</p>
     </section>
@@ -193,6 +192,14 @@
         function toggleMenu() {
             const menu = document.getElementById('menu');
             menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => {
+                section.style.display = section.id === sectionId ? 'block' : 'none';
+            });
+            toggleMenu(); // Close menu after section is shown
         }
     </script>
 
