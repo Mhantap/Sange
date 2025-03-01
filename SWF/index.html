@@ -15,19 +15,22 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            overflow: hidden; /* Prevent scrolling on mobile */
         }
         .container {
             background: white;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            max-width: 400px;
-            width: 100%;
+            padding: 20px;
+            max-width: 90%; /* Use % for better responsiveness */
+            width: 400px;
+            box-sizing: border-box; /* Include padding in width calculation */
         }
         h1 {
             text-align: center;
             color: #2193b0;
             margin-bottom: 20px;
+            font-size: 1.5em; /* Responsive font size */
         }
         input[type="number"], select, button {
             padding: 10px;
@@ -36,6 +39,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             transition: border-color 0.3s;
+            font-size: 1em; /* Responsive font size */
         }
         input[type="number"]:focus, select:focus {
             border-color: #2193b0;
@@ -117,7 +121,7 @@
         <button id="download">Download SWF</button>
         <div id="message"></div>
         <div id="statistics"></div>
-        <div id="note">If the downloaded file fails, it means the file cannot be downloaded from the server/403 forbidden.<br> <br>I recommend input numbers from 01 to 99999. <br><br> The larger number of input numbers you enter will take a lot of time </div>
+        <div id="note">If the downloaded file fails, it means the file cannot be downloaded from the server/403 forbidden.<br> <br>I recommend inputting numbers from 01 to 99999. <br><br> The larger number of input numbers you enter will take a lot of time </div>
         <div id="progressContainer">
             <div id="progressBar"></div>
         </div>
@@ -210,14 +214,6 @@
             processBatch(initialBatch).then(() => {
                 zip.generateAsync({ type: 'blob' }).then(content => {
                     saveAs(content, `${folderName}.zip`);
-
-                    // Create credits.txt content
-                    const creditsContent = "Thanks to using SWF Downloader by Mhtpsg. Don't forget to join my discord to know more another and mod infos. Link Discord: https://discord.com/invite/wAkYqEUWXj";
-                    const creditsBlob = new Blob([creditsContent], { type: 'text/plain' });
-
-                    // Save credits.txt
-                    saveAs(creditsBlob, 'credits.txt');
-
                     const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
                     messageDiv.innerHTML = 'Proses download selesai.';
                     statisticsDiv.innerHTML += `<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
