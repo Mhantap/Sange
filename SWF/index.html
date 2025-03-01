@@ -160,8 +160,7 @@
             let downloadedFiles = 0;
             let failedFiles = 0;
             const startTime = Date.now();
-            const batchSize = 20; // Number of files to download at once
-            const delayBetweenBatches = 500; // Delay in milliseconds
+            const batchSize = 50; // Number of files to download at once
 
             const downloadFile = (index) => {
                 return new Promise((resolve) => {
@@ -201,7 +200,7 @@
             const processBatch = (batch) => {
                 return Promise.all(batch.map(downloadFile)).then(() => {
                     if (batch[batch.length - 1] < end) {
-                        return new Promise(resolve => setTimeout(resolve, delayBetweenBatches)) // Wait before next batch
+                        return new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second before next batch
                             .then(() => processBatch(Array.from({length: batchSize}, (_, i) => batch[batch.length - 1] + 1 + i).filter(i => i <= end)));
                     }
                 });
