@@ -100,48 +100,50 @@
     </div>
 
     <script>
-        document.getElementById('download').addEventListener('click', function() {
-            const fileType = document.getElementById('fileType').value;
-            const start = parseInt(document.getElementById('start').value);
-            const end = parseInt(document.getElementById('end').value);
-            const messageDiv = document.getElementById('message');
-            const statisticsDiv = document.getElementById('statistics');
-            const spinner = document.getElementById('spinner');
-            messageDiv.innerHTML = '';
-            statisticsDiv.innerHTML = '';
-            spinner.style.display = 'none';
+    document.getElementById('download').addEventListener('click', function() {
+        const fileType = document.getElementById('fileType').value;
+        const start = parseInt(document.getElementById('start').value);
+        const end = parseInt(document.getElementById('end').value);
+        const messageDiv = document.getElementById('message');
+        const statisticsDiv = document.getElementById('statistics');
+        messageDiv.innerHTML = '';
+        statisticsDiv.innerHTML = '';
 
-            if (isNaN(start) || isNaN(end) || start > end) {
-                messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
-                return;
+        if (isNaN(start) || isNaN(end) || start > end) {
+            messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
+            return;
+        }
+
+        const zip = new JSZip();
+        const folderName = fileType === 'enemies' ? 'Enemies' : fileType === 'skills' ? 'Skills' : 'Senjutsu';
+
+        const promises = [];
+        let totalFiles = end - start + 1;
+        let downloadedFiles = 0;
+        let failedFiles = 0;
+        const startTime = Date.now();
+        const maxRetries = 3; // Maximum number of retries for each file
+
+        for (let i = start; i <= end; i++) {
+            const paddedIndex = String(i).padStart(2, '0');
+            let url;
+
+            if (fileType === 'enemies') {
+                url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/enemies_v2/ene_${paddedIndex}.swf`;
+            } else if (fileType === 'skills') {
+                url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/skill_${paddedIndex}.swf`;
+            } else if (fileType === 'senjutsu') {
+                url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
             }
 
-            const zip = new JSZip();
-            const folderName = fileType === 'enemies' ? 'Enemies' : fileType === 'skills' ? 'Skills' : 'Senjutsu';
-
-            const promises = [];
-            let totalFiles = end - start + 1;
-            let downloadedFiles = 0;
-            let failedFiles = 0;
-            const startTime = Date.now();
-            spinner.style.display = 'block';
-
-            for (let i = start; i <= end; i++) {
-                const paddedIndex = String(i).padStart(2, '0');
-                let url;
-
-                if (fileType === 'enemies') {
-                    url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/enemies_v2/ene_${paddedIndex}.swf`;
-                } else if (fileType === 'skills') {
-                    url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/skill_${paddedIndex}.swf`;
-                } else if (fileType === 'senjutsu') {
-                    url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
-                }
-
-                promises.push(fetch(url)
+            const fetchWithRetry = (retries) => {
+                return fetch(url)
                     .then(response => {
                         if (!response.ok) {
                             failedFiles++;
+                            if (retries > 0) {
+                                return fetchWithRetry(retries - 1); // Retry downloading
+                            }
                             throw new Error('Network response was not ok');
                         }
                         return response.blob();
@@ -152,22 +154,21 @@
                     })
                     .catch(err => {
                         console.error('Error fetching file:', err);
-                    }));
-            }
+                    });
+            };
 
-            Promise.all(promises).then(() => {
-                zip.generateAsync({ type: 'blob' }).then(content => {
-                    saveAs(content, `${folderName}.zip`);
-                    const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
-                    messageDiv.innerHTML = 'Proses download selesai.';
-                    statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
-                    spinner.style.display = 'none';
-                });
-            }).catch(() => {
-                messageDiv.innerHTML = 'Terjadi kesalahan saat memproses file.';
-                spinner.style.display = 'none';
+            promises.push(fetchWithRetry(maxRetries));
+        }
+
+        Promise.all(promises).then(() => {
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                saveAs(content, `${folderName}.zip`);
+                const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                messageDiv.innerHTML = 'Proses download selesai.';
+                statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
             });
         });
+    });
     </script>
 </body>
 </html>
