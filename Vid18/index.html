@@ -41,6 +41,7 @@
         }
         .controls {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
         }
         button {
@@ -50,6 +51,8 @@
             cursor: pointer;
             background-color: #007bff;
             color: white;
+            margin: 5px;
+            flex: 1 1 30%; /* Flex basis for responsive layout */
         }
         button:hover {
             background-color: #0056b3;
