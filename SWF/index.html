@@ -122,6 +122,8 @@
         let failedFiles = 0;
         const startTime = Date.now();
 
+        let downloadStartTime = Date.now();
+
         for (let i = start; i <= end; i++) {
             const paddedIndex = String(i).padStart(2, '0');
             let url;
@@ -145,6 +147,13 @@
                 .then(blob => {
                     zip.file(`${folderName}/${url.split('/').pop()}`, blob);
                     downloadedFiles++;
+                    const elapsedTime = (Date.now() - downloadStartTime) / 1000; // Waktu yang telah berlalu
+                    const estimatedTimePerFile = elapsedTime / downloadedFiles; // Estimasi waktu per file
+                    const remainingFiles = totalFiles - downloadedFiles; // Sisa file
+                    const estimatedTotalTime = estimatedTimePerFile * totalFiles; // Estimasi total waktu
+                    const estimatedCompletionTime = new Date(Date.now() + estimatedTotalTime * 1000); // Waktu perkiraan selesai
+
+                    statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Estimasi Selesai: ${estimatedCompletionTime.toLocaleTimeString()}<br>Estimasi Waktu yang Diperlukan: ${estimatedTotalTime.toFixed(2)} detik`;
                 })
                 .catch(err => {
                     console.error('Error fetching file:', err);
@@ -156,10 +165,10 @@
                 saveAs(content, `${folderName}.zip`);
                 const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
                 messageDiv.innerHTML = 'Proses download selesai.';
-                statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
+                statisticsDiv.innerHTML += `<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
             });
         });
     });
-   </script>
+    </script>
 </body>
 </html>
