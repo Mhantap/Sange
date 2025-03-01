@@ -55,7 +55,7 @@
         .form-group {
             margin-bottom: 15px;
         }
-        #message, #statistics {
+        #message, #statistics, #note {
             margin-top: 20px;
             padding: 10px;
             border-radius: 5px;
@@ -65,6 +65,10 @@
         #statistics {
             font-size: 14px;
             color: #666;
+        }
+        #note {
+            color: red; /* Make the note text red */
+            font-size: 14px; /* Adjust font size if needed */
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -92,6 +96,8 @@
         <button id="download">Download SWF</button>
         <div id="message"></div>
         <div id="statistics"></div>
+        <div id="note">If the downloaded file fails, it means the file cannot be downloaded from the server/403 forbidden.<br>
+            I recommend input numbers from 01 to 999999.</div>
     </div>
     <script>
     document.getElementById('download').addEventListener('click', function() {
