@@ -32,12 +32,20 @@
             border-radius: 8px;
         }
         .video-item {
+            display: flex;
+            align-items: center;
             padding: 10px;
             cursor: pointer;
             border-bottom: 1px solid #ddd;
         }
         .video-item:hover {
             background-color: #f0f0f0;
+        }
+        .video-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            margin-right: 10px;
         }
         .controls {
             display: flex;
@@ -69,31 +77,74 @@
         <button id="playBtn">Play</button>
         <button id="pauseBtn">Pause</button>
         <button id="stopBtn">Stop</button>
+        <button id="nextBtn">Next</button>
         <button id="downloadBtn">Download</button>
     </div>
 
     <div class="playlist">
-        <div class="video-item" data-src="Folders/lv_7149157926945574145_20250228161617.mp4">Video 1</div>
-        <div class="video-item" data-src="Folders/2.mp4">Video 2</div>
-        <div class="video-item" data-src="Folders/3.mp4">Video 3</div>
-        <div class="video-item" data-src="Folders/4.mp4">Video 4</div>
-        <div class="video-item" data-src="Folders/5.mp4">Video 5</div>
-        <div class="video-item" data-src="Folders/6.mp4">Video 6</div>
-        <div class="video-item" data-src="Folders/7.mp4">Video 7</div>
-        <div class="video-item" data-src="Folders/8.mp4">Video 8</div>
-        <div class="video-item" data-src="Folders/9.mp4">Video 9</div>
-        <div class="video-item" data-src="Folders/10.mp4">Video 10</div>
-        <div class="video-item" data-src="Folders/11.mp4">Video 11</div>
-        <div class="video-item" data-src="Folders/12.mp4">Video 12</div>
-        <div class="video-item" data-src="Folders/13.mp4">Video 13</div>
-        <div class="video-item" data-src="Folders/14.mp4">Video 14</div>
-        <div class="video-item" data-src="Folders/15.mp4">Video 15</div>
-        <div class="video-item" data-src="Folders/16.mp4">Video 16</div>
-        <div class="video-item" data-src="Folders/17.mp4">Video 17</div>
-        <div class="video-item" data-src="Folders/18.mp4">Video 18</div>
-        <div class="video-item" data-src="Folders/19.mp4">Video 19</div>
-        <div class="video-item" data-src="Folders/20.mp4">Video 20</div>
-        <div class="video-item" data-src="Folders/21.mp4">Video 21</div>
+        <div class="video-item" data-src="Folders/lv_7149157926945574145_20250228161617.mp4">
+            <img src="thumbnails/1.jpg" alt="Video 1 Thumbnail"> Video 1
+        </div>
+        <div class="video-item" data-src="Folders/2.mp4">
+            <img src="thumbnails/2.jpg" alt="Video 2 Thumbnail"> Video 2
+        </div>
+        <div class="video-item" data-src="Folders/3.mp4">
+            <img src="thumbnails/3.jpg" alt="Video 3 Thumbnail"> Video 3
+        </div>
+        <div class="video-item" data-src="Folders/4.mp4">
+            <img src="thumbnails/4.jpg" alt="Video 4 Thumbnail"> Video 4
+        </div>
+        <div class="video-item" data-src="Folders/5.mp4">
+            <img src="thumbnails/5.jpg" alt="Video 5 Thumbnail"> Video 5
+        </div>
+        <div class="video-item" data-src="Folders/6.mp4">
+            <img src="thumbnails/6.jpg" alt="Video 6 Thumbnail"> Video 6
+        </div>
+        <div class="video-item" data-src="Folders/7.mp4">
+            <img src="thumbnails/7.jpg" alt="Video 7 Thumbnail"> Video 7
+        </div>
+        <div class="video-item" data-src="Folders/8.mp4">
+            <img src="thumbnails/8.jpg" alt="Video 8 Thumbnail"> Video 8
+        </div>
+        <div class="video-item" data-src="Folders/9.mp4">
+            <img src="thumbnails/9.jpg" alt="Video 9 Thumbnail"> Video 9
+        </div>
+        <div class="video-item" data-src="Folders/10.mp4">
+            <img src="thumbnails/10.jpg" alt="Video 10 Thumbnail"> Video 10
+        </div>
+        <div class="video-item" data-src="Folders/11.mp4">
+            <img src="thumbnails/11.jpg" alt="Video 11 Thumbnail"> Video 11
+        </div>
+        <div class="video-item" data-src="Folders/12.mp4">
+            <img src="thumbnails/12.jpg" alt="Video 12 Thumbnail"> Video 12
+        </div>
+        <div class="video-item" data-src="Folders/13.mp4">
+            <img src="thumbnails/13.jpg" alt="Video 13 Thumbnail"> Video 13
+        </div>
+        <div class="video-item" data-src="Folders/14.mp4">
+            <img src="thumbnails/14.jpg" alt="Video 14 Thumbnail"> Video 14
+        </div>
+        <div class="video-item" data-src="Folders/15.mp4">
+            <img src="thumbnails/15.jpg" alt="Video 15 Thumbnail"> Video 15
+        </div>
+        <div class="video-item" data-src="Folders/16.mp4">
+            <img src="thumbnails/16.jpg" alt="Video 16 Thumbnail"> Video 16
+        </div>
+        <div class="video-item" data-src="Folders/17.mp4">
+            <img src="thumbnails/17.jpg" alt="Video 17 Thumbnail"> Video 17
+        </div>
+        <div class="video-item" data-src="Folders/18.mp4">
+            <img src="thumbnails/18.jpg" alt="Video 18 Thumbnail"> Video 18
+        </div>
+        <div class="video-item" data-src="Folders/19.mp4">
+            <img src="thumbnails/19.jpg" alt="Video 19 Thumbnail"> Video 19
+        </div>
+        <div class="video-item" data-src="Folders/20.mp4">
+            <img src="thumbnails/20.jpg" alt="Video 20 Thumbnail"> Video 20
+        </div>
+        <div class="video-item" data-src="Folders/21.mp4">
+            <img src="thumbnails/21.jpg" alt="Video 21 Thumbnail"> Video 21
+        </div>
     </div>
 </div>
 
@@ -103,8 +154,10 @@
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
+    const nextBtn = document.getElementById('nextBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const videoItems = document.querySelectorAll('.video-item');
+    let currentVideoIndex = 0;
 
     playBtn.addEventListener('click', () => {
         videoPlayer.play();
@@ -119,6 +172,11 @@
         videoPlayer.currentTime = 0;
     });
 
+    nextBtn.addEventListener('click', () => {
+        currentVideoIndex = (currentVideoIndex + 1) % videoItems.length;
+        loadVideo(currentVideoIndex);
+    });
+
     downloadBtn.addEventListener('click', () => {
         const src = videoSource.src;
         const a = document.createElement('a');
@@ -129,13 +187,18 @@
         document.body.removeChild(a);
     });
 
-    videoItems.forEach(item => {
+    videoItems.forEach((item, index) => {
         item.addEventListener('click', () => {
-            videoSource.src = item.getAttribute('data-src');
-            videoPlayer.load();
-            videoPlayer.play();
+            currentVideoIndex = index;
+            loadVideo(currentVideoIndex);
         });
     });
+
+    function loadVideo(index) {
+        videoSource.src = videoItems[index].getAttribute('data-src');
+        videoPlayer.load();
+        videoPlayer.play();
+    }
 </script>
 
 </body>
