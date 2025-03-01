@@ -23,9 +23,9 @@
             padding: 30px;
             max-width: 400px;
             width: 100%;
-            text-align: center;
         }
         h1 {
+            text-align: center;
             color: #2193b0;
             margin-bottom: 20px;
         }
@@ -66,10 +66,6 @@
             font-size: 14px;
             color: #666;
         }
-        .spinner {
-            display: none;
-            margin: 20px auto;
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -96,11 +92,14 @@
         <button id="download">Download SWF</button>
         <div id="message"></div>
         <div id="statistics"></div>
-        <div class="spinner" id="spinner">Loading...</div>
     </div>
-
     <script>
     document.getElementById('download').addEventListener('click', function() {
+        const confirmation = confirm("Apakah Anda yakin ingin mendownload file ini?");
+        if (!confirmation) {
+            return; // Hentikan proses jika pengguna memilih "No"
+        }
+
         const fileType = document.getElementById('fileType').value;
         const start = parseInt(document.getElementById('start').value);
         const end = parseInt(document.getElementById('end').value);
@@ -122,7 +121,6 @@
         let downloadedFiles = 0;
         let failedFiles = 0;
         const startTime = Date.now();
-        const maxRetries = 3; // Maximum number of retries for each file
 
         for (let i = start; i <= end; i++) {
             const paddedIndex = String(i).padStart(2, '0');
@@ -136,28 +134,21 @@
                 url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
             }
 
-            const fetchWithRetry = (retries) => {
-                return fetch(url)
-                    .then(response => {
-                        if (!response.ok) {
-                            failedFiles++;
-                            if (retries > 0) {
-                                return fetchWithRetry(retries - 1); // Retry downloading
-                            }
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        zip.file(`${folderName}/${url.split('/').pop()}`, blob);
-                        downloadedFiles++;
-                    })
-                    .catch(err => {
-                        console.error('Error fetching file:', err);
-                    });
-            };
-
-            promises.push(fetchWithRetry(maxRetries));
+            promises.push(fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        failedFiles++;
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    zip.file(`${folderName}/${url.split('/').pop()}`, blob);
+                    downloadedFiles++;
+                })
+                .catch(err => {
+                    console.error('Error fetching file:', err);
+                }));
         }
 
         Promise.all(promises).then(() => {
@@ -169,6 +160,6 @@
             });
         });
     });
-    </script>
+   </script>
 </body>
 </html>
