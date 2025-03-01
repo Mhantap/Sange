@@ -15,25 +15,25 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            overflow: auto; /* Allows scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
         }
         .container {
             background: white;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            max-width: 400px;
-            width: 90%; /* Responsive width */
-            box-sizing: border-box; /* Include padding in width */
+            padding: 20px; /* Reduced padding */
+            max-width: 90%; /* Adjusted max width */
+            width: 100%;
+            box-sizing: border-box; /* Ensure padding is included in width */
         }
         h1 {
             text-align: center;
             color: #2193b0;
-            margin-bottom: 20px;
-            font-size: 1.5em; /* Adjust font size for better visibility */
+            font-size: 1.5em; /* Responsive font size */
+            margin-bottom: 15px; /* Reduced margin */
         }
         input[type="number"], select, button {
-            padding: 10px;
+            padding: 8px; /* Reduced padding */
             margin: 5px 0;
             width: 100%;
             border: 1px solid #ddd;
@@ -56,30 +56,31 @@
             background-color: #218838;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px; /* Reduced margin */
         }
         #message, #statistics, #note {
-            margin-top: 20px;
+            margin-top: 15px; /* Reduced margin */
             padding: 10px;
             border-radius: 5px;
             background-color: #f8f9fa;
             border: 1px solid #ddd;
+            font-size: 0.9em; /* Smaller font size */
         }
         #statistics {
-            font-size: 14px;
+            font-size: 12px; /* Smaller font size */
             color: #666;
         }
         #note {
             color: red;
-            font-size: 14px;
+            font-size: 12px; /* Smaller font size */
         }
         #progressContainer {
             width: 100%;
-            height: 20px;
+            height: 15px; /* Reduced height */
             background-color: #ddd;
             border-radius: 5px;
             overflow: hidden;
-            margin-top: 20px;
+            margin-top: 15px; /* Reduced margin */
             display: none;
         }
         #progressBar {
@@ -120,7 +121,7 @@
         <button id="download">Download SWF</button>
         <div id="message"></div>
         <div id="statistics"></div>
-        <div id="note">If the downloaded file fails, it means the file cannot be downloaded from the server/403 forbidden.<br> <br>I recommend input numbers from 01 to 99999. <br><br> The larger number of input numbers you enter will take a lot of time </div>
+        <div id="note">If the downloaded file fails, it means the file cannot be downloaded from the server/403 forbidden.<br> <br>I recommend input numbers from 01 to 99999. <br><br> The larger number of input numbers you enter will take a lot of time.</div>
         <div id="progressContainer">
             <div id="progressBar"></div>
         </div>
