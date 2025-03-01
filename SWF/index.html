@@ -6,57 +6,93 @@
     <title>SWF Downloader</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
-            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #6dd5ed, #2193b0);
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #2193b0;
+            margin-bottom: 20px;
         }
         input[type="number"], select, button {
             padding: 10px;
-            margin: 5px;
-            width: calc(100% - 22px);
+            margin: 5px 0;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+        input[type="number"]:focus, select:focus {
+            border-color: #2193b0;
+            outline: none;
         }
         button {
             background-color: #28a745;
             color: white;
             border: none;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #218838;
         }
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        #message, #statistics {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
         }
         #statistics {
-            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
-    <h1>SWF Downloader</h1>
-    <div class="form-group">
-        <label for="fileType">Pilih Tipe File:</label>
-        <select id="fileType">
-            <option value="enemies">Enemies</option>
-            <option value="skills">Skills</option>
-            <option value="senjutsu">Senjutsu</option>
-        </select>
+    <div class="container">
+        <h1>SWF Downloader</h1>
+        <div class="form-group">
+            <label for="fileType">Pilih Tipe File:</label>
+            <select id="fileType">
+                <option value="enemies">Enemies</option>
+                <option value="skills">Skills</option>
+                <option value="senjutsu">Senjutsu</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="start">Angka Awal:</label>
+            <input type="number" id="start" min="1" required>
+        </div>
+        <div class="form-group">
+            <label for="end">Angka Akhir:</label>
+            <input type="number" id="end" min="1" required>
+        </div>
+        <button id="download">Download SWF</button>
+        <div id="message"></div>
+        <div id="statistics"></div>
     </div>
-    <div class="form-group">
-        <label for="start">Angka Awal:</label>
-        <input type="number" id="start" min="1" required>
-    </div>
-    <div class="form-group">
-        <label for="end">Angka Akhir:</label>
-        <input type="number" id="end" min="1" required>
-    </div>
-    <button id="download">Download SWF</button>
-    <div id="message"></div>
-    <div id="statistics"></div>
 
     <script>
         document.getElementById('download').addEventListener('click', function() {
