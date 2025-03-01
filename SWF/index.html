@@ -85,6 +85,12 @@
             background-color: #28a745;
             transition: width 0.3s;
         }
+        #progressPercentage {
+            text-align: center;
+            margin-top: 5px;
+            font-weight: bold;
+            color: #28a745;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -115,6 +121,7 @@
         <div id="progressContainer">
             <div id="progressBar"></div>
         </div>
+        <div id="progressPercentage">0%</div>
     </div>
     <script>
     document.getElementById('download').addEventListener('click', function() {
@@ -130,10 +137,12 @@
         const statisticsDiv = document.getElementById('statistics');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
+        const progressPercentage = document.getElementById('progressPercentage');
         messageDiv.innerHTML = '';
         statisticsDiv.innerHTML = '';
         progressContainer.style.display = 'block';
         progressBar.style.width = '0%';
+        progressPercentage.innerText = '0%';
 
         if (isNaN(start) || isNaN(end) || start > end) {
             messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
@@ -172,8 +181,9 @@
                 .then(blob => {
                     zip.file(`${folderName}/${url.split('/').pop()}`, blob);
                     downloadedFiles++;
-                    progressBar.style.width = `${(downloadedFiles / totalFiles) * 100}%`;
-                    const elapsedTime = (Date.now() - startTime) / 1000;
+                    const progress = (downloadedFiles / totalFiles) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.innerText = `${Math.round(progress)}%`;
                     statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>`;
                 })
                 .catch(err => {
@@ -187,7 +197,11 @@
                 const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
                 messageDiv.innerHTML = 'Proses download selesai.';
                 statisticsDiv.innerHTML += `<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
+                progressBar.style.width = '100%';
+                progressPercentage.innerText = '100%';
             });
+        }).catch(err => {
+            messageDiv.innerHTML = 'Terjadi kesalahan saat mendownload file.';
         });
     });
     </script>
