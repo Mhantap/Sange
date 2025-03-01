@@ -29,7 +29,7 @@
         .form-group {
             margin-bottom: 10px;
         }
-        #stats {
+        #statistics {
             margin-top: 20px;
         }
     </style>
@@ -56,7 +56,7 @@
     </div>
     <button id="download">Download SWF</button>
     <div id="message"></div>
-    <div id="stats"></div>
+    <div id="statistics"></div>
 
     <script>
         document.getElementById('download').addEventListener('click', function() {
@@ -64,9 +64,9 @@
             const start = parseInt(document.getElementById('start').value);
             const end = parseInt(document.getElementById('end').value);
             const messageDiv = document.getElementById('message');
-            const statsDiv = document.getElementById('stats');
+            const statisticsDiv = document.getElementById('statistics');
             messageDiv.innerHTML = '';
-            statsDiv.innerHTML = '';
+            statisticsDiv.innerHTML = '';
 
             if (isNaN(start) || isNaN(end) || start > end) {
                 messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
@@ -75,16 +75,12 @@
 
             const zip = new JSZip();
             const folderName = fileType === 'enemies' ? 'Enemies' : fileType === 'skills' ? 'Skills' : 'Senjutsu';
-            const totalFiles = end - start + 1;
-            let filesDownloaded = 0;
-            const startTime = Date.now();
 
             const promises = [];
-            const updateStats = () => {
-                const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-                const estimatedTime = Math.floor((elapsedTime / filesDownloaded) * (totalFiles - filesDownloaded));
-                statsDiv.innerHTML = `File diunduh: ${filesDownloaded}/${totalFiles}. Estimasi waktu selesai: ${estimatedTime} detik.`;
-            };
+            let totalFiles = end - start + 1;
+            let downloadedFiles = 0;
+            let failedFiles = 0;
+            const startTime = Date.now();
 
             for (let i = start; i <= end; i++) {
                 const paddedIndex = String(i).padStart(2, '0');
@@ -98,27 +94,29 @@
                     url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
                 }
 
-                const promise = fetch(url)
+                promises.push(fetch(url)
                     .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
+                        if (!response.ok) {
+                            failedFiles++;
+                            throw new Error('Network response was not ok');
+                        }
                         return response.blob();
                     })
                     .then(blob => {
                         zip.file(`${folderName}/${url.split('/').pop()}`, blob);
-                        filesDownloaded++;
-                        updateStats();
+                        downloadedFiles++;
                     })
                     .catch(err => {
                         console.error('Error fetching file:', err);
-                    });
-
-                promises.push(promise);
+                    }));
             }
 
             Promise.all(promises).then(() => {
                 zip.generateAsync({ type: 'blob' }).then(content => {
                     saveAs(content, `${folderName}.zip`);
+                    const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
                     messageDiv.innerHTML = 'Proses download selesai.';
+                    statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
                 });
             });
         });
