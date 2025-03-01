@@ -67,8 +67,23 @@
             color: #666;
         }
         #note {
-            color: red; /* Make the note text red */
-            font-size: 14px; /* Adjust font size if needed */
+            color: red;
+            font-size: 14px;
+        }
+        #progressContainer {
+            width: 100%;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 20px;
+            display: none;
+        }
+        #progressBar {
+            height: 100%;
+            width: 0;
+            background-color: #28a745;
+            transition: width 0.3s;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -97,12 +112,15 @@
         <div id="message"></div>
         <div id="statistics"></div>
         <div id="note">If the downloaded file fails, it means the file cannot be downloaded from the server/403 forbidden.<br> <br>I recommend input numbers from 01 to 999999.</div>
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
     </div>
     <script>
     document.getElementById('download').addEventListener('click', function() {
         const confirmation = confirm("Apakah Anda yakin ingin mendownload file ini?");
         if (!confirmation) {
-            return; // Hentikan proses jika pengguna memilih "No"
+            return;
         }
 
         const fileType = document.getElementById('fileType').value;
@@ -110,8 +128,12 @@
         const end = parseInt(document.getElementById('end').value);
         const messageDiv = document.getElementById('message');
         const statisticsDiv = document.getElementById('statistics');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
         messageDiv.innerHTML = '';
         statisticsDiv.innerHTML = '';
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
 
         if (isNaN(start) || isNaN(end) || start > end) {
             messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
@@ -126,8 +148,6 @@
         let downloadedFiles = 0;
         let failedFiles = 0;
         const startTime = Date.now();
-
-        let downloadStartTime = Date.now();
 
         for (let i = start; i <= end; i++) {
             const paddedIndex = String(i).padStart(2, '0');
@@ -152,13 +172,9 @@
                 .then(blob => {
                     zip.file(`${folderName}/${url.split('/').pop()}`, blob);
                     downloadedFiles++;
-                    const elapsedTime = (Date.now() - downloadStartTime) / 1000; // Waktu yang telah berlalu
-                    const estimatedTimePerFile = elapsedTime / downloadedFiles; // Estimasi waktu per file
-                    const remainingFiles = totalFiles - downloadedFiles; // Sisa file
-                    const estimatedTotalTime = estimatedTimePerFile * totalFiles; // Estimasi total waktu
-                    const estimatedCompletionTime = new Date(Date.now() + estimatedTotalTime * 1000); // Waktu perkiraan selesai
-
-                    statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Estimasi Selesai: ${estimatedCompletionTime.toLocaleTimeString()}<br>Estimasi Waktu yang Diperlukan: ${estimatedTotalTime.toFixed(2)} detik`;
+                    progressBar.style.width = `${(downloadedFiles / totalFiles) * 100}%`;
+                    const elapsedTime = (Date.now() - startTime) / 1000;
+                    statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>`;
                 })
                 .catch(err => {
                     console.error('Error fetching file:', err);
