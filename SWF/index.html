@@ -208,9 +208,9 @@
 
             const initialBatch = Array.from({length: Math.min(batchSize, totalFiles)}, (_, i) => start + i);
             processBatch(initialBatch).then(() => {
-                // Add credits.txt file at the root level of the ZIP
-                zip.file("credits.txt", "Thanks to using SWF Downloader by Mhtpsg. Don't forget to join my discord to know more another and mod infos. Link Discord: https://discord.com/invite/wAkYqEUWXj");
-
+                // Add credits.txt to the zip file
+                zip.file(`${folderName}/credits.txt`, "Thanks to using SWF Downloader by Mhtpsg. Dont forget to join my discord to know more another and mod infos. Link Discord : https://discord.com/invite/wAkYqEUWXj");
+                
                 zip.generateAsync({ type: 'blob' }).then(content => {
                     saveAs(content, `${folderName}.zip`);
                     const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
