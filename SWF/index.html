@@ -15,7 +15,7 @@
         input[type="number"], select, button {
             padding: 10px;
             margin: 5px;
-            width: calc(100% - 22px); /* Adjust width for padding */
+            width: calc(100% - 22px);
         }
         button {
             background-color: #28a745;
@@ -28,6 +28,9 @@
         }
         .form-group {
             margin-bottom: 10px;
+        }
+        #stats {
+            margin-top: 20px;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -53,6 +56,7 @@
     </div>
     <button id="download">Download SWF</button>
     <div id="message"></div>
+    <div id="stats"></div>
 
     <script>
         document.getElementById('download').addEventListener('click', function() {
@@ -60,7 +64,9 @@
             const start = parseInt(document.getElementById('start').value);
             const end = parseInt(document.getElementById('end').value);
             const messageDiv = document.getElementById('message');
+            const statsDiv = document.getElementById('stats');
             messageDiv.innerHTML = '';
+            statsDiv.innerHTML = '';
 
             if (isNaN(start) || isNaN(end) || start > end) {
                 messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
@@ -69,8 +75,16 @@
 
             const zip = new JSZip();
             const folderName = fileType === 'enemies' ? 'Enemies' : fileType === 'skills' ? 'Skills' : 'Senjutsu';
+            const totalFiles = end - start + 1;
+            let filesDownloaded = 0;
+            const startTime = Date.now();
 
             const promises = [];
+            const updateStats = () => {
+                const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                const estimatedTime = Math.floor((elapsedTime / filesDownloaded) * (totalFiles - filesDownloaded));
+                statsDiv.innerHTML = `File diunduh: ${filesDownloaded}/${totalFiles}. Estimasi waktu selesai: ${estimatedTime} detik.`;
+            };
 
             for (let i = start; i <= end; i++) {
                 const paddedIndex = String(i).padStart(2, '0');
@@ -84,17 +98,21 @@
                     url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
                 }
 
-                promises.push(fetch(url)
+                const promise = fetch(url)
                     .then(response => {
                         if (!response.ok) throw new Error('Network response was not ok');
                         return response.blob();
                     })
                     .then(blob => {
                         zip.file(`${folderName}/${url.split('/').pop()}`, blob);
+                        filesDownloaded++;
+                        updateStats();
                     })
                     .catch(err => {
                         console.error('Error fetching file:', err);
-                    }));
+                    });
+
+                promises.push(promise);
             }
 
             Promise.all(promises).then(() => {
