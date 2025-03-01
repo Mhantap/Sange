@@ -30,6 +30,8 @@
             margin-bottom: 10px;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
     <h1>SWF Downloader</h1>
@@ -65,6 +67,11 @@
                 return;
             }
 
+            const zip = new JSZip();
+            const folderName = fileType === 'enemies' ? 'Enemies' : fileType === 'skills' ? 'Skills' : 'Senjutsu';
+
+            const promises = [];
+
             for (let i = start; i <= end; i++) {
                 const paddedIndex = String(i).padStart(2, '0');
                 let url;
@@ -77,20 +84,26 @@
                     url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
                 }
 
-                downloadFile(url);
+                promises.push(fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        zip.file(`${folderName}/${url.split('/').pop()}`, blob);
+                    })
+                    .catch(err => {
+                        console.error('Error fetching file:', err);
+                    }));
             }
 
-            messageDiv.innerHTML = 'Proses download dimulai.';
+            Promise.all(promises).then(() => {
+                zip.generateAsync({ type: 'blob' }).then(content => {
+                    saveAs(content, `${folderName}.zip`);
+                    messageDiv.innerHTML = 'Proses download selesai.';
+                });
+            });
         });
-
-        function downloadFile(url) {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = url.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
     </script>
 </body>
 </html>
