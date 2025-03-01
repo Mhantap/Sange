@@ -52,9 +52,6 @@
         button:hover {
             background-color: #218838;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
         #message, #statistics, #note {
             margin-top: 20px;
             padding: 10px;
@@ -157,11 +154,14 @@
         let downloadedFiles = 0;
         let failedFiles = 0;
         const startTime = Date.now();
+        const maxConcurrentDownloads = 5; // Limit concurrent downloads
 
-        for (let i = start; i <= end; i++) {
+        const downloadFile = (i) => {
+            if (i > end) {
+                return Promise.resolve(); // No more files to download
+            }
             const paddedIndex = String(i).padStart(2, '0');
             let url;
-
             if (fileType === 'enemies') {
                 url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/enemies_v2/ene_${paddedIndex}.swf`;
             } else if (fileType === 'skills') {
@@ -170,7 +170,7 @@
                 url = `https://shinobiwarfare.fra1.cdn.digitaloceanspaces.com/data/swf/skills_v2/sen_${paddedIndex}.swf`;
             }
 
-            promises.push(fetch(url)
+            return fetch(url)
                 .then(response => {
                     if (!response.ok) {
                         failedFiles++;
@@ -188,9 +188,19 @@
                 })
                 .catch(err => {
                     console.error('Error fetching file:', err);
-                }));
+                })
+                .finally(() => {
+                    // Start the next download
+                    downloadFile(i + maxConcurrentDownloads);
+                });
+        };
+
+        // Start the initial batch of downloads
+        for (let i = start; i < start + maxConcurrentDownloads && i <= end; i++) {
+            downloadFile(i);
         }
 
+        // Wait for all downloads to finish
         Promise.all(promises).then(() => {
             zip.generateAsync({ type: 'blob' }).then(content => {
                 saveAs(content, `${folderName}.zip`);
