@@ -23,9 +23,9 @@
             padding: 30px;
             max-width: 400px;
             width: 100%;
+            text-align: center;
         }
         h1 {
-            text-align: center;
             color: #2193b0;
             margin-bottom: 20px;
         }
@@ -66,6 +66,10 @@
             font-size: 14px;
             color: #666;
         }
+        .spinner {
+            display: none;
+            margin: 20px auto;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -92,6 +96,7 @@
         <button id="download">Download SWF</button>
         <div id="message"></div>
         <div id="statistics"></div>
+        <div class="spinner" id="spinner">Loading...</div>
     </div>
 
     <script>
@@ -101,8 +106,10 @@
             const end = parseInt(document.getElementById('end').value);
             const messageDiv = document.getElementById('message');
             const statisticsDiv = document.getElementById('statistics');
+            const spinner = document.getElementById('spinner');
             messageDiv.innerHTML = '';
             statisticsDiv.innerHTML = '';
+            spinner.style.display = 'none';
 
             if (isNaN(start) || isNaN(end) || start > end) {
                 messageDiv.innerHTML = 'Silakan masukkan angka yang valid.';
@@ -117,6 +124,7 @@
             let downloadedFiles = 0;
             let failedFiles = 0;
             const startTime = Date.now();
+            spinner.style.display = 'block';
 
             for (let i = start; i <= end; i++) {
                 const paddedIndex = String(i).padStart(2, '0');
@@ -153,7 +161,11 @@
                     const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
                     messageDiv.innerHTML = 'Proses download selesai.';
                     statisticsDiv.innerHTML = `Total File: ${totalFiles}<br>File Berhasil Didownload: ${downloadedFiles}<br>File Gagal Didownload: ${failedFiles}<br>Waktu yang Dihabiskan: ${elapsedTime} detik`;
+                    spinner.style.display = 'none';
                 });
+            }).catch(() => {
+                messageDiv.innerHTML = 'Terjadi kesalahan saat memproses file.';
+                spinner.style.display = 'none';
             });
         });
     </script>
