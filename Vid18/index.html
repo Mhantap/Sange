@@ -263,6 +263,22 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        .refresh-btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+
         /* Scrollbar styling */
         .playlist-section::-webkit-scrollbar {
             width: 8px;
@@ -348,6 +364,10 @@
             <div id="videoList" class="loading">
                 Memuat video...
             </div>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="refresh-btn" onclick="player.refreshVideoList()">🔄 Refresh List</button>
+            </div>
         </div>
     </div>
 
@@ -380,24 +400,39 @@
             }
             
             async loadVideos() {
-                // Daftar video yang akan dicoba dimuat dari folder assets/video/
-                const videoFiles = [
-                    'ninja_test.mp4',
-                    'ayo.mp4', 
-                    'ninjaremake.mp4',
-                    'sample1.mp4',
-                    'sample2.mp4',
-                    'demo.mp4',
-                    'test.mp4',
-                    'video1.mp4',
-                    'video2.mp4',
-                    'movie.mp4'
+                this.videoList.innerHTML = '<div class="loading">🔍 Memindai folder video...</div>';
+                
+                // Daftar nama file yang umum digunakan untuk mencoba deteksi otomatis
+                const commonVideoNames = [];
+                
+                // Generate nama file umum: 1.mp4 sampai 100.mp4
+                for (let i = 1; i <= 100; i++) {
+                    commonVideoNames.push(`${i}.mp4`);
+                }
+                
+                // Tambahkan nama file umum lainnya
+                const additionalNames = [
+                    'video.mp4', 'movie.mp4', 'film.mp4', 'test.mp4', 'sample.mp4',
+                    'demo.mp4', 'trailer.mp4', 'video1.mp4', 'video2.mp4', 'video3.mp4',
+                    'movie1.mp4', 'movie2.mp4', 'movie3.mp4', 'clip.mp4', 'scene.mp4',
+                    'episode1.mp4', 'episode2.mp4', 'episode3.mp4', 'part1.mp4', 'part2.mp4',
+                    'ninja_test.mp4', 'ayo.mp4', 'ninjaremake.mp4', 'content.mp4', 'media.mp4'
                 ];
                 
-                this.videos = [];
+                // Tambahkan nama file A.mp4 sampai Z.mp4
+                for (let i = 65; i <= 90; i++) {
+                    commonVideoNames.push(`${String.fromCharCode(i)}.mp4`);
+                    commonVideoNames.push(`${String.fromCharCode(i + 32)}.mp4`); // huruf kecil
+                }
                 
-                // Cek setiap file video apakah ada
-                for (let filename of videoFiles) {
+                const allVideoNames = [...commonVideoNames, ...additionalNames];
+                
+                this.videos = [];
+                let checkedCount = 0;
+                const totalToCheck = allVideoNames.length;
+                
+                // Cek setiap kemungkinan nama file video
+                for (let filename of allVideoNames) {
                     try {
                         const response = await fetch(`assets/video/${filename}`, { method: 'HEAD' });
                         if (response.ok) {
@@ -410,24 +445,52 @@
                         }
                     } catch (error) {
                         // File tidak ditemukan, lanjut ke file berikutnya
-                        continue;
+                    }
+                    
+                    checkedCount++;
+                    
+                    // Update progress setiap 10 file yang dicek
+                    if (checkedCount % 10 === 0) {
+                        this.videoList.innerHTML = `
+                            <div class="loading">
+                                🔍 Memindai video... (${checkedCount}/${totalToCheck})<br>
+                                Ditemukan: ${this.videos.length} video
+                            </div>
+                        `;
                     }
                 }
                 
-                // Jika tidak ada video yang ditemukan, tampilkan pesan
+                // Jika tidak ada video yang ditemukan
                 if (this.videos.length === 0) {
                     this.videoList.innerHTML = `
                         <div class="no-videos">
                             <h4>📹 Tidak ada video ditemukan</h4>
-                            <p>Upload video ke folder <strong>assets/video/</strong></p>
-                            <p>Format yang didukung: MP4</p>
+                            <p>Upload file MP4 ke folder <strong>assets/video/</strong></p>
+                            <p>Nama file yang dicoba:</p>
+                            <small>1.mp4, 2.mp4, ..., A.mp4, B.mp4, video.mp4, dll</small>
                         </div>
                     `;
                     return;
                 }
                 
+                // Urutkan video berdasarkan nama file
+                this.videos.sort((a, b) => {
+                    const aNum = parseInt(a.filename);
+                    const bNum = parseInt(b.filename);
+                    
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return aNum - bNum; // Urutkan angka secara numerik
+                    }
+                    
+                    return a.filename.localeCompare(b.filename); // Urutkan alphabetical
+                });
+                
                 this.renderVideoList();
                 this.loadVideo(0);
+            }
+            
+            async refreshVideoList() {
+                await this.loadVideos();
             }
             
             formatVideoName(filename) {
@@ -447,16 +510,19 @@
                     return;
                 }
                 
-                this.videoList.innerHTML = filteredVideos.map((video, index) => `
-                    <div class="video-item ${index === this.currentVideoIndex ? 'active' : ''}" 
-                         onclick="player.loadVideo(${this.videos.indexOf(video)})">
-                        <div class="video-thumbnail">🎬</div>
-                        <div class="video-details">
-                            <h4>${video.name}</h4>
-                            <div class="video-duration">${video.duration}</div>
+                this.videoList.innerHTML = filteredVideos.map((video, index) => {
+                    const originalIndex = this.videos.indexOf(video);
+                    return `
+                        <div class="video-item ${originalIndex === this.currentVideoIndex ? 'active' : ''}" 
+                             onclick="player.loadVideo(${originalIndex})">
+                            <div class="video-thumbnail">🎬</div>
+                            <div class="video-details">
+                                <h4>${video.name}</h4>
+                                <div class="video-duration">${video.duration}</div>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
             
             loadVideo(index) {
@@ -469,9 +535,7 @@
                 this.videoTitle.textContent = video.name;
                 
                 // Update active video in playlist
-                document.querySelectorAll('.video-item').forEach((item, i) => {
-                    item.classList.toggle('active', i === index);
-                });
+                this.renderVideoList();
                 
                 // Reset player state
                 this.isPlaying = false;
