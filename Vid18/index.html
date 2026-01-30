@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Video Player</title>
+    <title>Video Player</title>
+    
+    <!-- ========== KONFIGURASI VIDEO (EDIT DI SINI) ========== -->
+    <script>
+        // Daftar video - tambahkan nomor baru di sini jika mau nambah video
+        const VIDEO_CONFIG = {
+            folder: 'assets/video/',
+            extension: '.mp4',
+            numbers: Array.from({length: 28}, (_, i) => i + 2), // [2, 3, 4, ..., 29]
+        };
+    </script>
+    <!-- ====================================================== -->
+    
     <style>
         * {
             margin: 0;
@@ -13,677 +25,657 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
+            background: #0f0f0f;
             min-height: 100vh;
+            color: #fff;
+        }
+
+        .header {
+            background: #212121;
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #fff;
         }
 
         .container {
-            display: flex;
-            height: 100vh;
             max-width: 1400px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 0;
+            min-height: calc(100vh - 70px);
+        }
+
+        .player-section {
+            background: #181818;
             padding: 20px;
-            gap: 20px;
         }
 
-        .video-section {
-            flex: 2;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .playlist-section {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-        }
-
-        .search-container {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            border: none;
-            border-radius: 25px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .search-input:focus {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.02);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .video-player-container {
+        .video-wrapper {
             position: relative;
             background: #000;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
             margin-bottom: 20px;
         }
 
-        .main-video {
+        video {
             width: 100%;
-            height: 400px;
-            object-fit: contain;
+            display: block;
+            max-height: 600px;
+            background: #000;
         }
 
-        .video-controls {
+        video::-webkit-media-controls-start-playback-button {
+            display: none !important;
+        }
+
+        .controls {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-            padding: 20px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
+            padding: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        .video-player-container:hover .video-controls {
-            transform: translateY(0);
+        .video-wrapper:hover .controls {
+            opacity: 1;
         }
 
         .progress-container {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .progress-bar {
             width: 100%;
-            height: 6px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
+            border-radius: 2px;
             cursor: pointer;
             position: relative;
         }
 
         .progress {
             height: 100%;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
-            border-radius: 3px;
+            background: #ff0000;
+            border-radius: 2px;
             width: 0%;
-            transition: width 0.1s ease;
+            transition: width 0.1s;
         }
 
-        .controls-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .controls-left, .controls-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .control-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        .play-btn {
-            font-size: 24px !important;
-        }
-
-        .volume-container {
+        .control-buttons {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .volume-slider {
-            width: 80px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            outline: none;
+        .btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
             cursor: pointer;
-        }
-
-        .time-display {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .video-info {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .video-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .playlist-header {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #4ecdc4;
-        }
-
-        .video-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .video-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(5px);
-        }
-
-        .video-item.active {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            border-color: white;
-        }
-
-        .video-thumbnail {
-            width: 60px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 5px;
-            margin-right: 12px;
+            font-size: 18px;
+            transition: background 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            width: 40px;
+            height: 40px;
         }
 
-        .video-details h4 {
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .time-display {
+            margin-left: auto;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-slider {
+            width: 60px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            border-radius: 2px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .info-panel {
+            background: #212121;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .current-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .video-info {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .playlist-section {
+            background: #212121;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .playlist-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            border: 1px solid #333;
+            border-radius: 20px;
+            background: #0f0f0f;
+            color: #fff;
             font-size: 14px;
-            margin-bottom: 4px;
-            color: white;
+            outline: none;
         }
 
-        .video-duration {
+        .search-input:focus {
+            border-color: #666;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #666;
+        }
+
+        .playlist-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .playlist {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+        }
+
+        .playlist-item {
+            padding: 10px 12px;
+            margin-bottom: 2px;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .playlist-item:hover {
+            background: #333;
+        }
+
+        .playlist-item.active {
+            background: #333;
+            border-left: 3px solid #ff0000;
+        }
+
+        .playlist-item-number {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            min-width: 35px;
+            text-align: center;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
+            color: #aaa;
+        }
+
+        .playlist-item.active .playlist-item-number {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .playlist-item-title {
+            flex: 1;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .playlist::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .playlist::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .playlist::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .playlist::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 14px;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .no-videos {
-            text-align: center;
             padding: 40px 20px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .refresh-btn {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
+            color: #666;
             font-size: 14px;
-            margin-top: 10px;
-            transition: transform 0.3s ease;
         }
 
-        .refresh-btn:hover {
-            transform: scale(1.05);
-        }
-
-        /* Scrollbar styling */
-        .playlist-section::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .playlist-section::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        .playlist-section::-webkit-scrollbar-thumb {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            border-radius: 4px;
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
+        @media (max-width: 968px) {
             .container {
-                flex-direction: column;
-                height: auto;
-                padding: 10px;
+                grid-template-columns: 1fr;
             }
             
-            .main-video {
-                height: 250px;
-            }
-            
-            .controls-row {
-                flex-wrap: wrap;
-                gap: 10px;
+            .playlist-section {
+                border-left: none;
+                border-top: 1px solid #333;
             }
         }
+
+        /* Icons using Unicode symbols */
+        .icon-play::before { content: "▶"; }
+        .icon-pause::before { content: "❚❚"; }
+        .icon-prev::before { content: "⏮"; }
+        .icon-next::before { content: "⏭"; }
+        .icon-volume-high::before { content: "🔊"; }
+        .icon-volume-low::before { content: "🔉"; }
+        .icon-volume-mute::before { content: "🔇"; }
+        .icon-fullscreen::before { content: "⛶"; }
+        .icon-search::before { content: "🔍"; }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>Video Player</h1>
+    </div>
+
     <div class="container">
-        <div class="video-section">
-            <div class="video-player-container">
-                <video class="main-video" id="mainVideo">
-                    <source src="" type="video/mp4">
-                    Browser Anda tidak mendukung video HTML5.
+        <div class="player-section">
+            <div class="video-wrapper">
+                <video id="videoPlayer" controls preload="auto">
+                    <source id="videoSource" src="" type="video/mp4">
+                    Browser Anda tidak mendukung video player.
                 </video>
                 
-                <div class="video-controls">
+                <div class="controls">
                     <div class="progress-container">
                         <div class="progress-bar" id="progressBar">
                             <div class="progress" id="progress"></div>
                         </div>
                     </div>
                     
-                    <div class="controls-row">
-                        <div class="controls-left">
-                            <button class="control-btn play-btn" id="playBtn">▶️</button>
-                            <button class="control-btn" id="prevBtn">⏮️</button>
-                            <button class="control-btn" id="nextBtn">⏭️</button>
-                            <div class="volume-container">
-                                <button class="control-btn" id="volumeBtn">🔊</button>
-                                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
-                            </div>
+                    <div class="control-buttons">
+                        <button class="btn icon-prev" id="prevBtn"></button>
+                        <button class="btn icon-play" id="playPauseBtn"></button>
+                        <button class="btn icon-next" id="nextBtn"></button>
+                        
+                        <div class="volume-control">
+                            <button class="btn icon-volume-high" id="muteBtn"></button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
                         </div>
                         
-                        <div class="controls-right">
-                            <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
-                            <button class="control-btn" id="fullscreenBtn">⛶</button>
+                        <button class="btn icon-fullscreen" id="fullscreenBtn"></button>
+                        
+                        <div class="time-display">
+                            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="video-info">
-                <h2 class="video-title" id="videoTitle">Pilih video untuk diputar</h2>
+            <div class="info-panel">
+                <div class="current-title" id="currentTitle">Pilih video untuk diputar</div>
+                <div class="video-info">
+                    <span>Total Video: <span id="totalVideos">Memuat...</span></span>
+                </div>
             </div>
         </div>
-        
+
         <div class="playlist-section">
-            <h3 class="playlist-header">📁 Video Playlist</h3>
-            
-            <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="Cari video...">
-                <span class="search-icon">🔍</span>
+            <div class="playlist-header">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Cari video...">
+                    <span class="search-icon icon-search"></span>
+                </div>
+                <div class="playlist-title">Daftar Video</div>
             </div>
             
-            <div id="videoList" class="loading">
-                Memuat video...
-            </div>
-            
-            <div style="text-align: center; margin-top: 15px;">
-                <button class="refresh-btn" onclick="player.refreshVideoList()">🔄 Refresh List</button>
+            <div class="playlist">
+                <div id="playlistContainer">
+                    <div class="loading">Memuat daftar video...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        class VideoPlayer {
-            constructor() {
-                this.videos = [];
-                this.currentVideoIndex = 0;
-                this.isPlaying = false;
-                
-                this.initializeElements();
-                this.loadVideos();
-                this.setupEventListeners();
-            }
+        // Elements
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoSource = document.getElementById('videoSource');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const muteBtn = document.getElementById('muteBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const currentTitle = document.getElementById('currentTitle');
+        const totalVideos = document.getElementById('totalVideos');
+        const searchInput = document.getElementById('searchInput');
+        const playlistContainer = document.getElementById('playlistContainer');
+
+        let videos = [];
+        let currentVideoIndex = 0;
+        let filteredVideos = [];
+
+        // Initialize - Set volume dan pastikan tidak muted
+        videoPlayer.volume = 0.7;
+        videoPlayer.muted = false;
+        
+        // Deteksi video yang benar-benar ada
+        async function detectAvailableVideos() {
+            const availableVideos = [];
             
-            initializeElements() {
-                this.mainVideo = document.getElementById('mainVideo');
-                this.playBtn = document.getElementById('playBtn');
-                this.prevBtn = document.getElementById('prevBtn');
-                this.nextBtn = document.getElementById('nextBtn');
-                this.volumeBtn = document.getElementById('volumeBtn');
-                this.volumeSlider = document.getElementById('volumeSlider');
-                this.fullscreenBtn = document.getElementById('fullscreenBtn');
-                this.progressBar = document.getElementById('progressBar');
-                this.progress = document.getElementById('progress');
-                this.timeDisplay = document.getElementById('timeDisplay');
-                this.videoTitle = document.getElementById('videoTitle');
-                this.videoList = document.getElementById('videoList');
-                this.searchInput = document.getElementById('searchInput');
-            }
-            
-            async loadVideos() {
-                this.videoList.innerHTML = '<div class="loading">🔍 Memindai folder video...</div>';
+            for (const num of VIDEO_CONFIG.numbers) {
+                const videoPath = `${VIDEO_CONFIG.folder}${num}${VIDEO_CONFIG.extension}`;
                 
-                // Daftar nama file yang umum digunakan untuk mencoba deteksi otomatis
-                const commonVideoNames = [];
-                
-                // Generate nama file umum: 1.mp4 sampai 100.mp4
-                for (let i = 1; i <= 100; i++) {
-                    commonVideoNames.push(`${i}.mp4`);
-                }
-                
-                // Tambahkan nama file umum lainnya
-                const additionalNames = [
-                    'video.mp4', 'movie.mp4', 'film.mp4', 'test.mp4', 'sample.mp4',
-                    'demo.mp4', 'trailer.mp4', 'video1.mp4', 'video2.mp4', 'video3.mp4',
-                    'movie1.mp4', 'movie2.mp4', 'movie3.mp4', 'clip.mp4', 'scene.mp4',
-                    'episode1.mp4', 'episode2.mp4', 'episode3.mp4', 'part1.mp4', 'part2.mp4',
-                    'ninja_test.mp4', 'ayo.mp4', 'ninjaremake.mp4', 'content.mp4', 'media.mp4'
-                ];
-                
-                // Tambahkan nama file A.mp4 sampai Z.mp4
-                for (let i = 65; i <= 90; i++) {
-                    commonVideoNames.push(`${String.fromCharCode(i)}.mp4`);
-                    commonVideoNames.push(`${String.fromCharCode(i + 32)}.mp4`); // huruf kecil
-                }
-                
-                const allVideoNames = [...commonVideoNames, ...additionalNames];
-                
-                this.videos = [];
-                let checkedCount = 0;
-                const totalToCheck = allVideoNames.length;
-                
-                // Cek setiap kemungkinan nama file video
-                for (let filename of allVideoNames) {
-                    try {
-                        const response = await fetch(`assets/video/${filename}`, { method: 'HEAD' });
-                        if (response.ok) {
-                            this.videos.push({
-                                name: this.formatVideoName(filename),
-                                filename: filename,
-                                path: `assets/video/${filename}`,
-                                duration: '0:00'
-                            });
-                        }
-                    } catch (error) {
-                        // File tidak ditemukan, lanjut ke file berikutnya
+                try {
+                    const response = await fetch(videoPath, { method: 'HEAD' });
+                    if (response.ok) {
+                        availableVideos.push({
+                            number: num,
+                            title: `Video ${num}`,
+                            src: videoPath
+                        });
                     }
-                    
-                    checkedCount++;
-                    
-                    // Update progress setiap 10 file yang dicek
-                    if (checkedCount % 10 === 0) {
-                        this.videoList.innerHTML = `
-                            <div class="loading">
-                                🔍 Memindai video... (${checkedCount}/${totalToCheck})<br>
-                                Ditemukan: ${this.videos.length} video
-                            </div>
-                        `;
-                    }
+                } catch (error) {
+                    console.log(`Video ${num} tidak ditemukan`);
+                    continue;
                 }
-                
-                // Jika tidak ada video yang ditemukan
-                if (this.videos.length === 0) {
-                    this.videoList.innerHTML = `
-                        <div class="no-videos">
-                            <h4>📹 Tidak ada video ditemukan</h4>
-                            <p>Upload file MP4 ke folder <strong>assets/video/</strong></p>
-                            <p>Nama file yang dicoba:</p>
-                            <small>1.mp4, 2.mp4, ..., A.mp4, B.mp4, video.mp4, dll</small>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Urutkan video berdasarkan nama file
-                this.videos.sort((a, b) => {
-                    const aNum = parseInt(a.filename);
-                    const bNum = parseInt(b.filename);
-                    
-                    if (!isNaN(aNum) && !isNaN(bNum)) {
-                        return aNum - bNum; // Urutkan angka secara numerik
-                    }
-                    
-                    return a.filename.localeCompare(b.filename); // Urutkan alphabetical
-                });
-                
-                this.renderVideoList();
-                this.loadVideo(0);
             }
             
-            async refreshVideoList() {
-                await this.loadVideos();
-            }
-            
-            formatVideoName(filename) {
-                return filename
-                    .replace(/\.[^/.]+$/, '') // Hapus ekstensi
-                    .replace(/_/g, ' ') // Ganti underscore dengan spasi
-                    .replace(/\b\w/g, l => l.toUpperCase()); // Kapitalisasi huruf pertama
-            }
-            
-            renderVideoList() {
-                const filteredVideos = this.videos.filter(video => 
-                    video.name.toLowerCase().includes(this.searchInput.value.toLowerCase())
-                );
+            return availableVideos;
+        }
+
+        // Initialize videos
+        async function initializePlayer() {
+            try {
+                videos = await detectAvailableVideos();
+                filteredVideos = [...videos];
                 
-                if (filteredVideos.length === 0) {
-                    this.videoList.innerHTML = '<div class="no-videos">Tidak ada video yang cocok dengan pencarian</div>';
-                    return;
-                }
+                totalVideos.textContent = videos.length;
+                renderPlaylist();
                 
-                this.videoList.innerHTML = filteredVideos.map((video, index) => {
-                    const originalIndex = this.videos.indexOf(video);
-                    return `
-                        <div class="video-item ${originalIndex === this.currentVideoIndex ? 'active' : ''}" 
-                             onclick="player.loadVideo(${originalIndex})">
-                            <div class="video-thumbnail">🎬</div>
-                            <div class="video-details">
-                                <h4>${video.name}</h4>
-                                <div class="video-duration">${video.duration}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            loadVideo(index) {
-                if (index < 0 || index >= this.videos.length) return;
-                
-                this.currentVideoIndex = index;
-                const video = this.videos[index];
-                
-                this.mainVideo.src = video.path;
-                this.videoTitle.textContent = video.name;
-                
-                // Update active video in playlist
-                this.renderVideoList();
-                
-                // Reset player state
-                this.isPlaying = false;
-                this.playBtn.textContent = '▶️';
-            }
-            
-            setupEventListeners() {
-                // Play/Pause
-                this.playBtn.addEventListener('click', () => this.togglePlay());
-                this.mainVideo.addEventListener('click', () => this.togglePlay());
-                
-                // Previous/Next
-                this.prevBtn.addEventListener('click', () => this.previousVideo());
-                this.nextBtn.addEventListener('click', () => this.nextVideo());
-                
-                // Volume
-                this.volumeBtn.addEventListener('click', () => this.toggleMute());
-                this.volumeSlider.addEventListener('input', (e) => {
-                    this.mainVideo.volume = e.target.value / 100;
-                    this.updateVolumeIcon();
-                });
-                
-                // Progress bar
-                this.progressBar.addEventListener('click', (e) => {
-                    const rect = this.progressBar.getBoundingClientRect();
-                    const percent = (e.clientX - rect.left) / rect.width;
-                    this.mainVideo.currentTime = percent * this.mainVideo.duration;
-                });
-                
-                // Fullscreen
-                this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
-                
-                // Video events
-                this.mainVideo.addEventListener('timeupdate', () => this.updateProgress());
-                this.mainVideo.addEventListener('loadedmetadata', () => this.updateDuration());
-                this.mainVideo.addEventListener('ended', () => this.nextVideo());
-                
-                // Search
-                this.searchInput.addEventListener('input', () => this.renderVideoList());
-                
-                // Keyboard shortcuts
-                document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-            }
-            
-            togglePlay() {
-                if (this.mainVideo.paused) {
-                    this.mainVideo.play();
-                    this.playBtn.textContent = '⏸️';
-                    this.isPlaying = true;
+                if (videos.length > 0) {
+                    loadVideo(0);
+                    videoPlayer.pause();
+                    updatePlayPauseIcon();
                 } else {
-                    this.mainVideo.pause();
-                    this.playBtn.textContent = '▶️';
-                    this.isPlaying = false;
+                    playlistContainer.innerHTML = '<div class="no-results">Tidak ada video ditemukan di folder assets/video/</div>';
                 }
-            }
-            
-            previousVideo() {
-                const newIndex = this.currentVideoIndex > 0 ? this.currentVideoIndex - 1 : this.videos.length - 1;
-                this.loadVideo(newIndex);
-            }
-            
-            nextVideo() {
-                const newIndex = this.currentVideoIndex < this.videos.length - 1 ? this.currentVideoIndex + 1 : 0;
-                this.loadVideo(newIndex);
-            }
-            
-            toggleMute() {
-                this.mainVideo.muted = !this.mainVideo.muted;
-                this.updateVolumeIcon();
-            }
-            
-            updateVolumeIcon() {
-                if (this.mainVideo.muted || this.mainVideo.volume === 0) {
-                    this.volumeBtn.textContent = '🔇';
-                } else if (this.mainVideo.volume < 0.5) {
-                    this.volumeBtn.textContent = '🔉';
-                } else {
-                    this.volumeBtn.textContent = '🔊';
-                }
-            }
-            
-            toggleFullscreen() {
-                if (!document.fullscreenElement) {
-                    this.mainVideo.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
-            }
-            
-            updateProgress() {
-                const percent = (this.mainVideo.currentTime / this.mainVideo.duration) * 100;
-                this.progress.style.width = percent + '%';
-                
-                const current = this.formatTime(this.mainVideo.currentTime);
-                const duration = this.formatTime(this.mainVideo.duration);
-                this.timeDisplay.textContent = `${current} / ${duration}`;
-            }
-            
-            updateDuration() {
-                const duration = this.formatTime(this.mainVideo.duration);
-                this.videos[this.currentVideoIndex].duration = duration;
-                this.renderVideoList();
-            }
-            
-            formatTime(seconds) {
-                if (isNaN(seconds)) return '0:00';
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-            
-            handleKeyboard(e) {
-                switch(e.code) {
-                    case 'Space':
-                        e.preventDefault();
-                        this.togglePlay();
-                        break;
-                    case 'ArrowLeft':
-                        this.mainVideo.currentTime -= 10;
-                        break;
-                    case 'ArrowRight':
-                        this.mainVideo.currentTime += 10;
-                        break;
-                    case 'ArrowUp':
-                        e.preventDefault();
-                        this.mainVideo.volume = Math.min(1, this.mainVideo.volume + 0.1);
-                        this.volumeSlider.value = this.mainVideo.volume * 100;
-                        break;
-                    case 'ArrowDown':
-                        e.preventDefault();
-                        this.mainVideo.volume = Math.max(0, this.mainVideo.volume - 0.1);
-                        this.volumeSlider.value = this.mainVideo.volume * 100;
-                        break;
-                    case 'KeyF':
-                        this.toggleFullscreen();
-                        break;
-                    case 'KeyM':
-                        this.toggleMute();
-                        break;
-                }
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                playlistContainer.innerHTML = '<div class="no-results">Error memuat video</div>';
             }
         }
-        
-        // Initialize player when page loads
-        let player;
-        document.addEventListener('DOMContentLoaded', () => {
-            player = new VideoPlayer();
-        });
+
+        // Render playlist
+        function renderPlaylist() {
+            playlistContainer.innerHTML = '';
+            
+            if (filteredVideos.length === 0) {
+                playlistContainer.innerHTML = '<div class="no-results">Tidak ada video ditemukan</div>';
+                return;
+            }
+            
+            filteredVideos.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                if (videos[currentVideoIndex] === video) {
+                    item.classList.add('active');
+                }
+                item.innerHTML = `
+                    <div class="playlist-item-number">${video.number}</div>
+                    <div class="playlist-item-title">${video.title}</div>
+                `;
+                item.onclick = () => loadVideo(videos.indexOf(video));
+                playlistContainer.appendChild(item);
+            });
+        }
+
+        // Load video dengan frame pertama
+        function loadVideo(index) {
+            if (index < 0 || index >= videos.length) return;
+            
+            currentVideoIndex = index;
+            const video = videos[index];
+            
+            videoSource.src = video.src;
+            videoPlayer.load();
+            
+            // Pastikan suara aktif setiap kali load video baru
+            videoPlayer.muted = false;
+            videoPlayer.volume = volumeSlider.value / 100;
+            
+            // Event listener untuk menampilkan frame pertama
+            videoPlayer.addEventListener('loadeddata', function showFirstFrame() {
+                videoPlayer.currentTime = 0.1;
+                videoPlayer.removeEventListener('loadeddata', showFirstFrame);
+            });
+
+            videoPlayer.addEventListener('error', function(e) {
+                console.error('Error loading video:', e);
+                currentTitle.textContent = `Error: ${video.title}`;
+            });
+
+            currentTitle.textContent = video.title;
+            updateMuteIcon();
+            renderPlaylist();
+        }
+
+        // Update play/pause icon
+        function updatePlayPauseIcon() {
+            if (videoPlayer.paused) {
+                playPauseBtn.className = 'btn icon-play';
+            } else {
+                playPauseBtn.className = 'btn icon-pause';
+            }
+        }
+
+        // Play/Pause
+        playPauseBtn.onclick = () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        };
+
+        videoPlayer.onplay = updatePlayPauseIcon;
+        videoPlayer.onpause = updatePlayPauseIcon;
+
+        // Previous
+        prevBtn.onclick = () => {
+            currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+            loadVideo(currentVideoIndex);
+            videoPlayer.play();
+        };
+
+        // Next
+        nextBtn.onclick = () => {
+            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+            loadVideo(currentVideoIndex);
+            videoPlayer.play();
+        };
+
+        // Auto play next
+        videoPlayer.onended = () => {
+            nextBtn.click();
+        };
+
+        // Progress bar
+        videoPlayer.ontimeupdate = () => {
+            if (videoPlayer.duration) {
+                const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+                progress.style.width = percent + '%';
+                currentTimeEl.textContent = formatTime(videoPlayer.currentTime);
+            }
+        };
+
+        videoPlayer.onloadedmetadata = () => {
+            durationEl.textContent = formatTime(videoPlayer.duration);
+        };
+
+        progressBar.onclick = (e) => {
+            if (videoPlayer.duration) {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                videoPlayer.currentTime = percent * videoPlayer.duration;
+            }
+        };
+
+        // Volume
+        volumeSlider.oninput = () => {
+            videoPlayer.volume = volumeSlider.value / 100;
+            videoPlayer.muted = false;
+            updateMuteIcon();
+        };
+
+        muteBtn.onclick = () => {
+            videoPlayer.muted = !videoPlayer.muted;
+            updateMuteIcon();
+        };
+
+        function updateMuteIcon() {
+            if (videoPlayer.muted || videoPlayer.volume === 0) {
+                muteBtn.className = 'btn icon-volume-mute';
+            } else if (videoPlayer.volume < 0.5) {
+                muteBtn.className = 'btn icon-volume-low';
+            } else {
+                muteBtn.className = 'btn icon-volume-high';
+            }
+        }
+
+        // Fullscreen
+        fullscreenBtn.onclick = () => {
+            if (!document.fullscreenElement) {
+                videoPlayer.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        // Search
+        searchInput.oninput = () => {
+            const query = searchInput.value.toLowerCase();
+            filteredVideos = videos.filter(video => 
+                video.title.toLowerCase().includes(query) ||
+                video.number.toString().includes(query)
+            );
+            renderPlaylist();
+        };
+
+        // Format time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Keyboard shortcuts
+        document.onkeydown = (e) => {
+            if (e.target === searchInput) return;
+            
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    playPauseBtn.click();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    videoPlayer.currentTime += 5;
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    videoPlayer.currentTime -= 5;
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    videoPlayer.volume = Math.min(1, videoPlayer.volume + 0.1);
+                    volumeSlider.value = videoPlayer.volume * 100;
+                    updateMuteIcon();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    videoPlayer.volume = Math.max(0, videoPlayer.volume - 0.1);
+                    volumeSlider.value = videoPlayer.volume * 100;
+                    updateMuteIcon();
+                    break;
+            }
+        };
+
+        // Start the app
+        initializePlayer();
     </script>
 </body>
 </html>
