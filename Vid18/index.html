@@ -138,6 +138,10 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        .btn.active {
+            background: #ff0000;
+        }
+
         .time-display {
             margin-left: auto;
             font-size: 13px;
@@ -184,6 +188,14 @@
         .video-info {
             font-size: 13px;
             color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shuffle-status {
+            color: #ff0000;
+            font-weight: 500;
         }
 
         .playlist-section {
@@ -235,6 +247,29 @@
             font-size: 16px;
             font-weight: 500;
             color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shuffle-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shuffle-btn:hover {
+            background: #333;
+        }
+
+        .shuffle-btn.active {
+            background: #ff0000;
+            border-color: #ff0000;
         }
 
         .playlist {
@@ -338,6 +373,7 @@
         .icon-volume-mute::before { content: "🔇"; }
         .icon-fullscreen::before { content: "⛶"; }
         .icon-search::before { content: "🔍"; }
+        .icon-shuffle::before { content: "🔀"; }
     </style>
 </head>
 <body>
@@ -364,6 +400,7 @@
                         <button class="btn icon-prev" id="prevBtn"></button>
                         <button class="btn icon-play" id="playPauseBtn"></button>
                         <button class="btn icon-next" id="nextBtn"></button>
+                        <button class="btn icon-shuffle" id="shuffleBtn" title="Shuffle"></button>
                         
                         <div class="volume-control">
                             <button class="btn icon-volume-high" id="muteBtn"></button>
@@ -383,6 +420,7 @@
                 <div class="current-title" id="currentTitle">Pilih video untuk diputar</div>
                 <div class="video-info">
                     <span>Total Video: <span id="totalVideos">Memuat...</span></span>
+                    <span class="shuffle-status" id="shuffleStatus">Shuffle: OFF</span>
                 </div>
             </div>
         </div>
@@ -393,7 +431,10 @@
                     <input type="text" class="search-input" id="searchInput" placeholder="Cari video...">
                     <span class="search-icon icon-search"></span>
                 </div>
-                <div class="playlist-title">Daftar Video</div>
+                <div class="playlist-title">
+                    <span>Daftar Video</span>
+                    <button class="shuffle-btn" id="shuffleToggle">🔀 ACAK</button>
+                </div>
             </div>
             
             <div class="playlist">
@@ -411,6 +452,7 @@
         const playPauseBtn = document.getElementById('playPauseBtn');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
         const progressBar = document.getElementById('progressBar');
         const progress = document.getElementById('progress');
         const currentTimeEl = document.getElementById('currentTime');
@@ -422,15 +464,79 @@
         const totalVideos = document.getElementById('totalVideos');
         const searchInput = document.getElementById('searchInput');
         const playlistContainer = document.getElementById('playlistContainer');
+        const shuffleToggle = document.getElementById('shuffleToggle');
+        const shuffleStatus = document.getElementById('shuffleStatus');
 
         let videos = [];
         let currentVideoIndex = 0;
         let filteredVideos = [];
+        let shuffleMode = false;
+        let shuffledIndices = [];
+        let shufflePosition = 0;
 
         // Initialize - Set volume dan pastikan tidak muted
         videoPlayer.volume = 0.7;
         videoPlayer.muted = false;
         
+        // Shuffle array function
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Generate shuffled indices
+        function generateShuffledIndices() {
+            const indices = Array.from({length: videos.length}, (_, i) => i);
+            shuffledIndices = shuffleArray(indices);
+            
+            // Pastikan video current ada di posisi pertama
+            const currentIndex = shuffledIndices.indexOf(currentVideoIndex);
+            if (currentIndex > 0) {
+                [shuffledIndices[0], shuffledIndices[currentIndex]] = [shuffledIndices[currentIndex], shuffledIndices[0]];
+            }
+            shufflePosition = 0;
+        }
+
+        // Toggle shuffle mode
+        function toggleShuffle() {
+            shuffleMode = !shuffleMode;
+            
+            if (shuffleMode) {
+                generateShuffledIndices();
+                shuffleBtn.classList.add('active');
+                shuffleToggle.classList.add('active');
+                shuffleStatus.textContent = 'Shuffle: ON';
+            } else {
+                shuffleBtn.classList.remove('active');
+                shuffleToggle.classList.remove('active');
+                shuffleStatus.textContent = 'Shuffle: OFF';
+            }
+        }
+
+        // Get next video index
+        function getNextVideoIndex() {
+            if (shuffleMode) {
+                shufflePosition = (shufflePosition + 1) % shuffledIndices.length;
+                return shuffledIndices[shufflePosition];
+            } else {
+                return (currentVideoIndex + 1) % videos.length;
+            }
+        }
+
+        // Get previous video index
+        function getPrevVideoIndex() {
+            if (shuffleMode) {
+                shufflePosition = (shufflePosition - 1 + shuffledIndices.length) % shuffledIndices.length;
+                return shuffledIndices[shufflePosition];
+            } else {
+                return (currentVideoIndex - 1 + videos.length) % videos.length;
+            }
+        }
+
         // Deteksi video yang benar-benar ada
         async function detectAvailableVideos() {
             const availableVideos = [];
@@ -466,7 +572,9 @@
                 renderPlaylist();
                 
                 if (videos.length > 0) {
-                    loadVideo(0);
+                    // Mulai dengan video acak
+                    currentVideoIndex = Math.floor(Math.random() * videos.length);
+                    loadVideo(currentVideoIndex);
                     videoPlayer.pause();
                     updatePlayPauseIcon();
                 } else {
@@ -497,7 +605,15 @@
                     <div class="playlist-item-number">${video.number}</div>
                     <div class="playlist-item-title">${video.title}</div>
                 `;
-                item.onclick = () => loadVideo(videos.indexOf(video));
+                item.onclick = () => {
+                    const videoIndex = videos.indexOf(video);
+                    loadVideo(videoIndex);
+                    
+                    // Update shuffle position jika shuffle mode aktif
+                    if (shuffleMode) {
+                        shufflePosition = shuffledIndices.indexOf(videoIndex);
+                    }
+                };
                 playlistContainer.appendChild(item);
             });
         }
@@ -555,17 +671,21 @@
 
         // Previous
         prevBtn.onclick = () => {
-            currentVideoIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
-            loadVideo(currentVideoIndex);
+            const prevIndex = getPrevVideoIndex();
+            loadVideo(prevIndex);
             videoPlayer.play();
         };
 
         // Next
         nextBtn.onclick = () => {
-            currentVideoIndex = (currentVideoIndex + 1) % videos.length;
-            loadVideo(currentVideoIndex);
+            const nextIndex = getNextVideoIndex();
+            loadVideo(nextIndex);
             videoPlayer.play();
         };
+
+        // Shuffle button
+        shuffleBtn.onclick = toggleShuffle;
+        shuffleToggle.onclick = toggleShuffle;
 
         // Auto play next
         videoPlayer.onended = () => {
@@ -670,6 +790,11 @@
                     videoPlayer.volume = Math.max(0, videoPlayer.volume - 0.1);
                     volumeSlider.value = videoPlayer.volume * 100;
                     updateMuteIcon();
+                    break;
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    toggleShuffle();
                     break;
             }
         };
