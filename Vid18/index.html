@@ -17,6 +17,7 @@
     <!-- ====================================================== -->
     
     <style>
+        /* [Semua CSS tetap sama seperti sebelumnya] */
         * {
             margin: 0;
             padding: 0;
@@ -798,6 +799,34 @@
         .icon-pip::before { content: "⧉"; }
         .icon-favorite::before { content: "♡"; }
         .icon-favorite.active::before { content: "♥"; }
+
+        /* Loading progress indicator */
+        .loading-progress {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+        }
+
+        .progress-bar-loading {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff0000;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -921,7 +950,13 @@
             
             <div class="playlist">
                 <div id="playlistContainer">
-                    <div class="loading">Memuat daftar video...</div>
+                    <div class="loading-progress">
+                        <div class="loading-spinner"></div>
+                        <div class="progress-bar-loading">
+                            <div class="progress-fill" id="loadingProgress"></div>
+                        </div>
+                        <div class="progress-text" id="loadingText">Memuat daftar video... (0/41)</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1018,6 +1053,8 @@
         const helpBtn = document.getElementById('helpBtn');
         const shortcutsHelp = document.getElementById('shortcutsHelp');
         const shortcutsClose = document.getElementById('shortcutsClose');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const loadingText = document.getElementById('loadingText');
 
         let videos = [];
         let currentVideoIndex = 0;
@@ -1174,26 +1211,102 @@
             }
         }
 
-        // Deteksi video yang benar-benar ada
+        // PERBAIKAN UTAMA: Deteksi video yang ada dengan batch processing dan timeout
         async function detectAvailableVideos() {
             const availableVideos = [];
+            const totalVideos = VIDEO_CONFIG.numbers.length;
+            let processedCount = 0;
             
-            for (const num of VIDEO_CONFIG.numbers) {
+            // Fungsi untuk update progress
+            function updateProgress() {
+                const percentage = (processedCount / totalVideos) * 100;
+                loadingProgress.style.width = percentage + '%';
+                loadingText.textContent = `Memuat daftar video... (${processedCount}/${totalVideos})`;
+            }
+
+            // Fungsi untuk check video dengan timeout
+            async function checkVideoExists(num) {
                 const videoPath = `${VIDEO_CONFIG.folder}${num}${VIDEO_CONFIG.extension}`;
                 
-                try {
-                    const response = await fetch(videoPath, { method: 'HEAD' });
-                    if (response.ok) {
-                        availableVideos.push({
-                            number: num,
-                            title: `Video ${num}`,
-                            src: videoPath,
-                            isFavorite: favorites.includes(num)
-                        });
+                return new Promise((resolve) => {
+                    const timeout = setTimeout(() => {
+                        processedCount++;
+                        updateProgress();
+                        resolve(null); // Video tidak ada atau timeout
+                    }, 1000); // Timeout 1 detik per video
+
+                    fetch(videoPath, { 
+                        method: 'HEAD',
+                        cache: 'no-cache'
+                    })
+                    .then(response => {
+                        clearTimeout(timeout);
+                        processedCount++;
+                        updateProgress();
+                        
+                        if (response.ok) {
+                            resolve({
+                                number: num,
+                                title: `Video ${num}`,
+                                src: videoPath,
+                                isFavorite: favorites.includes(num)
+                            });
+                        } else {
+                            resolve(null);
+                        }
+                    })
+                    .catch(() => {
+                        clearTimeout(timeout);
+                        processedCount++;
+                        updateProgress();
+                        resolve(null);
+                    });
+                });
+            }
+
+            // Process videos in batches untuk menghindari terlalu banyak request sekaligus
+            const batchSize = 5; // Process 5 videos at a time
+            
+            for (let i = 0; i < VIDEO_CONFIG.numbers.length; i += batchSize) {
+                const batch = VIDEO_CONFIG.numbers.slice(i, i + batchSize);
+                const batchPromises = batch.map(num => checkVideoExists(num));
+                
+                const batchResults = await Promise.all(batchPromises);
+                
+                // Add valid videos to the list
+                batchResults.forEach(result => {
+                    if (result) {
+                        availableVideos.push(result);
                     }
-                } catch (error) {
-                    console.log(`Video ${num} tidak ditemukan`);
-                    continue;
+                });
+
+                // Small delay between batches to prevent overwhelming the server
+                if (i + batchSize < VIDEO_CONFIG.numbers.length) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+            
+            return availableVideos;
+        }
+
+        // ALTERNATIF: Jika ingin lebih cepat lagi, bisa langsung assume semua video ada
+        async function detectAvailableVideosQuick() {
+            // Langsung assume semua video ada tanpa check
+            const availableVideos = VIDEO_CONFIG.numbers.map(num => ({
+                number: num,
+                title: `Video ${num}`,
+                src: `${VIDEO_CONFIG.folder}${num}${VIDEO_CONFIG.extension}`,
+                isFavorite: favorites.includes(num)
+            }));
+            
+            // Simulate loading progress untuk UX yang lebih baik
+            for (let i = 0; i <= VIDEO_CONFIG.numbers.length; i++) {
+                const percentage = (i / VIDEO_CONFIG.numbers.length) * 100;
+                loadingProgress.style.width = percentage + '%';
+                loadingText.textContent = `Memuat daftar video... (${i}/${VIDEO_CONFIG.numbers.length})`;
+                
+                if (i < VIDEO_CONFIG.numbers.length) {
+                    await new Promise(resolve => setTimeout(resolve, 10)); // Very fast loading
                 }
             }
             
@@ -1232,7 +1345,10 @@
         // Initialize videos
         async function initializePlayer() {
             try {
-                videos = await detectAvailableVideos();
+                // PILIHAN: Gunakan detectAvailableVideosQuick() untuk loading super cepat
+                // atau detectAvailableVideos() untuk check yang lebih akurat
+                videos = await detectAvailableVideosQuick(); // Ganti ke detectAvailableVideos() jika ingin check akurat
+                
                 videos = sortVideos(videos, currentSort);
                 filteredVideos = [...videos];
                 
