@@ -5,799 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Player</title>
     
-    <!-- ========== KONFIGURASI VIDEO (EDIT DI SINI) ========== -->
     <script>
-        // Daftar video - tambahkan nomor baru di sini jika mau nambah video
         const VIDEO_CONFIG = {
             folder: 'assets/video/',
             extension: '.mp4',
-            numbers: Array.from({length: 41}, (_, i) => i + 2), // [2, 3, 4, ..., 42]
+            numbers: Array.from({length: 41}, (_, i) => i + 2),
         };
     </script>
-    <!-- ====================================================== -->
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f0f0f;
-            min-height: 100vh;
-            color: #fff;
-        }
-
-        .header {
-            background: #212121;
-            padding: 15px 20px;
-            border-bottom: 1px solid #333;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 500;
-            color: #fff;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .theme-toggle {
-            padding: 6px 12px;
-            background: #333;
-            border: none;
-            border-radius: 4px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.2s;
-        }
-
-        .theme-toggle:hover {
-            background: #444;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 0;
-            min-height: calc(100vh - 70px);
-        }
-
-        .player-section {
-            background: #181818;
-            padding: 20px;
-        }
-
-        .video-wrapper {
-            position: relative;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        video {
-            width: 100%;
-            display: block;
-            max-height: 600px;
-            background: #000;
-        }
-
-        video::-webkit-media-controls-start-playback-button {
-            display: none !important;
-        }
-
-        /* Overlay untuk loading dan error */
-        .video-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.7);
-            z-index: 5;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .video-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .loading-spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid #ff0000;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .controls {
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 15px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 10;
-        }
-
-        .video-wrapper:hover .controls {
-            opacity: 1;
-        }
-
-        .progress-container {
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .progress {
-            height: 100%;
-            background: #ff0000;
-            border-radius: 2px;
-            width: 0%;
-            transition: width 0.1s;
-            position: relative;
-        }
-
-        .progress-handle {
-            position: absolute;
-            right: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .progress-bar:hover .progress-handle {
-            opacity: 1;
-        }
-
-        /* Buffer progress */
-        .buffer-progress {
-            position: absolute;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 2px;
-            width: 0%;
-            top: 0;
-            left: 0;
-        }
-
-        /* Tooltip untuk progress bar */
-        .progress-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 0;
-            background: rgba(0,0,0,0.9);
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-bottom: 8px;
-            opacity: 0;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        .progress-container:hover .progress-tooltip {
-            opacity: 1;
-        }
-
-        .control-buttons {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: transparent;
-            border: none;
-            color: #fff;
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            position: relative;
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn.active {
-            background: #ff0000;
-        }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        /* Tooltip untuk button */
-        .btn[title]:hover::after {
-            content: attr(title);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            white-space: nowrap;
-            margin-bottom: 8px;
-            z-index: 1000;
-        }
-
-        .time-display {
-            margin-left: auto;
-            font-size: 13px;
-            color: #aaa;
-        }
-
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .volume-slider {
-            width: 60px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            outline: none;
-            border-radius: 2px;
-        }
-
-        .volume-slider::-webkit-slider-thumb {
-            appearance: none;
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        /* Playback speed control */
-        .speed-control {
-            position: relative;
-        }
-
-        .speed-btn {
-            font-size: 12px;
-            min-width: 45px;
-        }
-
-        .speed-menu {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.95);
-            border-radius: 4px;
-            padding: 8px 0;
-            margin-bottom: 8px;
-            display: none;
-            min-width: 80px;
-            z-index: 1000;
-        }
-
-        .speed-menu.show {
-            display: block;
-        }
-
-        .speed-option {
-            padding: 8px 16px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: background 0.2s;
-        }
-
-        .speed-option:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .speed-option.active {
-            background: #ff0000;
-        }
-
-        .info-panel {
-            background: #212121;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .current-title {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-
-        .video-info {
-            font-size: 13px;
-            color: #aaa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .shuffle-status {
-            color: #ff0000;
-            font-weight: 500;
-        }
-
-        /* Loop & Autoplay status */
-        .status-badge {
-            padding: 3px 8px;
-            background: #333;
-            border-radius: 3px;
-            font-size: 11px;
-            display: inline-block;
-        }
-
-        .status-badge.active {
-            background: #ff0000;
-        }
-
-        /* Additional controls panel */
-        .additional-controls {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .control-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: #2a2a2a;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .control-item:hover {
-            background: #333;
-        }
-
-        .control-item input[type="checkbox"] {
-            cursor: pointer;
-        }
-
-        .playlist-section {
-            background: #212121;
-            border-left: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .playlist-header {
-            padding: 20px;
-            border-bottom: 1px solid #333;
-        }
-
-        .search-box {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 35px 10px 12px;
-            border: 1px solid #333;
-            border-radius: 20px;
-            background: #0f0f0f;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: #666;
-        }
-
-        .search-input::placeholder {
-            color: #666;
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: #666;
-        }
-
-        .playlist-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .playlist-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .shuffle-btn, .sort-btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 15px;
-            border: 1px solid #333;
-            background: transparent;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .shuffle-btn:hover, .sort-btn:hover {
-            background: #333;
-        }
-
-        .shuffle-btn.active {
-            background: #ff0000;
-            border-color: #ff0000;
-        }
-
-        /* Sort menu */
-        .sort-menu {
-            position: relative;
-        }
-
-        .sort-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: #0f0f0f;
-            border: 1px solid #333;
-            border-radius: 4px;
-            margin-top: 5px;
-            display: none;
-            min-width: 150px;
-            z-index: 100;
-        }
-
-        .sort-dropdown.show {
-            display: block;
-        }
-
-        .sort-option {
-            padding: 10px 15px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: background 0.2s;
-        }
-
-        .sort-option:hover {
-            background: #333;
-        }
-
-        .sort-option.active {
-            background: #ff0000;
-        }
-
-        .playlist {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 20px 20px;
-        }
-
-        .playlist-item {
-            padding: 10px 12px;
-            margin-bottom: 2px;
-            background: transparent;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-        }
-
-        .playlist-item:hover {
-            background: #333;
-        }
-
-        .playlist-item.active {
-            background: #333;
-            border-left: 3px solid #ff0000;
-        }
-
-        .playlist-item-number {
-            background: #333;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 500;
-            min-width: 35px;
-            text-align: center;
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        .playlist-item.active .playlist-item-number {
-            background: #ff0000;
-            color: #fff;
-        }
-
-        .playlist-item-title {
-            flex: 1;
-            font-size: 14px;
-            color: #fff;
-        }
-
-        /* Favorite button in playlist */
-        .favorite-btn {
-            background: transparent;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 4px;
-            transition: color 0.2s;
-        }
-
-        .favorite-btn:hover {
-            color: #ff0000;
-        }
-
-        .favorite-btn.active {
-            color: #ff0000;
-        }
-
-        .playlist::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .playlist::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .playlist::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 3px;
-        }
-
-        .playlist::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        /* Picture in Picture indicator */
-        .pip-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.9);
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 4px;
-            font-size: 12px;
-            display: none;
-            z-index: 10000;
-        }
-
-        .pip-indicator.show {
-            display: block;
-        }
-
-        /* Keyboard shortcuts help */
-        .shortcuts-help {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 500px;
-            display: none;
-            z-index: 10000;
-        }
-
-        .shortcuts-help.show {
-            display: block;
-        }
-
-        .shortcuts-help h3 {
-            margin-bottom: 20px;
-            font-size: 18px;
-        }
-
-        .shortcut-list {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 12px;
-            font-size: 13px;
-        }
-
-        .shortcut-key {
-            background: #333;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .shortcuts-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        /* Light theme */
-        body.light-theme {
-            background: #f5f5f5;
-            color: #000;
-        }
-
-        body.light-theme .header {
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-        }
-
-        body.light-theme .header h1 {
-            color: #000;
-        }
-
-        body.light-theme .player-section {
-            background: #fff;
-        }
-
-        body.light-theme .info-panel {
-            background: #f0f0f0;
-        }
-
-        body.light-theme .current-title {
-            color: #000;
-        }
-
-        body.light-theme .video-info {
-            color: #666;
-        }
-
-        body.light-theme .playlist-section {
-            background: #f0f0f0;
-            border-left: 1px solid #ddd;
-        }
-
-        body.light-theme .search-input {
-            background: #fff;
-            border: 1px solid #ddd;
-            color: #000;
-        }
-
-        body.light-theme .playlist-item {
-            color: #000;
-        }
-
-        body.light-theme .playlist-item:hover {
-            background: #e0e0e0;
-        }
-
-        body.light-theme .playlist-item.active {
-            background: #e0e0e0;
-        }
-
-        body.light-theme .playlist-item-title {
-            color: #000;
-        }
-
-        @media (max-width: 968px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            .playlist-section {
-                border-left: none;
-                border-top: 1px solid #333;
-            }
-
-            .control-buttons {
-                font-size: 14px;
-            }
-
-            .btn {
-                width: 35px;
-                height: 35px;
-                font-size: 14px;
-            }
-        }
-
-        /* Icons using Unicode symbols */
-        .icon-play::before { content: "▶"; }
-        .icon-pause::before { content: "❚❚"; }
-        .icon-prev::before { content: "⏮"; }
-        .icon-next::before { content: "⏭"; }
-        .icon-volume-high::before { content: "🔊"; }
-        .icon-volume-low::before { content: "🔉"; }
-        .icon-volume-mute::before { content: "🔇"; }
-        .icon-fullscreen::before { content: "⛶"; }
-        .icon-search::before { content: "🔍"; }
-        .icon-shuffle::before { content: "⇄"; }
-        .icon-loop::before { content: "🔁"; }
-        .icon-pip::before { content: "⧉"; }
-        .icon-favorite::before { content: "♡"; }
-        .icon-favorite.active::before { content: "♥"; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#0f0f0f;min-height:100vh;color:#fff}
+        .header{background:#212121;padding:15px 20px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center}
+        .header h1{font-size:24px;color:#fff}
+        .theme-toggle{padding:6px 12px;background:#333;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:12px;transition:background .2s}
+        .theme-toggle:hover{background:#444}
+        .container{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr 350px;gap:0;min-height:calc(100vh - 70px)}
+        .player-section{background:#181818;padding:20px}
+        .video-wrapper{position:relative;background:#000;border-radius:8px;overflow:hidden;margin-bottom:20px}
+        video{width:100%;display:block;max-height:600px;background:#000}
+        .video-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:5;opacity:0;pointer-events:none;transition:opacity .3s}
+        .video-overlay.show{opacity:1;pointer-events:auto}
+        .loading-spinner{border:3px solid rgba(255,255,255,.3);border-top:3px solid #ff0000;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite}
+        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        .controls{background:linear-gradient(to top,rgba(0,0,0,.8),transparent);position:absolute;bottom:0;left:0;right:0;padding:15px;opacity:0;transition:opacity .3s;z-index:10}
+        .video-wrapper:hover .controls{opacity:1}
+        .progress-container{margin-bottom:10px;position:relative}
+        .progress-bar{width:100%;height:4px;background:rgba(255,255,255,.3);border-radius:2px;cursor:pointer;position:relative}
+        .progress{height:100%;background:#ff0000;border-radius:2px;width:0%;transition:width .1s;position:relative}
+        .progress-handle{position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:12px;height:12px;background:#fff;border-radius:50%;opacity:0;transition:opacity .2s}
+        .progress-bar:hover .progress-handle{opacity:1}
+        .buffer-progress{position:absolute;height:100%;background:rgba(255,255,255,.5);border-radius:2px;width:0%;top:0;left:0}
+        .progress-tooltip{position:absolute;bottom:100%;left:0;background:rgba(0,0,0,.9);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;margin-bottom:8px;opacity:0;pointer-events:none;white-space:nowrap}
+        .progress-container:hover .progress-tooltip{opacity:1}
+        .control-buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .btn{background:transparent;border:none;color:#fff;padding:8px;border-radius:4px;cursor:pointer;font-size:18px;transition:background .2s;display:flex;align-items:center;justify-content:center;width:40px;height:40px;position:relative}
+        .btn:hover{background:rgba(255,255,255,.1)}
+        .btn.active{background:#ff0000}
+        .btn:disabled{opacity:.3;cursor:not-allowed}
+        .btn[title]:hover::after{content:attr(title);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;white-space:nowrap;margin-bottom:8px;z-index:1000}
+        .time-display{margin-left:auto;font-size:13px;color:#aaa}
+        .volume-control{display:flex;align-items:center;gap:8px}
+        .volume-slider{width:60px;height:4px;background:rgba(255,255,255,.3);outline:none;border-radius:2px}
+        .volume-slider::-webkit-slider-thumb{appearance:none;width:12px;height:12px;background:#fff;border-radius:50%;cursor:pointer}
+        .speed-control{position:relative}
+        .speed-btn{font-size:12px;min-width:45px}
+        .speed-menu{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.95);border-radius:4px;padding:8px 0;margin-bottom:8px;display:none;min-width:80px;z-index:1000}
+        .speed-menu.show{display:block}
+        .speed-option{padding:8px 16px;cursor:pointer;font-size:13px;transition:background .2s}
+        .speed-option:hover{background:rgba(255,255,255,.1)}
+        .speed-option.active{background:#ff0000}
+        .info-panel{background:#212121;padding:15px;border-radius:8px;margin-bottom:20px}
+        .current-title{font-size:18px;font-weight:500;margin-bottom:8px;color:#fff}
+        .video-info{font-size:13px;color:#aaa;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+        .status-badge{padding:3px 8px;background:#333;border-radius:3px;font-size:11px;display:inline-block}
+        .status-badge.active{background:#ff0000}
+        .additional-controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+        .control-item{display:flex;align-items:center;gap:6px;background:#2a2a2a;padding:6px 12px;border-radius:4px;font-size:12px;cursor:pointer;transition:background .2s}
+        .control-item:hover{background:#333}
+        .playlist-section{background:#212121;border-left:1px solid #333;display:flex;flex-direction:column}
+        .playlist-header{padding:20px;border-bottom:1px solid #333}
+        .search-box{position:relative;margin-bottom:15px}
+        .search-input{width:100%;padding:10px 35px 10px 12px;border:1px solid #333;border-radius:20px;background:#0f0f0f;color:#fff;font-size:14px;outline:none}
+        .search-input:focus{border-color:#666}
+        .search-input::placeholder{color:#666}
+        .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:#666}
+        .playlist-title{font-size:16px;font-weight:500;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .playlist-controls{display:flex;gap:8px}
+        .shuffle-btn,.sort-btn{padding:6px 12px;font-size:12px;border-radius:15px;border:1px solid #333;background:transparent;color:#fff;cursor:pointer;transition:all .2s}
+        .shuffle-btn:hover,.sort-btn:hover{background:#333}
+        .shuffle-btn.active{background:#ff0000;border-color:#ff0000}
+        .sort-menu{position:relative}
+        .sort-dropdown{position:absolute;top:100%;right:0;background:#0f0f0f;border:1px solid #333;border-radius:4px;margin-top:5px;display:none;min-width:150px;z-index:100}
+        .sort-dropdown.show{display:block}
+        .sort-option{padding:10px 15px;cursor:pointer;font-size:13px;transition:background .2s}
+        .sort-option:hover{background:#333}
+        .sort-option.active{background:#ff0000}
+        .playlist{flex:1;overflow-y:auto;padding:0 20px 20px}
+        .playlist-item{padding:10px 12px;margin-bottom:2px;background:transparent;border-radius:4px;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:12px;position:relative}
+        .playlist-item:hover{background:#333}
+        .playlist-item.active{background:#333;border-left:3px solid #ff0000}
+        .playlist-item-number{background:#333;padding:4px 8px;border-radius:4px;font-weight:500;min-width:35px;text-align:center;font-size:12px;color:#aaa}
+        .playlist-item.active .playlist-item-number{background:#ff0000;color:#fff}
+        .playlist-item-title{flex:1;font-size:14px;color:#fff}
+        .favorite-btn{background:transparent;border:none;color:#666;cursor:pointer;font-size:16px;padding:4px;transition:color .2s}
+        .favorite-btn:hover{color:#ff0000}
+        .favorite-btn.active{color:#ff0000}
+        .playlist::-webkit-scrollbar{width:6px}
+        .playlist::-webkit-scrollbar-track{background:transparent}
+        .playlist::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+        .playlist::-webkit-scrollbar-thumb:hover{background:#555}
+        .no-results,.loading{text-align:center;padding:40px 20px;color:#666;font-size:14px}
+        .pip-indicator{position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,.9);color:#fff;padding:10px 15px;border-radius:4px;font-size:12px;display:none;z-index:10000}
+        .pip-indicator.show{display:block}
+        .shortcuts-help{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.95);padding:30px;border-radius:8px;max-width:500px;display:none;z-index:10000}
+        .shortcuts-help.show{display:block}
+        .shortcuts-help h3{margin-bottom:20px;font-size:18px}
+        .shortcut-list{display:grid;grid-template-columns:1fr 2fr;gap:12px;font-size:13px}
+        .shortcut-key{background:#333;padding:4px 8px;border-radius:4px;text-align:center;font-weight:500}
+        .shortcuts-close{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;padding:5px}
+        body.light-theme{background:#f5f5f5;color:#000}
+        body.light-theme .header{background:#fff;border-bottom:1px solid #ddd}
+        body.light-theme .header h1{color:#000}
+        body.light-theme .player-section{background:#fff}
+        body.light-theme .info-panel{background:#f0f0f0}
+        body.light-theme .current-title{color:#000}
+        body.light-theme .video-info{color:#666}
+        body.light-theme .playlist-section{background:#f0f0f0;border-left:1px solid #ddd}
+        body.light-theme .search-input{background:#fff;border:1px solid #ddd;color:#000}
+        body.light-theme .playlist-item{color:#000}
+        body.light-theme .playlist-item:hover{background:#e0e0e0}
+        body.light-theme .playlist-item.active{background:#e0e0e0}
+        body.light-theme .playlist-item-title{color:#000}
+        @media (max-width:968px){.container{grid-template-columns:1fr}.playlist-section{border-left:none;border-top:1px solid #333}.control-buttons{font-size:14px}.btn{width:35px;height:35px;font-size:14px}}
+        .icon-play::before{content:"▶"}.icon-pause::before{content:"❚❚"}.icon-prev::before{content:"⏮"}.icon-next::before{content:"⏭"}.icon-volume-high::before{content:"🔊"}.icon-volume-low::before{content:"🔉"}.icon-volume-mute::before{content:"🔇"}.icon-fullscreen::before{content:"⛶"}.icon-search::before{content:"🔍"}.icon-shuffle::before{content:"⇄"}.icon-loop::before{content:"🔁"}.icon-pip::before{content:"⧉"}.icon-favorite::before{content:"♡"}.icon-favorite.active::before{content:"♥"}
     </style>
 </head>
 <body>
@@ -927,968 +248,144 @@
         </div>
     </div>
 
-    <!-- PiP Indicator -->
-    <div class="pip-indicator" id="pipIndicator">
-        📺 Mode Picture-in-Picture aktif
-    </div>
+    <div class="pip-indicator" id="pipIndicator">📺 Mode Picture-in-Picture aktif</div>
 
-    <!-- Keyboard Shortcuts Help -->
     <div class="shortcuts-help" id="shortcutsHelp">
         <button class="shortcuts-close" id="shortcutsClose">×</button>
         <h3>⌨️ Keyboard Shortcuts</h3>
         <div class="shortcut-list">
-            <div class="shortcut-key">Space</div>
-            <div>Play/Pause</div>
-            
-            <div class="shortcut-key">→</div>
-            <div>Maju 5 detik</div>
-            
-            <div class="shortcut-key">←</div>
-            <div>Mundur 5 detik</div>
-            
-            <div class="shortcut-key">↑</div>
-            <div>Volume naik</div>
-            
-            <div class="shortcut-key">↓</div>
-            <div>Volume turun</div>
-            
-            <div class="shortcut-key">M</div>
-            <div>Mute/Unmute</div>
-            
-            <div class="shortcut-key">F</div>
-            <div>Fullscreen</div>
-            
-            <div class="shortcut-key">I</div>
-            <div>Picture in Picture</div>
-            
-            <div class="shortcut-key">N</div>
-            <div>Video berikutnya</div>
-            
-            <div class="shortcut-key">P</div>
-            <div>Video sebelumnya</div>
-            
-            <div class="shortcut-key">S</div>
-            <div>Toggle Shuffle</div>
-            
-            <div class="shortcut-key">L</div>
-            <div>Toggle Loop</div>
-            
-            <div class="shortcut-key">?</div>
-            <div>Tampilkan bantuan ini</div>
+            <div class="shortcut-key">Space</div><div>Play/Pause</div>
+            <div class="shortcut-key">→</div><div>Maju 5 detik</div>
+            <div class="shortcut-key">←</div><div>Mundur 5 detik</div>
+            <div class="shortcut-key">↑</div><div>Volume naik</div>
+            <div class="shortcut-key">↓</div><div>Volume turun</div>
+            <div class="shortcut-key">M</div><div>Mute/Unmute</div>
+            <div class="shortcut-key">F</div><div>Fullscreen</div>
+            <div class="shortcut-key">I</div><div>Picture in Picture</div>
+            <div class="shortcut-key">N</div><div>Video berikutnya</div>
+            <div class="shortcut-key">P</div><div>Video sebelumnya</div>
+            <div class="shortcut-key">S</div><div>Toggle Shuffle</div>
+            <div class="shortcut-key">L</div><div>Toggle Loop</div>
+            <div class="shortcut-key">?</div><div>Tampilkan bantuan ini</div>
         </div>
     </div>
 
     <script>
-        // Elements
-        const videoPlayer = document.getElementById('videoPlayer');
-        const videoSource = document.getElementById('videoSource');
-        const videoOverlay = document.getElementById('videoOverlay');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        const loopBtn = document.getElementById('loopBtn');
-        const progressBar = document.getElementById('progressBar');
-        const progress = document.getElementById('progress');
-        const bufferProgress = document.getElementById('bufferProgress');
-        const progressTooltip = document.getElementById('progressTooltip');
-        const currentTimeEl = document.getElementById('currentTime');
-        const durationEl = document.getElementById('duration');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const muteBtn = document.getElementById('muteBtn');
-        const speedBtn = document.getElementById('speedBtn');
-        const speedMenu = document.getElementById('speedMenu');
-        const pipBtn = document.getElementById('pipBtn');
-        const pipIndicator = document.getElementById('pipIndicator');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const currentTitle = document.getElementById('currentTitle');
-        const totalVideos = document.getElementById('totalVideos');
-        const searchInput = document.getElementById('searchInput');
-        const playlistContainer = document.getElementById('playlistContainer');
-        const shuffleToggle = document.getElementById('shuffleToggle');
-        const shuffleStatus = document.getElementById('shuffleStatus');
-        const loopStatus = document.getElementById('loopStatus');
-        const autoplayStatus = document.getElementById('autoplayStatus');
-        const autoplayToggle = document.getElementById('autoplayToggle');
-        const rememberVolumeToggle = document.getElementById('rememberVolumeToggle');
-        const rememberPositionToggle = document.getElementById('rememberPositionToggle');
-        const sortBtn = document.getElementById('sortBtn');
-        const sortDropdown = document.getElementById('sortDropdown');
-        const themeToggle = document.getElementById('themeToggle');
-        const helpBtn = document.getElementById('helpBtn');
-        const shortcutsHelp = document.getElementById('shortcutsHelp');
-        const shortcutsClose = document.getElementById('shortcutsClose');
-
-        let videos = [];
-        let currentVideoIndex = 0;
-        let filteredVideos = [];
-        let shuffleMode = false;
-        let loopMode = false;
-        let autoplayMode = true;
-        let shuffledIndices = [];
-        let shufflePosition = 0;
-        let currentSort = 'number-asc';
-        let favorites = JSON.parse(localStorage.getItem('videoFavorites') || '[]');
-
-        // Initialize - Load saved preferences
-        function loadPreferences() {
-            // Theme
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-                themeToggle.textContent = '☀️ Light';
-            }
-
-            // Volume
-            if (rememberVolumeToggle.checked) {
-                const savedVolume = localStorage.getItem('volume');
-                if (savedVolume !== null) {
-                    videoPlayer.volume = parseFloat(savedVolume);
-                    volumeSlider.value = parseFloat(savedVolume) * 100;
-                }
-            } else {
-                videoPlayer.volume = 0.7;
-                volumeSlider.value = 70;
-            }
-            videoPlayer.muted = false;
-
-            // Autoplay
-            const savedAutoplay = localStorage.getItem('autoplay');
-            if (savedAutoplay !== null) {
-                autoplayMode = savedAutoplay === 'true';
-                autoplayToggle.checked = autoplayMode;
-            }
-
-            // Remember checkboxes state
-            const rememberVolume = localStorage.getItem('rememberVolume');
-            if (rememberVolume !== null) {
-                rememberVolumeToggle.checked = rememberVolume === 'true';
-            }
-
-            const rememberPosition = localStorage.getItem('rememberPosition');
-            if (rememberPosition !== null) {
-                rememberPositionToggle.checked = rememberPosition === 'true';
-            }
-        }
-
-        loadPreferences();
-
-        // Shuffle array function
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        // Generate shuffled indices
-        function generateShuffledIndices() {
-            const indices = Array.from({length: videos.length}, (_, i) => i);
-            shuffledIndices = shuffleArray(indices);
-            
-            // Pastikan video current ada di posisi pertama
-            const currentIndex = shuffledIndices.indexOf(currentVideoIndex);
-            if (currentIndex > 0) {
-                [shuffledIndices[0], shuffledIndices[currentIndex]] = [shuffledIndices[currentIndex], shuffledIndices[0]];
-            }
-            shufflePosition = 0;
-        }
-
-        // Toggle shuffle mode
-        function toggleShuffle() {
-            shuffleMode = !shuffleMode;
-            
-            if (shuffleMode) {
-                generateShuffledIndices();
-                shuffleBtn.classList.add('active');
-                shuffleToggle.classList.add('active');
-                shuffleStatus.textContent = 'Shuffle: ON';
-                shuffleStatus.classList.add('active');
-            } else {
-                shuffleBtn.classList.remove('active');
-                shuffleToggle.classList.remove('active');
-                shuffleStatus.textContent = 'Shuffle: OFF';
-                shuffleStatus.classList.remove('active');
-            }
-        }
-
-        // Toggle loop mode
-        function toggleLoop() {
-            loopMode = !loopMode;
-            
-            if (loopMode) {
-                loopBtn.classList.add('active');
-                loopStatus.textContent = 'Loop: ON';
-                loopStatus.classList.add('active');
-            } else {
-                loopBtn.classList.remove('active');
-                loopStatus.textContent = 'Loop: OFF';
-                loopStatus.classList.remove('active');
-            }
-        }
-
-        // Toggle autoplay
-        autoplayToggle.onchange = () => {
-            autoplayMode = autoplayToggle.checked;
-            localStorage.setItem('autoplay', autoplayMode);
-            autoplayStatus.textContent = autoplayMode ? 'Autoplay: ON' : 'Autoplay: OFF';
-            autoplayStatus.classList.toggle('active', autoplayMode);
-        };
-
-        // Remember volume toggle
-        rememberVolumeToggle.onchange = () => {
-            localStorage.setItem('rememberVolume', rememberVolumeToggle.checked);
-            if (rememberVolumeToggle.checked) {
-                localStorage.setItem('volume', videoPlayer.volume);
-            }
-        };
-
-        // Remember position toggle
-        rememberPositionToggle.onchange = () => {
-            localStorage.setItem('rememberPosition', rememberPositionToggle.checked);
-        };
-
-        // Get next video index
-        function getNextVideoIndex() {
-            if (loopMode) {
-                return currentVideoIndex;
-            }
-            
-            if (shuffleMode) {
-                shufflePosition = (shufflePosition + 1) % shuffledIndices.length;
-                return shuffledIndices[shufflePosition];
-            } else {
-                return (currentVideoIndex + 1) % videos.length;
-            }
-        }
-
-        // Get previous video index
-        function getPrevVideoIndex() {
-            if (shuffleMode) {
-                shufflePosition = (shufflePosition - 1 + shuffledIndices.length) % shuffledIndices.length;
-                return shuffledIndices[shufflePosition];
-            } else {
-                return (currentVideoIndex - 1 + videos.length) % videos.length;
-            }
-        }
-
-        // Deteksi video yang benar-benar ada
-        async function detectAvailableVideos() {
-            const availableVideos = [];
-            
-            for (const num of VIDEO_CONFIG.numbers) {
-                const videoPath = `${VIDEO_CONFIG.folder}${num}${VIDEO_CONFIG.extension}`;
-                
-                try {
-                    const response = await fetch(videoPath, { method: 'HEAD' });
-                    if (response.ok) {
-                        availableVideos.push({
-                            number: num,
-                            title: `Video ${num}`,
-                            src: videoPath,
-                            isFavorite: favorites.includes(num)
-                        });
-                    }
-                } catch (error) {
-                    console.log(`Video ${num} tidak ditemukan`);
-                    continue;
-                }
-            }
-            
-            return availableVideos;
-        }
-
-        // Sort videos
-        function sortVideos(videos, sortType) {
-            const sorted = [...videos];
-            
-            switch(sortType) {
-                case 'number-asc':
-                    sorted.sort((a, b) => a.number - b.number);
-                    break;
-                case 'number-desc':
-                    sorted.sort((a, b) => b.number - a.number);
-                    break;
-                case 'title-asc':
-                    sorted.sort((a, b) => a.title.localeCompare(b.title));
-                    break;
-                case 'title-desc':
-                    sorted.sort((a, b) => b.title.localeCompare(a.title));
-                    break;
-                case 'favorites':
-                    sorted.sort((a, b) => {
-                        if (a.isFavorite && !b.isFavorite) return -1;
-                        if (!a.isFavorite && b.isFavorite) return 1;
-                        return a.number - b.number;
-                    });
-                    break;
-            }
-            
-            return sorted;
-        }
-
-        // Initialize videos
-        async function initializePlayer() {
-            try {
-                videos = await detectAvailableVideos();
-                videos = sortVideos(videos, currentSort);
-                filteredVideos = [...videos];
-                
-                totalVideos.textContent = videos.length;
-                renderPlaylist();
-                
-                if (videos.length > 0) {
-                    // Mulai dengan video acak atau video terakhir dimainkan
-                    const lastPlayed = localStorage.getItem('lastPlayedVideo');
-                    if (lastPlayed && rememberPositionToggle.checked) {
-                        const lastIndex = videos.findIndex(v => v.number === parseInt(lastPlayed));
-                        currentVideoIndex = lastIndex >= 0 ? lastIndex : Math.floor(Math.random() * videos.length);
-                    } else {
-                        currentVideoIndex = Math.floor(Math.random() * videos.length);
-                    }
-                    
-                    loadVideo(currentVideoIndex);
-                    videoPlayer.pause();
-                    updatePlayPauseIcon();
-                } else {
-                    playlistContainer.innerHTML = '<div class="no-results">Tidak ada video ditemukan di folder assets/video/</div>';
-                }
-            } catch (error) {
-                console.error('Error loading videos:', error);
-                playlistContainer.innerHTML = '<div class="no-results">Error memuat video</div>';
-            }
-        }
-
-        // Toggle favorite
-        function toggleFavorite(videoNumber) {
-            const index = favorites.indexOf(videoNumber);
-            if (index > -1) {
-                favorites.splice(index, 1);
-            } else {
-                favorites.push(videoNumber);
-            }
-            
-            localStorage.setItem('videoFavorites', JSON.stringify(favorites));
-            
-            // Update video data
-            const video = videos.find(v => v.number === videoNumber);
-            if (video) {
-                video.isFavorite = !video.isFavorite;
-            }
-            
-            renderPlaylist();
-        }
-
-        // Render playlist
-        function renderPlaylist() {
-            playlistContainer.innerHTML = '';
-            
-            if (filteredVideos.length === 0) {
-                playlistContainer.innerHTML = '<div class="no-results">Tidak ada video ditemukan</div>';
-                return;
-            }
-            
-            filteredVideos.forEach((video, index) => {
-                const item = document.createElement('div');
-                item.className = 'playlist-item';
-                if (videos[currentVideoIndex] === video) {
-                    item.classList.add('active');
-                }
-                item.innerHTML = `
-                    <div class="playlist-item-number">${video.number}</div>
-                    <div class="playlist-item-title">${video.title}</div>
-                    <button class="favorite-btn icon-favorite ${video.isFavorite ? 'active' : ''}" data-number="${video.number}"></button>
-                `;
-                
-                item.onclick = (e) => {
-                    if (!e.target.classList.contains('favorite-btn')) {
-                        const videoIndex = videos.indexOf(video);
-                        loadVideo(videoIndex);
-                        
-                        // Update shuffle position jika shuffle mode aktif
-                        if (shuffleMode) {
-                            shufflePosition = shuffledIndices.indexOf(videoIndex);
-                        }
-                    }
-                };
-                
-                // Favorite button
-                const favBtn = item.querySelector('.favorite-btn');
-                favBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    toggleFavorite(video.number);
-                };
-                
-                playlistContainer.appendChild(item);
-            });
-        }
-
-        // Load video dengan frame pertama
-        function loadVideo(index) {
-            if (index < 0 || index >= videos.length) return;
-            
-            currentVideoIndex = index;
-            const video = videos[index];
-            
-            // Show loading overlay
-            videoOverlay.classList.add('show');
-            
-            videoSource.src = video.src;
-            videoPlayer.load();
-            
-            // Pastikan suara aktif setiap kali load video baru
-            videoPlayer.muted = false;
-            videoPlayer.volume = volumeSlider.value / 100;
-            
-            // Load saved position
-            if (rememberPositionToggle.checked) {
-                const savedPosition = localStorage.getItem(`videoPosition_${video.number}`);
-                if (savedPosition) {
-                    videoPlayer.currentTime = parseFloat(savedPosition);
-                }
-            }
-            
-            // Event listener untuk menampilkan frame pertama
-            videoPlayer.addEventListener('loadeddata', function showFirstFrame() {
-                if (!rememberPositionToggle.checked || !localStorage.getItem(`videoPosition_${video.number}`)) {
-                    videoPlayer.currentTime = 0.1;
-                }
-                videoOverlay.classList.remove('show');
-                videoPlayer.removeEventListener('loadeddata', showFirstFrame);
-            });
-
-            videoPlayer.addEventListener('error', function(e) {
-                console.error('Error loading video:', e);
-                currentTitle.textContent = `Error: ${video.title}`;
-                videoOverlay.classList.remove('show');
-            });
-
-            currentTitle.textContent = video.title;
-            
-            // Save last played video
-            localStorage.setItem('lastPlayedVideo', video.number);
-            
-            updateMuteIcon();
-            renderPlaylist();
-        }
-
-        // Update play/pause icon
-        function updatePlayPauseIcon() {
-            if (videoPlayer.paused) {
-                playPauseBtn.className = 'btn icon-play';
-            } else {
-                playPauseBtn.className = 'btn icon-pause';
-            }
-        }
-
-        // Play/Pause
-        playPauseBtn.onclick = () => {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-            } else {
-                videoPlayer.pause();
-            }
-        };
-
-        videoPlayer.onplay = updatePlayPauseIcon;
-        videoPlayer.onpause = updatePlayPauseIcon;
-
-        // Save video position
-        videoPlayer.ontimeupdate = () => {
-            if (videoPlayer.duration) {
-                const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-                progress.style.width = percent + '%';
-                currentTimeEl.textContent = formatTime(videoPlayer.currentTime);
-                
-                // Save position every 5 seconds
-                if (rememberPositionToggle.checked && Math.floor(videoPlayer.currentTime) % 5 === 0) {
-                    const video = videos[currentVideoIndex];
-                    localStorage.setItem(`videoPosition_${video.number}`, videoPlayer.currentTime);
-                }
-            }
-        };
-
-        // Previous
-        prevBtn.onclick = () => {
-            const prevIndex = getPrevVideoIndex();
-            loadVideo(prevIndex);
-            videoPlayer.play();
-        };
-
-        // Next
-        nextBtn.onclick = () => {
-            const nextIndex = getNextVideoIndex();
-            loadVideo(nextIndex);
-            videoPlayer.play();
-        };
-
-        // Shuffle button
-        shuffleBtn.onclick = toggleShuffle;
-        shuffleToggle.onclick = toggleShuffle;
-
-        // Loop button
-        loopBtn.onclick = toggleLoop;
-
-        // Auto play next
-        videoPlayer.onended = () => {
-            if (autoplayMode && !loopMode) {
-                nextBtn.click();
-            } else if (loopMode) {
-                videoPlayer.currentTime = 0;
-                videoPlayer.play();
-            }
-        };
-
-        // Progress bar
-        videoPlayer.onloadedmetadata = () => {
-            durationEl.textContent = formatTime(videoPlayer.duration);
-        };
-
-        // Buffer progress
-        videoPlayer.onprogress = () => {
-            if (videoPlayer.buffered.length > 0) {
-                const buffered = videoPlayer.buffered.end(videoPlayer.buffered.length - 1);
-                const duration = videoPlayer.duration;
-                if (duration > 0) {
-                    bufferProgress.style.width = (buffered / duration * 100) + '%';
-                }
-            }
-        };
-
-        // Progress bar click and hover
-        progressBar.onclick = (e) => {
-            if (videoPlayer.duration) {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                videoPlayer.currentTime = percent * videoPlayer.duration;
-            }
-        };
-
-        progressBar.onmousemove = (e) => {
-            if (videoPlayer.duration) {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                const time = percent * videoPlayer.duration;
-                progressTooltip.textContent = formatTime(time);
-                progressTooltip.style.left = `${e.clientX - rect.left}px`;
-            }
-        };
-
-        // Volume
-        volumeSlider.oninput = () => {
-            videoPlayer.volume = volumeSlider.value / 100;
-            videoPlayer.muted = false;
-            updateMuteIcon();
-            
-            if (rememberVolumeToggle.checked) {
-                localStorage.setItem('volume', videoPlayer.volume);
-            }
-        };
-
-        muteBtn.onclick = () => {
-            videoPlayer.muted = !videoPlayer.muted;
-            updateMuteIcon();
-        };
-
-        function updateMuteIcon() {
-            if (videoPlayer.muted || videoPlayer.volume === 0) {
-                muteBtn.className = 'btn icon-volume-mute';
-            } else if (videoPlayer.volume < 0.5) {
-                muteBtn.className = 'btn icon-volume-low';
-            } else {
-                muteBtn.className = 'btn icon-volume-high';
-            }
-        }
-
-        // Playback speed
-        speedBtn.onclick = () => {
-            speedMenu.classList.toggle('show');
-        };
-
-        document.querySelectorAll('.speed-option').forEach(option => {
-            option.onclick = () => {
-                const speed = parseFloat(option.dataset.speed);
-                videoPlayer.playbackRate = speed;
-                speedBtn.textContent = `${speed}x`;
-                // Update active state
-                document.querySelectorAll('.speed-option').forEach(opt => {
-                    opt.classList.remove('active');
-                });
-                option.classList.add('active');
-                
-                speedMenu.classList.remove('show');
-            };
-        });
-
-        // Close speed menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!speedBtn.contains(e.target) && !speedMenu.contains(e.target)) {
-                speedMenu.classList.remove('show');
-            }
-        });
-
-        // Picture in Picture
-        pipBtn.onclick = async () => {
-            try {
-                if (document.pictureInPictureElement) {
-                    await document.exitPictureInPicture();
-                } else {
-                    await videoPlayer.requestPictureInPicture();
-                }
-            } catch (error) {
-                console.error('PiP error:', error);
-                alert('Browser Anda tidak mendukung Picture-in-Picture');
-            }
-        };
-
-        videoPlayer.addEventListener('enterpictureinpicture', () => {
-            pipIndicator.classList.add('show');
-            pipBtn.classList.add('active');
-        });
-
-        videoPlayer.addEventListener('leavepictureinpicture', () => {
-            pipIndicator.classList.remove('show');
-            pipBtn.classList.remove('active');
-        });
-
-        // Fullscreen
-        fullscreenBtn.onclick = () => {
-            if (!document.fullscreenElement) {
-                videoPlayer.requestFullscreen().catch(err => {
-                    console.error('Fullscreen error:', err);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        };
-
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fullscreenBtn.style.transform = 'rotate(45deg)';
-            } else {
-                fullscreenBtn.style.transform = 'rotate(0deg)';
-            }
-        });
-
-        // Search
-        searchInput.oninput = () => {
-            const query = searchInput.value.toLowerCase();
-            filteredVideos = videos.filter(video => 
-                video.title.toLowerCase().includes(query) ||
-                video.number.toString().includes(query)
-            );
-            renderPlaylist();
-        };
-
-        // Sort functionality
-        sortBtn.onclick = () => {
-            sortDropdown.classList.toggle('show');
-        };
-
-        document.querySelectorAll('.sort-option').forEach(option => {
-            option.onclick = () => {
-                currentSort = option.dataset.sort;
-                
-                // Update active state
-                document.querySelectorAll('.sort-option').forEach(opt => {
-                    opt.classList.remove('active');
-                });
-                option.classList.add('active');
-                
-                // Sort videos
-                videos = sortVideos(videos, currentSort);
-                
-                // Apply search filter if active
-                const query = searchInput.value.toLowerCase();
-                if (query) {
-                    filteredVideos = videos.filter(video => 
-                        video.title.toLowerCase().includes(query) ||
-                        video.number.toString().includes(query)
-                    );
-                } else {
-                    filteredVideos = [...videos];
-                }
-                
-                renderPlaylist();
-                sortDropdown.classList.remove('show');
-            };
-        });
-
-        // Close sort dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!sortBtn.contains(e.target) && !sortDropdown.contains(e.target)) {
-                sortDropdown.classList.remove('show');
-            }
-        });
-
-        // Theme toggle
-        themeToggle.onclick = () => {
-            document.body.classList.toggle('light-theme');
-            
-            if (document.body.classList.contains('light-theme')) {
-                themeToggle.textContent = '☀️ Light';
-                localStorage.setItem('theme', 'light');
-            } else {
-                themeToggle.textContent = '🌙 Dark';
-                localStorage.setItem('theme', 'dark');
-            }
-        };
-
-        // Help/Shortcuts
-        helpBtn.onclick = () => {
-            shortcutsHelp.classList.add('show');
-        };
-
-        shortcutsClose.onclick = () => {
-            shortcutsHelp.classList.remove('show');
-        };
-
-        // Close shortcuts help when clicking outside
-        shortcutsHelp.onclick = (e) => {
-            if (e.target === shortcutsHelp) {
-                shortcutsHelp.classList.remove('show');
-            }
-        };
-
-        // Format time
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Keyboard shortcuts
-        document.onkeydown = (e) => {
-            // Ignore if typing in search box
-            if (e.target === searchInput) return;
-            
-            // Ignore if shortcuts help is open and pressing Escape
-            if (shortcutsHelp.classList.contains('show') && e.key === 'Escape') {
-                shortcutsHelp.classList.remove('show');
-                return;
-            }
-            
-            switch(e.key.toLowerCase()) {
-                case ' ':
-                    e.preventDefault();
-                    playPauseBtn.click();
-                    break;
-                    
-                case 'arrowright':
-                    e.preventDefault();
-                    videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + 5);
-                    break;
-                    
-                case 'arrowleft':
-                    e.preventDefault();
-                    videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 5);
-                    break;
-                    
-                case 'arrowup':
-                    e.preventDefault();
-                    videoPlayer.volume = Math.min(1, videoPlayer.volume + 0.1);
-                    volumeSlider.value = videoPlayer.volume * 100;
-                    videoPlayer.muted = false;
-                    updateMuteIcon();
-                    if (rememberVolumeToggle.checked) {
-                        localStorage.setItem('volume', videoPlayer.volume);
-                    }
-                    break;
-                    
-                case 'arrowdown':
-                    e.preventDefault();
-                    videoPlayer.volume = Math.max(0, videoPlayer.volume - 0.1);
-                    volumeSlider.value = videoPlayer.volume * 100;
-                    updateMuteIcon();
-                    if (rememberVolumeToggle.checked) {
-                        localStorage.setItem('volume', videoPlayer.volume);
-                    }
-                    break;
-                    
-                case 'm':
-                    e.preventDefault();
-                    muteBtn.click();
-                    break;
-                    
-                case 'f':
-                    e.preventDefault();
-                    fullscreenBtn.click();
-                    break;
-                    
-                case 'i':
-                    e.preventDefault();
-                    pipBtn.click();
-                    break;
-                    
-                case 'n':
-                    e.preventDefault();
-                    nextBtn.click();
-                    break;
-                    
-                case 'p':
-                    e.preventDefault();
-                    prevBtn.click();
-                    break;
-                    
-                case 's':
-                    e.preventDefault();
-                    toggleShuffle();
-                    break;
-                    
-                case 'l':
-                    e.preventDefault();
-                    toggleLoop();
-                    break;
-                    
-                case '?':
-                    e.preventDefault();
-                    shortcutsHelp.classList.toggle('show');
-                    break;
-                    
-                case 'escape':
-                    e.preventDefault();
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen();
-                    }
-                    if (speedMenu.classList.contains('show')) {
-                        speedMenu.classList.remove('show');
-                    }
-                    if (sortDropdown.classList.contains('show')) {
-                        sortDropdown.classList.remove('show');
-                    }
-                    break;
-                    
-                // Number keys for speed control
-                case '1':
-                    e.preventDefault();
-                    videoPlayer.playbackRate = 1;
-                    speedBtn.textContent = '1x';
-                    document.querySelectorAll('.speed-option').forEach(opt => {
-                        opt.classList.toggle('active', opt.dataset.speed === '1');
-                    });
-                    break;
-                    
-                case '2':
-                    e.preventDefault();
-                    videoPlayer.playbackRate = 2;
-                    speedBtn.textContent = '2x';
-                    document.querySelectorAll('.speed-option').forEach(opt => {
-                        opt.classList.toggle('active', opt.dataset.speed === '2');
-                    });
-                    break;
-                    
-                case '0':
-                    e.preventDefault();
-                    videoPlayer.currentTime = 0;
-                    break;
-            }
-        };
-
-        // Double click to fullscreen
-        videoPlayer.ondblclick = () => {
-            fullscreenBtn.click();
-        };
-
-        // Prevent context menu on video
-        videoPlayer.oncontextmenu = (e) => {
-            e.preventDefault();
-            return false;
-        };
-
-        // Show loading overlay when video is loading
-        videoPlayer.addEventListener('waiting', () => {
-            videoOverlay.classList.add('show');
-        });
-
-        videoPlayer.addEventListener('canplay', () => {
-            videoOverlay.classList.remove('show');
-        });
-
-        // Handle video errors
-        videoPlayer.addEventListener('error', (e) => {
-            console.error('Video error:', e);
-            videoOverlay.classList.remove('show');
-            
-            // Try to skip to next video if current fails
-            if (autoplayMode) {
-                setTimeout(() => {
-                    nextBtn.click();
-                }, 2000);
-            }
-        });
-
-        // Prevent video from being downloaded easily
-        videoPlayer.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-        });
-
-        // Update autoplay status on load
-        autoplayStatus.textContent = autoplayMode ? 'Autoplay: ON' : 'Autoplay: OFF';
-        autoplayStatus.classList.toggle('active', autoplayMode);
-
-        // Media Session API for media controls
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.setActionHandler('play', () => {
-                videoPlayer.play();
-            });
-
-            navigator.mediaSession.setActionHandler('pause', () => {
-                videoPlayer.pause();
-            });
-
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                prevBtn.click();
-            });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                nextBtn.click();
-            });
-
-            navigator.mediaSession.setActionHandler('seekbackward', () => {
-                videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 10);
-            });
-
-            navigator.mediaSession.setActionHandler('seekforward', () => {
-                videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + 10);
-            });
-
-            // Update metadata when video changes
-            videoPlayer.addEventListener('loadedmetadata', () => {
-                const video = videos[currentVideoIndex];
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: video.title,
-                    artist: 'Video Player',
-                    album: 'My Videos',
-                });
-            });
-        }
-
-        // Visibility change - pause when tab is hidden (optional)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                // Optionally pause video when tab is hidden
-                // videoPlayer.pause();
-            }
-        });
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            // Save current video position
-            if (rememberPositionToggle.checked) {
-                const video = videos[currentVideoIndex];
-                localStorage.setItem(`videoPosition_${video.number}`, videoPlayer.currentTime);
-            }
-        });
-
-        // Start the app
-        initializePlayer();
-
-        // Show welcome message
-        console.log('%c🎬 Video Player', 'font-size: 20px; font-weight: bold; color: #ff0000;');
-        console.log('%cTekan ? untuk melihat keyboard shortcuts', 'font-size: 12px; color: #666;');
+        const els={v:document.getElementById('videoPlayer'),vs:document.getElementById('videoSource'),vo:document.getElementById('videoOverlay'),ppb:document.getElementById('playPauseBtn'),pb:document.getElementById('prevBtn'),nb:document.getElementById('nextBtn'),sb:document.getElementById('shuffleBtn'),lb:document.getElementById('loopBtn'),pbar:document.getElementById('progressBar'),prog:document.getElementById('progress'),bprog:document.getElementById('bufferProgress'),ptt:document.getElementById('progressTooltip'),ct:document.getElementById('currentTime'),dur:document.getElementById('duration'),vs2:document.getElementById('volumeSlider'),mb:document.getElementById('muteBtn'),spb:document.getElementById('speedBtn'),spm:document.getElementById('speedMenu'),pipb:document.getElementById('pipBtn'),pipi:document.getElementById('pipIndicator'),fb:document.getElementById('fullscreenBtn'),title:document.getElementById('currentTitle'),tv:document.getElementById('totalVideos'),si:document.getElementById('searchInput'),pc:document.getElementById('playlistContainer'),st:document.getElementById('shuffleToggle'),ss:document.getElementById('shuffleStatus'),ls:document.getElementById('loopStatus'),as:document.getElementById('autoplayStatus'),at:document.getElementById('autoplayToggle'),rvt:document.getElementById('rememberVolumeToggle'),rpt:document.getElementById('rememberPositionToggle'),sortb:document.getElementById('sortBtn'),sortd:document.getElementById('sortDropdown'),tt:document.getElementById('themeToggle'),hb:document.getElementById('helpBtn'),sh:document.getElementById('shortcutsHelp'),sc:document.getElementById('shortcutsClose')};
+
+        let videos=[],currentVideoIndex=0,filteredVideos=[],shuffleMode=false,loopMode=false,autoplayMode=true,shuffledIndices=[],shufflePosition=0,currentSort='number-asc',favorites=JSON.parse(localStorage.getItem('videoFavorites')||'[]');
+
+        function loadPrefs(){const t=localStorage.getItem('theme')||'dark';t==='light'&&(document.body.classList.add('light-theme'),els.tt.textContent='☀️ Light');if(els.rvt.checked){const v=localStorage.getItem('volume');v!==null&&(els.v.volume=parseFloat(v),els.vs2.value=parseFloat(v)*100)}else els.v.volume=.7,els.vs2.value=70;els.v.muted=false;const a=localStorage.getItem('autoplay');a!==null&&(autoplayMode=a==='true',els.at.checked=autoplayMode);const rv=localStorage.getItem('rememberVolume');rv!==null&&(els.rvt.checked=rv==='true');const rp=localStorage.getItem('rememberPosition');rp!==null&&(els.rpt.checked=rp==='true')}
+
+        function shuffle(a){const s=[...a];for(let i=s.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[s[i],s[j]]=[s[j],s[i]]}return s}
+
+        function genShuffle(){const idx=Array.from({length:videos.length},(a,i)=>i);shuffledIndices=shuffle(idx);const ci=shuffledIndices.indexOf(currentVideoIndex);ci>0&&([shuffledIndices[0],shuffledIndices[ci]]=[shuffledIndices[ci],shuffledIndices[0]]);shufflePosition=0}
+
+        function toggleShuffle(){shuffleMode=!shuffleMode;shuffleMode?(genShuffle(),els.sb.classList.add('active'),els.st.classList.add('active'),els.ss.textContent='Shuffle: ON',els.ss.classList.add('active')):(els.sb.classList.remove('active'),els.st.classList.remove('active'),els.ss.textContent='Shuffle: OFF',els.ss.classList.remove('active'))}
+
+        function toggleLoop(){loopMode=!loopMode;loopMode?(els.lb.classList.add('active'),els.ls.textContent='Loop: ON',els.ls.classList.add('active')):(els.lb.classList.remove('active'),els.ls.textContent='Loop: OFF',els.ls.classList.remove('active'))}
+
+        function getNext(){return loopMode?currentVideoIndex:shuffleMode?(shufflePosition=(shufflePosition+1)%shuffledIndices.length,shuffledIndices[shufflePosition]):(currentVideoIndex+1)%videos.length}
+
+        function getPrev(){return shuffleMode?(shufflePosition=(shufflePosition-1+shuffledIndices.length)%shuffledIndices.length,shuffledIndices[shufflePosition]):(currentVideoIndex-1+videos.length)%videos.length}
+
+        async function detectVideos(){const av=[];for(const n of VIDEO_CONFIG.numbers){const vp=`${VIDEO_CONFIG.folder}${n}${VIDEO_CONFIG.extension}`;try{const r=await fetch(vp,{method:'HEAD'});r.ok&&av.push({number:n,title:`Video ${n}`,src:vp,isFavorite:favorites.includes(n)})}catch(e){continue}}return av}
+
+        function sortVids(v,st){const s=[...v];switch(st){case 'number-asc':s.sort((a,b)=>a.number-b.number);break;case 'number-desc':s.sort((a,b)=>b.number-a.number);break;case 'title-asc':s.sort((a,b)=>a.title.localeCompare(b.title));break;case 'title-desc':s.sort((a,b)=>b.title.localeCompare(a.title));break;case 'favorites':s.sort((a,b)=>{if(a.isFavorite&&!b.isFavorite)return-1;if(!a.isFavorite&&b.isFavorite)return 1;return a.number-b.number})}return s}
+
+        async function init(){try{videos=await detectVideos();videos=sortVids(videos,currentSort);filteredVideos=[...videos];els.tv.textContent=videos.length;renderPlaylist();if(videos.length>0){const lp=localStorage.getItem('lastPlayedVideo');if(lp&&els.rpt.checked){const li=videos.findIndex(v=>v.number===parseInt(lp));currentVideoIndex=li>=0?li:Math.floor(Math.random()*videos.length)}else currentVideoIndex=Math.floor(Math.random()*videos.length);loadVideo(currentVideoIndex);els.v.pause();updatePPIcon()}else els.pc.innerHTML='<div class="no-results">Tidak ada video ditemukan di folder assets/video/</div>'}catch(e){console.error('Error loading videos:',e);els.pc.innerHTML='<div class="no-results">Error memuat video</div>'}}
+
+        function toggleFav(vn){const i=favorites.indexOf(vn);i>-1?favorites.splice(i,1):favorites.push(vn);localStorage.setItem('videoFavorites',JSON.stringify(favorites));const v=videos.find(v=>v.number===vn);v&&(v.isFavorite=!v.isFavorite);renderPlaylist()}
+
+        function renderPlaylist(){els.pc.innerHTML='';if(filteredVideos.length===0){els.pc.innerHTML='<div class="no-results">Tidak ada video ditemukan</div>';return}filteredVideos.forEach(v=>{const item=document.createElement('div');item.className='playlist-item';videos[currentVideoIndex]===v&&item.classList.add('active');item.innerHTML=`<div class="playlist-item-number">${v.number}</div><div class="playlist-item-title">${v.title}</div><button class="favorite-btn icon-favorite ${v.isFavorite?'active':''}" data-number="${v.number}"></button>`;item.onclick=e=>{if(!e.target.classList.contains('favorite-btn')){const vi=videos.indexOf(v);loadVideo(vi);shuffleMode&&(shufflePosition=shuffledIndices.indexOf(vi))}};const fb=item.querySelector('.favorite-btn');fb.onclick=e=>{e.stopPropagation();toggleFav(v.number)};els.pc.appendChild(item)})}
+
+        function loadVideo(i){if(i<0||i>=videos.length)return;currentVideoIndex=i;const v=videos[i];els.vo.classList.add('show');els.vs.src=v.src;els.v.load();els.v.muted=false;els.v.volume=els.vs2.value/100;if(els.rpt.checked){const sp=localStorage.getItem(`videoPosition_${v.number}`);sp&&(els.v.currentTime=parseFloat(sp))}els.v.addEventListener('loadeddata',function sf(){(!els.rpt.checked||!localStorage.getItem(`videoPosition_${v.number}`))&&(els.v.currentTime=.1);els.vo.classList.remove('show');els.v.removeEventListener('loadeddata',sf)});els.v.addEventListener('error',function(e){console.error('Error loading video:',e);els.title.textContent=`Error: ${v.title}`;els.vo.classList.remove('show')});els.title.textContent=v.title;localStorage.setItem('lastPlayedVideo',v.number);updateMuteIcon();renderPlaylist()}
+
+        function updatePPIcon(){els.ppb.className=els.v.paused?'btn icon-play':'btn icon-pause'}
+
+        function updateMuteIcon(){if(els.v.muted||els.v.volume===0)els.mb.className='btn icon-volume-mute';else if(els.v.volume<.5)els.mb.className='btn icon-volume-low';else els.mb.className='btn icon-volume-high'}
+
+        function formatTime(s){if(!s||isNaN(s))return'0:00';const m=Math.floor(s/60);const sec=Math.floor(s%60);return`${m}:${sec.toString().padStart(2,'0')}`}
+
+        loadPrefs();
+
+        els.ppb.onclick=()=>els.v.paused?els.v.play():els.v.pause();
+        els.v.onplay=updatePPIcon;
+        els.v.onpause=updatePPIcon;
+
+        els.v.ontimeupdate=()=>{if(els.v.duration){const p=(els.v.currentTime/els.v.duration)*100;els.prog.style.width=p+'%';els.ct.textContent=formatTime(els.v.currentTime);if(els.rpt.checked&&Math.floor(els.v.currentTime)%5===0){const v=videos[currentVideoIndex];localStorage.setItem(`videoPosition_${v.number}`,els.v.currentTime)}}};
+
+        els.pb.onclick=()=>{const pi=getPrev();loadVideo(pi);els.v.play()};
+        els.nb.onclick=()=>{const ni=getNext();loadVideo(ni);els.v.play()};
+        els.sb.onclick=toggleShuffle;
+        els.st.onclick=toggleShuffle;
+        els.lb.onclick=toggleLoop;
+
+        els.v.onended=()=>{if(autoplayMode&&!loopMode)els.nb.click();else if(loopMode)els.v.currentTime=0,els.v.play()};
+
+        els.v.onloadedmetadata=()=>els.dur.textContent=formatTime(els.v.duration);
+
+        els.v.onprogress=()=>{if(els.v.buffered.length>0){const b=els.v.buffered.end(els.v.buffered.length-1);const d=els.v.duration;d>0&&(els.bprog.style.width=(b/d*100)+'%')}};
+
+        els.pbar.onclick=e=>{if(els.v.duration){const r=els.pbar.getBoundingClientRect();const p=(e.clientX-r.left)/r.width;els.v.currentTime=p*els.v.duration}};
+
+        els.pbar.onmousemove=e=>{if(els.v.duration){const r=els.pbar.getBoundingClientRect();const p=(e.clientX-r.left)/r.width;const t=p*els.v.duration;els.ptt.textContent=formatTime(t);els.ptt.style.left=`${e.clientX-r.left}px`}};
+
+        els.vs2.oninput=()=>{els.v.volume=els.vs2.value/100;els.v.muted=false;updateMuteIcon();els.rvt.checked&&localStorage.setItem('volume',els.v.volume)};
+
+        els.mb.onclick=()=>{els.v.muted=!els.v.muted;updateMuteIcon()};
+
+        els.spb.onclick=()=>els.spm.classList.toggle('show');
+
+        document.querySelectorAll('.speed-option').forEach(o=>{o.onclick=()=>{const s=parseFloat(o.dataset.speed);els.v.playbackRate=s;els.spb.textContent=`${s}x`;document.querySelectorAll('.speed-option').forEach(op=>op.classList.remove('active'));o.classList.add('active');els.spm.classList.remove('show')}});
+
+        els.pipb.onclick=async()=>{try{document.pictureInPictureElement?await document.exitPictureInPicture():await els.v.requestPictureInPicture()}catch(e){console.error('PiP error:',e);alert('Browser Anda tidak mendukung Picture-in-Picture')}};
+
+        els.v.addEventListener('enterpictureinpicture',()=>{els.pipi.classList.add('show');els.pipb.classList.add('active')});
+        els.v.addEventListener('leavepictureinpicture',()=>{els.pipi.classList.remove('show');els.pipb.classList.remove('active')});
+
+        els.fb.onclick=()=>{document.fullscreenElement?document.exitFullscreen():els.v.requestFullscreen().catch(e=>console.error('Fullscreen error:',e))};
+
+        document.addEventListener('fullscreenchange',()=>{els.fb.style.transform=document.fullscreenElement?'rotate(45deg)':'rotate(0deg)'});
+
+        els.si.oninput=()=>{const q=els.si.value.toLowerCase();filteredVideos=videos.filter(v=>v.title.toLowerCase().includes(q)||v.number.toString().includes(q));renderPlaylist()};
+
+        els.at.onchange=()=>{autoplayMode=els.at.checked;localStorage.setItem('autoplay',autoplayMode);els.as.textContent=autoplayMode?'Autoplay: ON':'Autoplay: OFF';els.as.classList.toggle('active',autoplayMode)};
+
+        els.rvt.onchange=()=>{localStorage.setItem('rememberVolume',els.rvt.checked);els.rvt.checked&&localStorage.setItem('volume',els.v.volume)};
+
+        els.rpt.onchange=()=>localStorage.setItem('rememberPosition',els.rpt.checked);
+
+        els.sortb.onclick=()=>els.sortd.classList.toggle('show');
+
+        document.querySelectorAll('.sort-option').forEach(o=>{o.onclick=()=>{currentSort=o.dataset.sort;document.querySelectorAll('.sort-option').forEach(op=>op.classList.remove('active'));o.classList.add('active');videos=sortVids(videos,currentSort);const q=els.si.value.toLowerCase();filteredVideos=q?videos.filter(v=>v.title.toLowerCase().includes(q)||v.number.toString().includes(q)):[...videos];renderPlaylist();els.sortd.classList.remove('show')}});
+
+        els.tt.onclick=()=>{document.body.classList.toggle('light-theme');if(document.body.classList.contains('light-theme'))els.tt.textContent='☀️ Light',localStorage.setItem('theme','light');else els.tt.textContent='🌙 Dark',localStorage.setItem('theme','dark')};
+
+        els.hb.onclick=()=>els.sh.classList.add('show');
+        els.sc.onclick=()=>els.sh.classList.remove('show');
+        els.sh.onclick=e=>e.target===els.sh&&els.sh.classList.remove('show');
+
+        document.onclick=e=>{(!els.spb.contains(e.target)&&!els.spm.contains(e.target))&&els.spm.classList.remove('show');(!els.sortb.contains(e.target)&&!els.sortd.contains(e.target))&&els.sortd.classList.remove('show')};
+
+        document.onkeydown=e=>{if(e.target===els.si)return;if(els.sh.classList.contains('show')&&e.key==='Escape'){els.sh.classList.remove('show');return}switch(e.key.toLowerCase()){case ' ':e.preventDefault();els.ppb.click();break;case 'arrowright':e.preventDefault();els.v.currentTime=Math.min(els.v.duration,els.v.currentTime+5);break;case 'arrowleft':e.preventDefault();els.v.currentTime=Math.max(0,els.v.currentTime-5);break;case 'arrowup':e.preventDefault();els.v.volume=Math.min(1,els.v.volume+.1);els.vs2.value=els.v.volume*100;els.v.muted=false;updateMuteIcon();els.rvt.checked&&localStorage.setItem('volume',els.v.volume);break;case 'arrowdown':e.preventDefault();els.v.volume=Math.max(0,els.v.volume-.1);els.vs2.value=els.v.volume*100;updateMuteIcon();els.rvt.checked&&localStorage.setItem('volume',els.v.volume);break;case 'm':e.preventDefault();els.mb.click();break;case 'f':e.preventDefault();els.fb.click();break;case 'i':e.preventDefault();els.pipb.click();break;case 'n':e.preventDefault();els.nb.click();break;case 'p':e.preventDefault();els.pb.click();break;case 's':e.preventDefault();toggleShuffle();break;case 'l':e.preventDefault();toggleLoop();break;case '?':e.preventDefault();els.sh.classList.toggle('show');break;case 'escape':e.preventDefault();document.fullscreenElement&&document.exitFullscreen();els.spm.classList.contains('show')&&els.spm.classList.remove('show');els.sortd.classList.contains('show')&&els.sortd.classList.remove('show');break;case '1':e.preventDefault();els.v.playbackRate=1;els.spb.textContent='1x';document.querySelectorAll('.speed-option').forEach(op=>op.classList.toggle('active',op.dataset.speed==='1'));break;case '2':e.preventDefault();els.v.playbackRate=2;els.spb.textContent='2x';document.querySelectorAll('.speed-option').forEach(op=>op.classList.toggle('active',op.dataset.speed==='2'));break;case '0':e.preventDefault();els.v.currentTime=0;break}};
+
+        els.v.ondblclick=()=>els.fb.click();
+        els.v.oncontextmenu=e=>{e.preventDefault();return false};
+        els.v.addEventListener('waiting',()=>els.vo.classList.add('show'));
+        els.v.addEventListener('canplay',()=>els.vo.classList.remove('show'));
+        els.v.addEventListener('error',e=>{console.error('Video error:',e);els.vo.classList.remove('show');autoplayMode&&setTimeout(()=>els.nb.click(),2000)});
+
+        els.as.textContent=autoplayMode?'Autoplay: ON':'Autoplay: OFF';
+        els.as.classList.toggle('active',autoplayMode);
+
+        if('mediaSession'in navigator){navigator.mediaSession.setActionHandler('play',()=>els.v.play());navigator.mediaSession.setActionHandler('pause',()=>els.v.pause());navigator.mediaSession.setActionHandler('previoustrack',()=>els.pb.click());navigator.mediaSession.setActionHandler('nexttrack',()=>els.nb.click());navigator.mediaSession.setActionHandler('seekbackward',()=>els.v.currentTime=Math.max(0,els.v.currentTime-10));navigator.mediaSession.setActionHandler('seekforward',()=>els.v.currentTime=Math.min(els.v.duration,els.v.currentTime+10));els.v.addEventListener('loadedmetadata',()=>{const v=videos[currentVideoIndex];navigator.mediaSession.metadata=new MediaMetadata({title:v.title,artist:'Video Player',album:'My Videos'})})}
+
+        window.addEventListener('beforeunload',()=>{if(els.rpt.checked){const v=videos[currentVideoIndex];localStorage.setItem(`videoPosition_${v.number}`,els.v.currentTime)}});
+
+        init();
+        console.log('%c🎬 Video Player','font-size:20px;font-weight:bold;color:#ff0000;');
+        console.log('%cTekan ? untuk melihat keyboard shortcuts','font-size:12px;color:#666;');
     </script>
 </body>
 </html>
