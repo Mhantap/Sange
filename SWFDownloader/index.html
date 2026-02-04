@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NR Pets & NPC Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            flex: 1;
+            min-width: 200px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .download-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .download-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .download-btn.npc {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .download-btn.npc:hover:not(:disabled) {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .progress-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .log-container {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .log-success {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 3px solid #10b981;
+        }
+
+        .log-error {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 3px solid #ef4444;
+        }
+
+        .log-info {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .download-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            min-width: 300px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            border-left: 4px solid #10b981;
+        }
+
+        .download-notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .notification-text {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 120px;
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .download-btn {
+                min-width: auto;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 NR Downloader</h1>
+            <p>Download Pets & NPC Files dari NinjaRift</p>
+        </div>
+        
+        <div class="content">
+            <div class="button-group">
+                <button class="download-btn" id="downloadPets">
+                    <span>🐾</span>
+                    Download All Pets
+                </button>
+                <button class="download-btn npc" id="downloadNPCs">
+                    <span>👥</span>
+                    Download All NPCs
+                </button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalFiles">0</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="downloadedFiles">0</div>
+                    <div class="stat-label">Downloaded</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="failedFiles">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+
+            <div class="progress-container" id="progressContainer" style="display: none;">
+                <div class="progress-text">
+                    <span id="currentFile">Preparing...</span>
+                    <span id="progressPercentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">📋 Siap untuk download. Pilih Pets atau NPCs untuk mulai.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="download-notification" id="notification">
+        <div class="notification-title" id="notificationTitle">Download Progress</div>
+        <div class="notification-text" id="notificationText">Preparing download...</div>
+    </div>
+
+    <script>
+        class NRDownloader {
+            constructor() {
+                this.totalFiles = 0;
+                this.downloadedFiles = 0;
+                this.failedFiles = 0;
+                this.currentDownloads = [];
+                
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                document.getElementById('downloadPets').addEventListener('click', () => this.downloadPets());
+                document.getElementById('downloadNPCs').addEventListener('click', () => this.downloadNPCs());
+            }
+
+            log(message, type = 'info') {
+                const logContainer = document.getElementById('logContainer');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${type}`;
+                
+                const timestamp = new Date().toLocaleTimeString();
+                logEntry.innerHTML = `[${timestamp}] ${message}`;
+                
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            showNotification(title, text) {
+                const notification = document.getElementById('notification');
+                const notificationTitle = document.getElementById('notificationTitle');
+                const notificationText = document.getElementById('notificationText');
+                
+                notificationTitle.textContent = title;
+                notificationText.textContent = text;
+                
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            updateProgress(current, total, fileName) {
+                const progressContainer = document.getElementById('progressContainer');
+                const progressFill = document.getElementById('progressFill');
+                const progressPercentage = document.getElementById('progressPercentage');
+                const currentFile = document.getElementById('currentFile');
+                
+                progressContainer.style.display = 'block';
+                
+                const percentage = Math.round((current / total) * 100);
+                progressFill.style.width = `${percentage}%`;
+                progressPercentage.textContent = `${percentage}%`;
+                currentFile.textContent = `Downloading: ${fileName}`;
+            }
+
+            updateStats() {
+                document.getElementById('totalFiles').textContent = this.totalFiles;
+                document.getElementById('downloadedFiles').textContent = this.downloadedFiles;
+                document.getElementById('failedFiles').textContent = this.failedFiles;
+            }
+
+            async downloadFile(url, filename) {
+                try {
+                    const response = await fetch(url);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const blob = await response.blob();
+                    
+                    // Create download link
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    this.downloadedFiles++;
+                    this.log(`✅ File ${filename} berhasil didownload`, 'success');
+                    this.showNotification('Download Success', `${filename} berhasil didownload`);
+                    
+                    return true;
+                } catch (error) {
+                    this.failedFiles++;
+                    this.log(`❌ Gagal download ${filename}: ${error.message}`, 'error');
+                    this.showNotification('Download Failed', `Gagal download ${filename}`);
+                    
+                    return false;
+                }
+            }
+
+            async downloadPets() {
+                const btn = document.getElementById('downloadPets');
+                btn.disabled = true;
+                btn.innerHTML = '<span>⏳</span> Downloading Pets...';
+                
+                this.resetStats();
+                this.log('🚀 Memulai download pets...', 'info');
+                
+                try {
+                    const response = await fetch('https://ninjarift.org/library/petInfo.json');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const petInfo = await response.json();
+                    const petNames = petInfo.savedPetInfo.map(pet => pet.item_id);
+                    
+                    this.totalFiles = petNames.length;
+                    this.updateStats();
+                    
+                    this.log(`📊 Ditemukan ${petNames.length} pets untuk didownload`, 'info');
+                    
+                    for (let i = 0; i < petNames.length; i++) {
+                        const petName = petNames[i];
+                        const url = `https://ninjarift.sgp1.cdn.digitaloceanspaces.com/swf/pets/${petName}.swf`;
+                        const filename = `${petName}.swf`;
+                        
+                        this.updateProgress(i + 1, petNames.length, filename);
+                        
+                        await this.downloadFile(url, filename);
+                        this.updateStats();
+                        
+                        // Small delay to prevent overwhelming the server
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    
+                    this.log('🎉 Semua pets berhasil diproses!', 'success');
+                    this.showNotification('Complete!', 'Semua pets telah diproses');
+                    
+                } catch (error) {
+                    this.log(`❌ Error mengakses pet info: ${error.message}`, 'error');
+                    this.showNotification('Error', 'Gagal mengakses data pets');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>🐾</span> Download All Pets';
+                }
+            }
+
+            async downloadNPCs() {
+                const btn = document.getElementById('downloadNPCs');
+                btn.disabled = true;
+                btn.innerHTML = '<span>⏳</span> Downloading NPCs...';
+                
+                this.resetStats();
+                this.log('🚀 Memulai download NPCs...', 'info');
+                
+                try {
+                    const response = await fetch('https://ninjarift.org/library/npcInfo');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const npcInfo = await response.json();
+                    const npcNames = npcInfo.savedNpcInfo.map(npc => npc.item_id);
+                    
+                    this.totalFiles = npcNames.length;
+                    this.updateStats();
+                    
+                    this.log(`📊 Ditemukan ${npcNames.length} NPCs untuk didownload`, 'info');
+                    
+                    for (let i = 0; i < npcNames.length; i++) {
+                        const npcName = npcNames[i];
+                        const url = `https://ninjarift.sgp1.cdn.digitaloceanspaces.com/swf/npcs/${npcName}.swf`;
+                        const filename = `${npcName}.swf`;
+                        
+                        this.updateProgress(i + 1, npcNames.length, filename);
+                        
+                        await this.downloadFile(url, filename);
+                        this.updateStats();
+                        
+                        // Small delay to prevent overwhelming the server
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    
+                    this.log('🎉 Semua NPCs berhasil diproses!', 'success');
+                    this.showNotification('Complete!', 'Semua NPCs telah diproses');
+                    
+                } catch (error) {
+                    this.log(`❌ Error mengakses NPC info: ${error.message}`, 'error');
+                    this.showNotification('Error', 'Gagal mengakses data NPCs');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>👥</span> Download All NPCs';
+                }
+            }
+
+            resetStats() {
+                this.totalFiles = 0;
+                this.downloadedFiles = 0;
+                this.failedFiles = 0;
+                this.updateStats();
+            }
+        }
+
+        // Initialize the downloader when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new NRDownloader();
+        });
+    </script>
+</body>
+</html>
