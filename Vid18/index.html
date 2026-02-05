@@ -1516,20 +1516,33 @@
         };
 
         nextBtn.onclick = () => {
-            const nextIndex = getNextVideoIndex();
-            loadVideo(nextIndex);
-            if (!videoPlayer.paused) {
-                videoPlayer.play();
-            }
-        };
+    const wasPlaying = !videoPlayer.paused; // Simpan status play sebelumnya
+    const nextIndex = getNextVideoIndex();
+    loadVideo(nextIndex);
+    
+    // Hanya play jika video sebelumnya sedang playing
+    if (wasPlaying) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoad() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoad);
+        });
+    }
+};
 
-        prevBtn.onclick = () => {
-            const prevIndex = getPrevVideoIndex();
-            loadVideo(prevIndex);
-            if (!videoPlayer.paused) {
-                videoPlayer.play();
-            }
-        };
+prevBtn.onclick = () => {
+    const wasPlaying = !videoPlayer.paused; // Simpan status play sebelumnya
+    const prevIndex = getPrevVideoIndex();
+    loadVideo(prevIndex);
+    
+    // Hanya play jika video sebelumnya sedang playing
+    if (wasPlaying) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoad() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoad);
+        });
+    }
+};
+
 
         // Video element single/double click
         videoPlayer.onclick = (e) => {
@@ -1875,15 +1888,31 @@
                     break;
                     
                 case 'n':
-                    e.preventDefault();
-                    nextBtn.click();
-                    break;
-                    
-                case 'p':
-                    e.preventDefault();
-                    prevBtn.click();
-                    break;
-                    
+    e.preventDefault();
+    const wasPlayingNext = !videoPlayer.paused;
+    const nextIndex = getNextVideoIndex();
+    loadVideo(nextIndex);
+    if (wasPlayingNext) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoadNext() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoadNext);
+        });
+    }
+    break;
+    
+case 'p':
+    e.preventDefault();
+    const wasPlayingPrev = !videoPlayer.paused;
+    const prevIndex = getPrevVideoIndex();
+    loadVideo(prevIndex);
+    if (wasPlayingPrev) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoadPrev() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoadPrev);
+        });
+    }
+    break;
+
                 case 's':
                     e.preventDefault();
                     toggleShuffle();
