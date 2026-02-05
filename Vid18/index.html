@@ -838,6 +838,25 @@
             font-size: 11px;
             font-weight: 500;
         }
+        /* Hide controls when playlist is hidden */
+.video-wrapper.no-controls:hover .controls {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.video-wrapper.no-controls .controls {
+    display: none !important;
+}
+/* Hide controls when playlist is hidden */
+.video-wrapper.no-controls:hover .controls {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.video-wrapper.no-controls .controls {
+    display: none !important;
+}
+
     </style>
 </head>
 <body>
@@ -932,6 +951,10 @@
                         <input type="checkbox" id="rememberPositionToggle">
                         <span>Ingat posisi video</span>
                     </label>
+                    <label class="control-item">
+    <input type="checkbox" id="hidePlaylistToggle">
+    <span>Sembunyikan daftar video</span>
+</label>
                 </div>
             </div>
         </div>
@@ -1110,6 +1133,60 @@ function updateFavoriteControlButton() {
         }
     }
 }
+
+const hidePlaylistToggle = document.getElementById('hidePlaylistToggle');
+const playlistSection = document.querySelector('.playlist-section');
+const container = document.querySelector('.container');
+const videoWrapper = document.querySelector('.video-wrapper');
+let savedAutoplayState = autoplayMode;
+
+// Toggle playlist visibility
+hidePlaylistToggle.onchange = () => {
+    if (hidePlaylistToggle.checked) {
+        // Sembunyikan playlist
+        playlistSection.classList.add('hidden');
+        container.classList.add('playlist-hidden');
+        videoWrapper.classList.add('no-controls'); // Tambah class untuk hide controls
+        
+        // Simpan state autoplay saat ini dan paksa autoplay ON
+        savedAutoplayState = autoplayMode;
+        autoplayMode = true;
+        autoplayToggle.checked = true;
+        autoplayStatus.textContent = 'Autoplay: ON';
+        autoplayStatus.classList.add('active');
+        
+        // Disable autoplay toggle saat playlist hidden
+        autoplayToggle.disabled = true;
+        autoplayToggle.parentElement.style.opacity = '0.5';
+        
+        // Disable click pada video untuk play/pause
+        videoPlayer.style.pointerEvents = 'auto'; // Tetap bisa diklik untuk fullscreen
+        
+        // Auto play jika video sedang pause
+        if (videoPlayer.paused && videoPlayer.readyState >= 2) {
+            videoPlayer.play();
+        }
+        
+    } else {
+        // Tampilkan playlist
+        playlistSection.classList.remove('hidden');
+        container.classList.remove('playlist-hidden');
+        videoWrapper.classList.remove('no-controls'); // Hapus class
+        
+        // Kembalikan state autoplay yang tersimpan
+        autoplayMode = savedAutoplayState;
+        autoplayToggle.checked = savedAutoplayState;
+        autoplayStatus.textContent = savedAutoplayState ? 'Autoplay: ON' : 'Autoplay: OFF';
+        autoplayStatus.classList.toggle('active', savedAutoplayState);
+        
+        // Enable kembali autoplay toggle
+        autoplayToggle.disabled = false;
+        autoplayToggle.parentElement.style.opacity = '1';
+        
+        // Enable kembali click pada video
+        videoPlayer.style.pointerEvents = 'auto';
+    }
+};
 
         // Initialize - Load saved preferences
         function loadPreferences() {
@@ -1546,12 +1623,13 @@ function updateFavoriteControlButton() {
         };
 
         nextBtn.onclick = () => {
-    const wasPlaying = !videoPlayer.paused; // Simpan status play sebelumnya
+    const wasPlaying = !videoPlayer.paused;
     const nextIndex = getNextVideoIndex();
     loadVideo(nextIndex);
     
-    // Hanya play jika video sebelumnya sedang playing
-    if (wasPlaying) {
+    // Jika playlist hidden, SELALU play video berikutnya
+    // Jika playlist visible, hanya play jika video sebelumnya sedang playing
+    if (hidePlaylistToggle.checked || wasPlaying) {
         videoPlayer.addEventListener('loadeddata', function playOnLoad() {
             videoPlayer.play();
             videoPlayer.removeEventListener('loadeddata', playOnLoad);
@@ -1560,12 +1638,13 @@ function updateFavoriteControlButton() {
 };
 
 prevBtn.onclick = () => {
-    const wasPlaying = !videoPlayer.paused; // Simpan status play sebelumnya
+    const wasPlaying = !videoPlayer.paused;
     const prevIndex = getPrevVideoIndex();
     loadVideo(prevIndex);
     
-    // Hanya play jika video sebelumnya sedang playing
-    if (wasPlaying) {
+    // Jika playlist hidden, SELALU play video sebelumnya
+    // Jika playlist visible, hanya play jika video sebelumnya sedang playing
+    if (hidePlaylistToggle.checked || wasPlaying) {
         videoPlayer.addEventListener('loadeddata', function playOnLoad() {
             videoPlayer.play();
             videoPlayer.removeEventListener('loadeddata', playOnLoad);
@@ -1573,32 +1652,35 @@ prevBtn.onclick = () => {
     }
 };
 
-
         // Video element single/double click
-        videoPlayer.onclick = (e) => {
-            if (clickTimeout) {
-                clearTimeout(clickTimeout);
-                clickTimeout = null;
-                // Double click - fullscreen
-                if (!document.fullscreenElement) {
-                    videoPlayer.requestFullscreen().catch(err => {
-                        console.error('Fullscreen error:', err);
-                    });
+        // Video element single/double click
+videoPlayer.onclick = (e) => {
+    if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+        // Double click - fullscreen (selalu bisa)
+        if (!document.fullscreenElement) {
+            videoPlayer.requestFullscreen().catch(err => {
+                console.error('Fullscreen error:', err);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    } else {
+        clickTimeout = setTimeout(() => {
+            clickTimeout = null;
+            // Single click - hanya play/pause jika playlist TIDAK hidden
+            if (!hidePlaylistToggle.checked) {
+                if (videoPlayer.paused) {
+                    videoPlayer.play();
                 } else {
-                    document.exitFullscreen();
+                    videoPlayer.pause();
                 }
-            } else {
-                clickTimeout = setTimeout(() => {
-                    clickTimeout = null;
-                    // Single click - play/pause
-                    if (videoPlayer.paused) {
-                        videoPlayer.play();
-                    } else {
-                        videoPlayer.pause();
-                    }
-                }, 250);
             }
-        };
+            // Jika playlist hidden, single click tidak melakukan apa-apa
+        }, 250);
+    }
+};
 
         // Video events
         videoPlayer.onplay = updatePlayPauseIcon;
@@ -1613,14 +1695,15 @@ prevBtn.onclick = () => {
         };
 
         // Auto play next
-        videoPlayer.onended = () => {
-            if (autoplayMode && !loopMode) {
-                nextBtn.click();
-            } else if (loopMode) {
-                videoPlayer.currentTime = 0;
-                videoPlayer.play();
-            }
-        };
+        // Auto play next (ini sudah ada, pastikan tidak diubah)
+videoPlayer.onended = () => {
+    if (autoplayMode && !loopMode) {
+        nextBtn.click();
+    } else if (loopMode) {
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+    }
+};
 
         // Progress bar
         videoPlayer.onloadedmetadata = () => {
