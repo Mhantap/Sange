@@ -800,6 +800,7 @@
         .icon-favorite::before { content: "♡"; }
         .icon-favorite.active::before { content: "♥"; }
 
+
         /* Loading progress indicator */
         .loading-progress {
             text-align: center;
@@ -877,7 +878,7 @@
                         <button class="btn icon-next" id="nextBtn" title="Next (N)"></button>
                         <button class="btn icon-shuffle" id="shuffleBtn" title="Shuffle (S)"></button>
                         <button class="btn icon-loop" id="loopBtn" title="Loop (L)"></button>
-                        
+<button class="btn" id="favoriteControlBtn" title="Toggle Favorite (H)">♡</button>
                         <div class="volume-control">
                             <button class="btn icon-volume-high" id="muteBtn" title="Mute (M)"></button>
                             <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" title="Volume">
@@ -1022,6 +1023,9 @@
             
             <div class="shortcut-key">?</div>
             <div>Tampilkan bantuan ini</div>
+            <div class="shortcut-key">H</div>
+<div>Toggle Favorite</div>
+
         </div>
     </div>
 
@@ -1082,6 +1086,30 @@
         let favorites = JSON.parse(localStorage.getItem('videoFavorites') || '[]');
         let showingFavoritesOnly = false;
         let clickTimeout = null;
+        const favoriteControlBtn = document.getElementById('favoriteControlBtn');
+
+// Toggle favorite untuk video yang sedang diputar
+favoriteControlBtn.onclick = () => {
+    if (videos.length > 0) {
+        const currentVideo = videos[currentVideoIndex];
+        toggleFavorite(currentVideo.number);
+        updateFavoriteControlButton();
+    }
+};
+
+// Function untuk update tampilan tombol favorite control
+function updateFavoriteControlButton() {
+    if (videos.length > 0) {
+        const currentVideo = videos[currentVideoIndex];
+        if (currentVideo.isFavorite) {
+            favoriteControlBtn.classList.add('active');
+            favoriteControlBtn.innerHTML = '❤️';
+        } else {
+            favoriteControlBtn.classList.remove('active');
+            favoriteControlBtn.innerHTML = '♡';
+        }
+    }
+}
 
         // Initialize - Load saved preferences
         function loadPreferences() {
@@ -1491,6 +1519,8 @@
             
                         updateMuteIcon();
             renderPlaylist();
+        updateFavoriteControlButton();
+
         }
 
         // Update play/pause icon
@@ -1886,6 +1916,12 @@ prevBtn.onclick = () => {
                     e.preventDefault();
                     pipBtn.click();
                     break;
+                    
+                case 'h':
+    e.preventDefault();
+    favoriteControlBtn.click();
+    break;
+
                     
                 case 'n':
     e.preventDefault();
