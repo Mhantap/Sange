@@ -827,6 +827,16 @@
             width: 0%;
             transition: width 0.3s ease;
         }
+
+        /* Favorite mode indicator */
+        .favorite-mode-indicator {
+            background: #ff0000;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -905,6 +915,7 @@
                         <span class="status-badge" id="loopStatus">Loop: OFF</span>
                         <span class="status-badge" id="shuffleStatus">Shuffle: OFF</span>
                         <span class="status-badge" id="autoplayStatus">Autoplay: ON</span>
+                        <span class="status-badge favorite-mode-indicator" id="favoriteModeStatus" style="display: none;">Mode Favorit</span>
                     </div>
                 </div>
                 <div class="additional-controls">
@@ -1057,6 +1068,7 @@
         const loadingProgress = document.getElementById('loadingProgress');
         const loadingText = document.getElementById('loadingText');
         const favoritesBtn = document.getElementById('favoritesBtn');
+        const favoriteModeStatus = document.getElementById('favoriteModeStatus');
 
         let videos = [];
         let currentVideoIndex = 0;
@@ -1124,9 +1136,12 @@
             return shuffled;
         }
 
-        // Generate shuffled indices
+        // Generate shuffled indices based on current context
         function generateShuffledIndices() {
-            const indices = Array.from({length: videos.length}, (_, i) => i);
+            let sourceVideos = showingFavoritesOnly ? 
+                videos.filter(v => v.isFavorite) : videos;
+            
+            const indices = sourceVideos.map(video => videos.indexOf(video));
             shuffledIndices = shuffleArray(indices);
             
             // Pastikan video current ada di posisi pertama
@@ -1191,9 +1206,16 @@
             localStorage.setItem('rememberPosition', rememberPositionToggle.checked);
         };
 
-        // Get next video index
+        // Get next video index based on current context
         function getNextVideoIndex() {
             if (loopMode) {
+                return currentVideoIndex;
+            }
+            
+            let sourceVideos = showingFavoritesOnly ? 
+                videos.filter(v => v.isFavorite) : videos;
+            
+            if (sourceVideos.length === 0) {
                 return currentVideoIndex;
             }
             
@@ -1201,17 +1223,36 @@
                 shufflePosition = (shufflePosition + 1) % shuffledIndices.length;
                 return shuffledIndices[shufflePosition];
             } else {
-                return (currentVideoIndex + 1) % videos.length;
+                const currentInSource = sourceVideos.findIndex(v => videos.indexOf(v) === currentVideoIndex);
+                if (currentInSource === -1) {
+                    // Current video not in source, get first from source
+                    return videos.indexOf(sourceVideos[0]);
+                }
+                const nextInSource = (currentInSource + 1) % sourceVideos.length;
+                return videos.indexOf(sourceVideos[nextInSource]);
             }
         }
 
-        // Get previous video index
+        // Get previous video index based on current context
         function getPrevVideoIndex() {
+            let sourceVideos = showingFavoritesOnly ? 
+                videos.filter(v => v.isFavorite) : videos;
+            
+            if (sourceVideos.length === 0) {
+                return currentVideoIndex;
+            }
+            
             if (shuffleMode) {
                 shufflePosition = (shufflePosition - 1 + shuffledIndices.length) % shuffledIndices.length;
                 return shuffledIndices[shufflePosition];
             } else {
-                return (currentVideoIndex - 1 + videos.length) % videos.length;
+                const currentInSource = sourceVideos.findIndex(v => videos.indexOf(v) === currentVideoIndex);
+                if (currentInSource === -1) {
+                    // Current video not in source, get last from source
+                    return videos.indexOf(sourceVideos[sourceVideos.length - 1]);
+                }
+                const prevInSource = (currentInSource - 1 + sourceVideos.length) % sourceVideos.length;
+                return videos.indexOf(sourceVideos[prevInSource]);
             }
         }
 
@@ -1315,6 +1356,11 @@
                 video.isFavorite = !video.isFavorite;
             }
             
+            // Update shuffle indices if in shuffle mode
+            if (shuffleMode) {
+                generateShuffledIndices();
+            }
+            
             // Re-apply current filter
             if (showingFavoritesOnly) {
                 showFavorites();
@@ -1330,10 +1376,22 @@
             if (showingFavoritesOnly) {
                 filteredVideos = videos.filter(v => v.isFavorite);
                 favoritesBtn.classList.add('active');
+                favoriteModeStatus.style.display = 'inline-block';
                 searchInput.value = '';
+                
+                // Update shuffle indices untuk favorit saja
+                if (shuffleMode) {
+                    generateShuffledIndices();
+                }
             } else {
                 filteredVideos = [...videos];
                 favoritesBtn.classList.remove('active');
+                favoriteModeStatus.style.display = 'none';
+                
+                // Update shuffle indices untuk semua video
+                if (shuffleMode) {
+                    generateShuffledIndices();
+                }
             }
             
             renderPlaylist();
@@ -1372,7 +1430,11 @@
                         loadVideo(videoIndex);
                         
                         if (shuffleMode) {
-                            shufflePosition = shuffledIndices.indexOf(videoIndex);
+                            // Update shuffle position
+                            const shuffleIndex = shuffledIndices.indexOf(videoIndex);
+                            if (shuffleIndex !== -1) {
+                                shufflePosition = shuffleIndex;
+                            }
                         }
                     }
                 };
@@ -1427,7 +1489,7 @@
             currentTitle.textContent = video.title;
             localStorage.setItem('lastPlayedVideo', video.number);
             
-            updateMuteIcon();
+                        updateMuteIcon();
             renderPlaylist();
         }
 
@@ -1440,7 +1502,11 @@
             }
         }
 
-        // Play/Pause
+        // Event listeners
+        shuffleBtn.onclick = toggleShuffle;
+        shuffleToggle.onclick = toggleShuffle;
+        loopBtn.onclick = toggleLoop;
+
         playPauseBtn.onclick = () => {
             if (videoPlayer.paused) {
                 videoPlayer.play();
@@ -1449,23 +1515,39 @@
             }
         };
 
-        videoPlayer.onplay = updatePlayPauseIcon;
-        videoPlayer.onpause = updatePlayPauseIcon;
+        nextBtn.onclick = () => {
+            const nextIndex = getNextVideoIndex();
+            loadVideo(nextIndex);
+            if (!videoPlayer.paused) {
+                videoPlayer.play();
+            }
+        };
 
-        // Video click handler - single click to play/pause, double click for fullscreen
+        prevBtn.onclick = () => {
+            const prevIndex = getPrevVideoIndex();
+            loadVideo(prevIndex);
+            if (!videoPlayer.paused) {
+                videoPlayer.play();
+            }
+        };
+
+        // Video element single/double click
         videoPlayer.onclick = (e) => {
-            // Cegah klik pada area kontrol
-            if (e.target.closest('.controls')) return;
-            
             if (clickTimeout) {
-                // Double click detected
                 clearTimeout(clickTimeout);
                 clickTimeout = null;
-                fullscreenBtn.click();
+                // Double click - fullscreen
+                if (!document.fullscreenElement) {
+                    videoPlayer.requestFullscreen().catch(err => {
+                        console.error('Fullscreen error:', err);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
             } else {
-                // Single click
                 clickTimeout = setTimeout(() => {
                     clickTimeout = null;
+                    // Single click - play/pause
                     if (videoPlayer.paused) {
                         videoPlayer.play();
                     } else {
@@ -1475,40 +1557,17 @@
             }
         };
 
-        // Save video position
+        // Video events
+        videoPlayer.onplay = updatePlayPauseIcon;
+        videoPlayer.onpause = updatePlayPauseIcon;
+
         videoPlayer.ontimeupdate = () => {
             if (videoPlayer.duration) {
                 const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
                 progress.style.width = percent + '%';
                 currentTimeEl.textContent = formatTime(videoPlayer.currentTime);
-                
-                if (rememberPositionToggle.checked && Math.floor(videoPlayer.currentTime) % 5 === 0) {
-                    const video = videos[currentVideoIndex];
-                    localStorage.setItem(`videoPosition_${video.number}`, videoPlayer.currentTime);
-                }
             }
         };
-
-        // Previous
-        prevBtn.onclick = () => {
-            const prevIndex = getPrevVideoIndex();
-            loadVideo(prevIndex);
-            videoPlayer.play();
-        };
-
-        // Next
-        nextBtn.onclick = () => {
-            const nextIndex = getNextVideoIndex();
-            loadVideo(nextIndex);
-            videoPlayer.play();
-        };
-
-        // Shuffle button
-        shuffleBtn.onclick = toggleShuffle;
-        shuffleToggle.onclick = toggleShuffle;
-
-        // Loop button
-        loopBtn.onclick = toggleLoop;
 
         // Auto play next
         videoPlayer.onended = () => {
@@ -1659,6 +1718,7 @@
             if (query && showingFavoritesOnly) {
                 showingFavoritesOnly = false;
                 favoritesBtn.classList.remove('active');
+                favoriteModeStatus.style.display = 'none';
             }
             
             filteredVideos = videos.filter(video => 
