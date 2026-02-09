@@ -1,0 +1,237 @@
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: none;
+}
+
+.loading-screen.active {
+    display: block;
+}
+
+.loading-bg {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Game Background Image */
+.game-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/game-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+/* Gradient Overlay untuk efek dramatis */
+.loading-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+        rgba(30, 60, 114, 0.7) 0%, 
+        rgba(42, 82, 152, 0.6) 50%, 
+        rgba(61, 90, 161, 0.7) 100%
+    );
+    z-index: 2;
+}
+
+/* Overlay gelap tambahan */
+.loading-bg::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 3;
+}
+
+.snow-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.8) 0%, transparent 50%),
+        radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.6) 0%, transparent 50%),
+        radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.9) 0%, transparent 50%),
+        radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.7) 0%, transparent 50%),
+        radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.8) 0%, transparent 50%);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: snowfall 10s linear infinite;
+    z-index: 4;
+}
+
+@keyframes snowfall {
+    0% { transform: translateY(-100px); }
+    100% { transform: translateY(100vh); }
+}
+
+.loading-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+}
+
+.game-logo {
+    text-align: center;
+    margin-bottom: 80px;
+    animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+    0% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+    100% { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); }
+}
+
+.logo-image {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.game-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 3.5em;
+    font-weight: 700;
+    color: #FFD700;
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.4),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    margin-bottom: 10px;
+    letter-spacing: 3px;
+}
+
+.loading-bar-container {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.loading-status {
+    color: #FFF;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 600;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 20px;
+    background: linear-gradient(90deg, #333, #555);
+    border: 2px solid #FFD700;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: 
+        inset 0 2px 5px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(255, 215, 0, 0.4),
+        0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #00FF7F, #32CD32, #228B22);
+    border-radius: 8px;
+    transition: width 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-progress::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.loading-version {
+    color: #FFF;
+    font-size: 1em;
+    text-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.5),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-background {
+        background-size: cover;
+        background-position: center center;
+    }
+    
+    .game-title {
+        font-size: 2.5em;
+        letter-spacing: 2px;
+    }
+    
+    .logo-image {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .loading-bar-container {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-background {
+        background-size: cover;
+        background-position: center center;
+    }
+    
+    .game-title {
+        font-size: 2em;
+        letter-spacing: 1px;
+    }
+    
+    .logo-image {
+        width: 120px;
+        height: 120px;
+    }
+}

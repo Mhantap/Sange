@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ninja Zaga</title>
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="stylesheet" href="style/loading.css">
+    <link rel="stylesheet" href="style/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- Loading Screen -->
+<div id="loadingScreen" class="loading-screen active">
+    <div class="loading-bg">
+        <div class="game-background"></div>
+        <div class="snow-overlay"></div>
+        <div class="loading-content">
+            <div class="game-logo">
+                <img src="assets/ninja-logo.png" alt="Ninja Zaga" class="logo-image">
+                <h1 class="game-title">NINJA ZAGA</h1>
+            </div>
+            
+            <div class="loading-bar-container">
+                <div class="loading-status">Already latest version</div>
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loadingProgress"></div>
+                </div>
+                <div class="loading-version">Beta 0.1</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-bg">
+            <div class="game-background"></div>
+            <div class="login-overlay"></div>
+            <div class="login-content">
+                <div class="login-panel">
+                    <div class="panel-header">
+                        <img src="assets/ninja-logo-small.png" alt="Ninja Zaga" class="panel-logo">
+                        <h2 class="panel-title">NINJA ZAGA</h2>
+                    </div>
+
+                    <div class="login-buttons">
+                        <button class="btn btn-quick" id="quickLoginBtn" disabled>
+                            <span class="btn-icon">⚡</span>
+                            Quick Login
+                        </button>
+                        
+                        <div class="btn-row">
+                            <button class="btn btn-register" id="registerBtn">
+                                <span class="btn-icon">+</span>
+                                Register
+                            </button>
+                            <button class="btn btn-login" id="loginBtn">
+                                <span class="btn-icon">▶</span>
+                                Login
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="panel-footer">
+                        <div class="game-version">GAME VERSION : Beta 0.1</div>
+                        <button class="clear-saved" id="clearSavedBtn" style="display: none;">Clear Saved Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login to Game</h3>
+                <span class="close" id="closeLoginModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label for="loginUsername">Username:</label>
+                        <input type="text" id="loginUsername" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <div class="input-group checkbox-group">
+                        <input type="checkbox" id="rememberMe" name="remember">
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn btn-submit">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Account</h3>
+                <span class="close" id="closeRegisterModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="input-group">
+                        <label for="registerUsername">Username:</label>
+                        <input type="text" id="registerUsername" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="registerEmail">Email:</label>
+                        <input type="email" id="registerEmail" name="email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="registerPassword">Password:</label>
+                        <input type="password" id="registerPassword" name="password" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-submit">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="mechanics/loading.js"></script>
+    <script src="mechanics/auth.js"></script>
+    <script src="mechanics/main.js"></script>
+</body>
+</html>

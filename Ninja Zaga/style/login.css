@@ -1,0 +1,277 @@
+.login-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    display: none;
+}
+
+.login-screen.active {
+    display: block;
+}
+
+.login-bg {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Game Background Image */
+.game-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/game-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+/* Overlay untuk memberikan efek gelap agar panel terlihat lebih jelas */
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+.login-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+}
+
+.login-panel {
+    background: linear-gradient(145deg, rgba(222, 184, 135, 0.95), rgba(210, 180, 140, 0.95));
+    border: 4px solid #8B4513;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 550px;
+    width: 100%;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.5),
+        inset 0 2px 5px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(5px);
+}
+
+.login-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(45deg, rgba(139, 69, 19, 0.1) 0px, rgba(139, 69, 19, 0.1) 2px, transparent 2px, transparent 12px),
+        repeating-linear-gradient(-45deg, rgba(160, 82, 45, 0.1) 0px, rgba(160, 82, 45, 0.1) 2px, transparent 2px, transparent 12px);
+    pointer-events: none;
+}
+
+.panel-header {
+    text-align: center;
+    margin-bottom: 35px;
+    position: relative;
+}
+
+.panel-logo {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2em;
+    font-weight: 700;
+    color: #8B0000;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 5px;
+    letter-spacing: 3px;
+}
+
+.login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.btn-quick {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #8B4513;
+    padding: 16px 30px;
+    font-size: 1.3em;
+    font-weight: 700;
+    width: 100%;
+    position: relative;
+}
+
+.btn-quick:disabled {
+    background: linear-gradient(45deg, #999, #666);
+    color: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn-quick:disabled:hover {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-row {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-register {
+    background: linear-gradient(45deg, #228B22, #32CD32);
+    color: white;
+    padding: 14px 25px;
+    font-size: 1.15em;
+    flex: 1;
+}
+
+.btn-login {
+    background: linear-gradient(45deg, #1E90FF, #00BFFF);
+    color: white;
+    padding: 14px 25px;
+    font-size: 1.15em;
+    flex: 1;
+}
+
+.panel-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(139, 69, 19, 0.3);
+}
+
+.game-version {
+    font-size: 0.9em;
+    color: #654321;
+    font-weight: 600;
+}
+
+.clear-saved {
+    background: transparent;
+    border: 2px solid #8B4513;
+    color: #8B4513;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.clear-saved:hover {
+    background: #8B4513;
+    color: #FFD700;
+    transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-background {
+        background-size: cover;
+        background-position: center center;
+    }
+    
+    .login-panel {
+        padding: 30px;
+        margin: 10px;
+        max-width: 500px;
+    }
+    
+    .panel-title {
+        font-size: 1.6em;
+        letter-spacing: 2px;
+    }
+    
+    .panel-logo {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .btn-quick {
+        font-size: 1.2em;
+        padding: 14px 25px;
+    }
+    
+    .btn-register,
+    .btn-login {
+        font-size: 1.05em;
+        padding: 12px 20px;
+    }
+    
+    .btn-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .panel-footer {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-background {
+        background-size: cover;
+        background-position: center center;
+    }
+    
+    .login-panel {
+        padding: 25px;
+        margin: 5px;
+    }
+    
+    .panel-title {
+        font-size: 1.4em;
+        letter-spacing: 1px;
+    }
+    
+    .panel-logo {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 15px;
+    }
+    
+    .btn-quick {
+        font-size: 1.1em;
+        padding: 12px 20px;
+    }
+    
+    .btn-register,
+    .btn-login {
+        font-size: 1em;
+        padding: 11px 18px;
+    }
+    
+    .game-version {
+        font-size: 0.85em;
+    }
+    
+    .clear-saved {
+        font-size: 0.85em;
+    }
+}
