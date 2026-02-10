@@ -83,12 +83,25 @@ class AuthManager {
         
         if (user) {
             this.currentUser = user;
+            
+            // Save current user session
+            localStorage.setItem('currentUser', JSON.stringify({
+                username: user.username,
+                email: user.email,
+                loginTime: new Date().toISOString()
+            }));
+            
+            // Handle remember me
             if (remember) {
                 localStorage.setItem('rememberedUser', JSON.stringify({
                     username: user.username,
+                    password: user.password,
                     loginTime: Date.now()
                 }));
+                
+                document.getElementById('clearSavedBtn').style.display = 'block';
             }
+            
             this.loginSuccess();
         } else {
             this.showMessage('Invalid username or password', 'error');
@@ -103,6 +116,16 @@ class AuthManager {
         
         if (!username || !email || !password || !confirmPassword) {
             this.showMessage('Please fill in all fields', 'error');
+            return;
+        }
+        
+        if (username.length < 3 || username.length > 20) {
+            this.showMessage('Username must be 3-20 characters long', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            this.showMessage('Password must be at least 6 characters long', 'error');
             return;
         }
         
@@ -148,32 +171,75 @@ class AuthManager {
             return;
         }
         
-        // Use the most recently created user for quick login
-        const latestUser = this.users.reduce((latest, user) => {
-            return new Date(user.createdAt) > new Date(latest.createdAt) ? user : latest;
-        });
+        // Check for remembered user first
+        const remembered = localStorage.getItem('rememberedUser');
+        let userToLogin;
         
-        this.currentUser = { ...latestUser, isQuickLogin: true };
+        if (remembered) {
+            const rememberedData = JSON.parse(remembered);
+            const daysSinceLogin = (Date.now() - rememberedData.loginTime) / (1000 * 60 * 60 * 24);
+            
+            if (daysSinceLogin < 7) {
+                // Use remembered user if within 7 days
+                userToLogin = this.users.find(u => u.username === rememberedData.username);
+            }
+        }
+        
+        // If no remembered user or expired, use most recently created user
+        if (!userToLogin) {
+            userToLogin = this.users.reduce((latest, user) => {
+                return new Date(user.createdAt) > new Date(latest.createdAt) ? user : latest;
+            });
+        }
+        
+        this.currentUser = { ...userToLogin, isQuickLogin: true };
+        
+        // Save current user session
+        localStorage.setItem('currentUser', JSON.stringify({
+            username: userToLogin.username,
+            email: userToLogin.email,
+            loginTime: new Date().toISOString()
+        }));
+        
         this.loginSuccess();
     }
     
     loginSuccess() {
         const loginType = this.currentUser.isQuickLogin ? 'Quick Login' : 'Login';
         this.showMessage(`${loginType} successful! Welcome, ${this.currentUser.username}!`, 'success');
+        
+        // Close any open modals
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('registerModal').style.display = 'none';
+        
+        // Clear form data
+        document.getElementById('loginForm').reset();
+        
         setTimeout(() => {
             this.enterGame();
         }, 1500);
     }
     
     enterGame() {
-        // Transition to game
-        document.getElementById('loginScreen').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('loginScreen').style.display = 'none';
-            this.showMessage('Loading game...', 'info');
-            // Here you would load the actual game
-            console.log('User logged in:', this.currentUser);
-        }, 500);
+        // Navigate to Character Select Screen
+        document.getElementById('loginScreen').classList.remove('active');
+        
+        // Wait for character manager to be available
+        if (window.characterManager) {
+            window.characterManager.showCharacterSelect();
+        } else {
+            // If character manager not ready, wait a bit
+            setTimeout(() => {
+                if (window.characterManager) {
+                    window.characterManager.showCharacterSelect();
+                } else {
+                    console.error('Character manager not available');
+                    this.showMessage('Error loading character system', 'error');
+                }
+            }, 100);
+        }
+        
+        this.showMessage('Loading character selection...', 'info');
     }
     
     checkSavedLogin() {
@@ -199,6 +265,29 @@ class AuthManager {
         localStorage.removeItem('rememberedUser');
         document.getElementById('clearSavedBtn').style.display = 'none';
         this.showMessage('Saved login cleared', 'info');
+        
+        // Update quick login to use most recent user instead
+        this.updateQuickLoginButton();
+    }
+    
+    // Public method to handle logout from character screen
+    logout() {
+        // Clear current session
+        localStorage.removeItem('currentUser');
+        this.currentUser = null;
+        
+        // Hide character screen and show login screen
+        document.getElementById('characterSelectScreen').classList.remove('active');
+        document.getElementById('characterCreateScreen').classList.remove('active');
+        document.getElementById('loginScreen').classList.add('active');
+        
+        this.showMessage('Logged out successfully', 'info');
+    }
+    
+    // Get current user info
+    getCurrentUser() {
+        const saved = localStorage.getItem('currentUser');
+        return saved ? JSON.parse(saved) : null;
     }
     
     showMessage(message, type) {

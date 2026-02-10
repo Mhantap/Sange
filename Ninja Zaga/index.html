@@ -1,37 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Ninja Zaga</title>
     <link rel="stylesheet" href="style/main.css">
     <link rel="stylesheet" href="style/loading.css">
     <link rel="stylesheet" href="style/login.css">
+    <link rel="stylesheet" href="style/character.css">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-<!-- Loading Screen -->
-<div id="loadingScreen" class="loading-screen active">
-    <div class="loading-bg">
-        <div class="game-background"></div>
-        <div class="snow-overlay"></div>
-        <div class="loading-content">
-            <div class="game-logo">
-                <img src="assets/ninja-logo.png" alt="Ninja Zaga" class="logo-image">
-                <h1 class="game-title">NINJA ZAGA</h1>
-            </div>
-            
-            <div class="loading-bar-container">
-                <div class="loading-status">Already latest version</div>
-                <div class="loading-bar">
-                    <div class="loading-progress" id="loadingProgress"></div>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen active">
+        <div class="loading-bg">
+            <div class="game-background"></div>
+            <div class="snow-overlay"></div>
+            <div class="loading-content">
+                <div class="game-logo">
+                    <img src="assets/ninja-logo.png" alt="Ninja Zaga" class="logo-image">
+                    <h1 class="game-title">NINJA ZAGA</h1>
                 </div>
-                <div class="loading-version">Beta 0.1</div>
+                
+                <div class="loading-bar-container">
+                    <div class="loading-status">Already latest version</div>
+                    <div class="loading-bar">
+                        <div class="loading-progress" id="loadingProgress"></div>
+                    </div>
+                    <div class="loading-version">Beta 0.1</div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
+    
     <!-- Login Screen -->
     <div id="loginScreen" class="login-screen">
         <div class="login-bg">
@@ -43,7 +49,7 @@
                         <img src="assets/ninja-logo-small.png" alt="Ninja Zaga" class="panel-logo">
                         <h2 class="panel-title">NINJA ZAGA</h2>
                     </div>
-
+                    
                     <div class="login-buttons">
                         <button class="btn btn-quick" id="quickLoginBtn" disabled>
                             <span class="btn-icon">⚡</span>
@@ -61,7 +67,7 @@
                             </button>
                         </div>
                     </div>
-
+                    
                     <div class="panel-footer">
                         <div class="game-version">GAME VERSION : Beta 0.1</div>
                         <button class="clear-saved" id="clearSavedBtn" style="display: none;">Clear Saved Login</button>
@@ -70,6 +76,116 @@
             </div>
         </div>
     </div>
+    
+    <!-- Character Select Screen -->
+    <div id="characterSelectScreen" class="character-screen">
+        <div class="character-bg">
+            <div class="game-background"></div>
+            <div class="character-overlay"></div>
+            
+            <!-- Header -->
+            <div class="character-header">
+                <div class="version-badge">Beta 0.1</div>
+                <div class="user-badge">Free User</div>
+            </div>
+            
+            <!-- Character Grid -->
+            <div class="character-container">
+                <div class="character-scroll-panel">
+                    <div class="character-grid" id="characterGrid">
+                        <!-- Character slots akan di-generate oleh JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Footer Buttons -->
+                <div class="character-footer">
+                    <button class="btn-character btn-create" id="createCharBtn">
+                        <span class="btn-icon">➕</span>
+                        Create Character
+                    </button>
+                    <button class="btn-character btn-logout" id="logoutCharBtn">
+                        <span class="btn-icon">⬅</span>
+                        Logout
+                    </button>
+                    <button class="btn-character btn-play" id="playBtn" style="display: none;">
+                        <span class="btn-icon">▶</span>
+                        Play
+                    </button>
+                    <button class="btn-character btn-delete" id="deleteCharBtn" style="display: none;">
+                        <span class="btn-icon">🗑</span>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<!-- Character Create Screen -->
+<div id="characterCreateScreen" class="character-create-screen">
+    <div class="create-bg">
+        <div class="game-background"></div>
+        <div class="create-overlay"></div>
+        
+        <div class="create-content">
+            <div class="create-panel">
+                <!-- Close Button -->
+                <button class="close-create-btn" id="closeCreateBtn">&times;</button>
+                
+                <div class="create-header">
+                    <h2 class="create-title">CREATE CHARACTER</h2>
+                </div>
+
+                <form id="characterCreateForm">
+                    <!-- Character Name -->
+                    <div class="form-group">
+                        <label for="charName">Character Name:</label>
+                        <input type="text" id="charName" name="charName" 
+                               placeholder="Enter character name" 
+                               maxlength="16" required>
+                    </div>
+
+                    <!-- Element Selection -->
+                    <div class="form-group">
+                        <label>Choose Element:</label>
+                        <div class="element-grid">
+                            <div class="element-card" data-element="fire">
+                                <div class="element-icon">🔥</div>
+                                <div class="element-name">Fire</div>
+                            </div>
+                            <div class="element-card" data-element="water">
+                                <div class="element-icon">💧</div>
+                                <div class="element-name">Water</div>
+                            </div>
+                            <div class="element-card" data-element="earth">
+                                <div class="element-icon">🌍</div>
+                                <div class="element-name">Earth</div>
+                            </div>
+                            <div class="element-card" data-element="wind">
+                                <div class="element-icon">💨</div>
+                                <div class="element-name">Wind</div>
+                            </div>
+                            <div class="element-card" data-element="lightning">
+                                <div class="element-icon">⚡</div>
+                                <div class="element-name">Lightning</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedElement" name="element" required>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="create-buttons">
+                        <button type="button" class="btn-create-action btn-cancel" id="cancelCreateBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-create-action btn-confirm">
+                            Create Character
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
@@ -97,7 +213,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Register Modal -->
     <div id="registerModal" class="modal">
         <div class="modal-content">
@@ -128,9 +244,11 @@
             </div>
         </div>
     </div>
-
+    
     <script src="mechanics/loading.js"></script>
     <script src="mechanics/auth.js"></script>
+    <script src="mechanics/character.js"></script>
     <script src="mechanics/main.js"></script>
 </body>
+
 </html>
