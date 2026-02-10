@@ -26,10 +26,7 @@
     }
   },
   "user_accounts": {
-    "NinjaXX": "free_user",
-    "admin": "premium_user",
-    "test": "premium_user",
-    "demo": "free_user"
+    "NinjaXX": "free_user"
   },
   "default_account_type": "free_user",
   "pricing": {
