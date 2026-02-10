@@ -26,8 +26,9 @@
     }
   },
   "user_accounts": {
-    "NinjaSomay": "premium_user",
-    "NINJASOMAY": "premium_user"
+    "ninjasomay": "premium_user",
+    "admin": "premium_user",
+    "test": "premium_user"
   },
   "default_account_type": "free_user",
   "pricing": {

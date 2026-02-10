@@ -24,12 +24,25 @@ class AccountManager {
         }
     }
 
+    // Helper method for case-insensitive username matching
+    normalizeUsername(username) {
+        return username.toLowerCase().trim();
+    }
+
     getUserAccountType(username) {
         if (!this.accountData) return 'free_user';
         
-        // Check if user has specific account type
-        const userType = this.accountData.user_accounts[username.toLowerCase()];
-        return userType || this.accountData.default_account_type;
+        const normalized = this.normalizeUsername(username);
+        const userAccounts = this.accountData.user_accounts;
+        
+        // Check with normalized keys (case-insensitive)
+        for (const [key, value] of Object.entries(userAccounts)) {
+            if (this.normalizeUsername(key) === normalized) {
+                return value;
+            }
+        }
+        
+        return this.accountData.default_account_type;
     }
 
     getAccountTypeData(accountType) {
@@ -59,7 +72,9 @@ class AccountManager {
     upgradeUserToPremium(username) {
         if (!this.accountData) return false;
         
-        this.accountData.user_accounts[username.toLowerCase()] = 'premium_user';
+        // Store with lowercase for consistency
+        const normalized = this.normalizeUsername(username);
+        this.accountData.user_accounts[normalized] = 'premium_user';
         
         // Save to localStorage (since we can't write to JSON file)
         localStorage.setItem('userAccountTypes', JSON.stringify(this.accountData.user_accounts));
@@ -72,8 +87,19 @@ class AccountManager {
         const saved = localStorage.getItem('userAccountTypes');
         if (saved && this.accountData) {
             const userTypes = JSON.parse(saved);
-            this.accountData.user_accounts = { ...this.accountData.user_accounts, ...userTypes };
+            // Merge with existing, localStorage takes priority
+            this.accountData.user_accounts = { 
+                ...this.accountData.user_accounts, 
+                ...userTypes 
+            };
         }
+    }
+
+    // Check if account is in premium list (from JSON or localStorage)
+    checkPremiumStatus(username) {
+        const accountType = this.getUserAccountType(username);
+        console.log(`User: ${username} | Account Type: ${accountType}`);
+        return accountType === 'premium_user';
     }
 }
 
