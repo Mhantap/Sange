@@ -145,6 +145,39 @@
     background: linear-gradient(145deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
 }
 
+/* Locked Slot Styling */
+.character-slot.locked {
+    background: linear-gradient(145deg, rgba(69, 69, 69, 0.8), rgba(105, 105, 105, 0.8));
+    border: 3px dashed #696969;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.character-slot.locked:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+    border-color: #FFD700;
+}
+
+.locked-icon {
+    font-size: 2.5em;
+    color: #A9A9A9;
+    margin-bottom: 8px;
+}
+
+.locked-text {
+    color: #A9A9A9;
+    font-weight: 600;
+    font-size: 0.85em;
+}
+
+/* Premium User Badge Styling */
+.user-badge.premium {
+    background: linear-gradient(45deg, #FFD700, #FFA500) !important;
+    color: #8B4513 !important;
+    border-color: #FF8C00 !important;
+}
+
 .empty-icon {
     font-size: 2.5em;
     color: #654321;
