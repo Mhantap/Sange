@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAILBOX SQL GENERATOR — by Mhantappu</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --accent:#58a6ff;--green:#3fb950;--warn:#d29922;--danger:#f85149;
+  --text:#e6edf3;--text2:#8b949e;--purple:#bc8cff;--orange:#ffa657;--r:8px
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:12px}
+.app{max-width:860px;margin:0 auto}
+.hdr{text-align:center;padding:20px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.hdr h1{font-size:1.5rem;color:var(--accent);letter-spacing:2px}
+.hdr p{color:var(--text2);font-size:.8rem;margin-top:3px}
+.steps{display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap}
+.step{flex:1;min-width:70px;padding:7px 4px;text-align:center;border-radius:var(--r);font-size:.72rem;
+  background:var(--bg3);border:1px solid var(--border);color:var(--text2);transition:.2s}
+.step.active{background:var(--accent);color:#000;font-weight:700;border-color:var(--accent)}
+.step.done{color:var(--green);border-color:var(--green)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.card-title{font-size:.95rem;font-weight:700;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+label{display:block;font-size:.78rem;color:var(--text2);margin-bottom:3px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=number],textarea,select{
+  width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  color:var(--text);padding:8px 11px;font-size:.88rem;outline:none;transition:border-color .2s;font-family:inherit}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px}
+input[type=file]{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:6px;width:100%;color:var(--text);font-size:.82rem}
+.tog-row{display:flex;align-items:center;gap:9px;margin:8px 0}
+.tog-row span{font-size:.84rem}
+.sw{position:relative;width:40px;height:21px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sl{position:absolute;inset:0;background:var(--bg3);border:1px solid var(--border);
+  border-radius:21px;cursor:pointer;transition:.2s}
+.sl::before{content:'';position:absolute;width:15px;height:15px;left:2px;top:2px;
+  background:var(--text2);border-radius:50%;transition:.2s}
+.sw input:checked+.sl{background:var(--accent);border-color:var(--accent)}
+.sw input:checked+.sl::before{transform:translateX(19px);background:#000}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:var(--r);
+  border:none;cursor:pointer;font-size:.84rem;font-weight:600;transition:all .15s;font-family:inherit}
+.bp{background:var(--accent);color:#000}
+.bs{background:var(--green);color:#000}
+.bw{background:var(--warn);color:#000}
+.bd{background:var(--danger);color:#fff}
+.bg{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn:hover{opacity:.85;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.brow{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.mcards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:560px){.mcards{grid-template-columns:1fr}}
+.mcard{padding:14px;border-radius:var(--r);border:2px solid var(--border);cursor:pointer;
+  background:var(--bg3);transition:.2s}
+.mcard:hover{border-color:var(--accent)}
+.mcard.active{border-color:var(--accent);background:rgba(88,166,255,.08)}
+.mcard h3{font-size:.9rem;margin-bottom:3px}
+.mcard p{font-size:.75rem;color:var(--text2)}
+.schecks{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.scheck{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-size:.8rem;
+  transition:.2s;user-select:none}
+.scheck input{display:none}
+.scheck.on{border-color:var(--green);color:var(--green)}
+.rlist{display:flex;flex-direction:column;gap:5px;margin-top:9px}
+.ritem{display:flex;align-items:center;gap:7px;padding:7px 11px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:var(--r);font-size:.78rem;font-family:'Courier New',monospace}
+.badge{padding:2px 7px;border-radius:20px;font-size:.68rem;font-weight:700;flex-shrink:0}
+.ritem .xbtn{margin-left:auto;background:none;border:none;color:var(--danger);cursor:pointer;font-size:.95rem;padding:0 3px}
+.ritem .xbtn:hover{color:#ff7b72}
+.bt{background:rgba(210,153,34,.2);color:var(--warn)}
+.bwpn{background:rgba(88,166,255,.15);color:var(--accent)}
+.bset{background:rgba(188,140,255,.15);color:var(--purple)}
+.bhair{background:rgba(255,166,88,.15);color:var(--orange)}
+.bback{background:rgba(63,185,80,.15);color:var(--green)}
+.bacc{background:rgba(248,81,73,.15);color:var(--danger)}
+.bskill{background:rgba(88,166,255,.2);color:#79c0ff}
+.bpet{background:rgba(63,185,80,.2);color:#56d364}
+.rtgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:7px}
+@media(max-width:480px){.rtgrid{grid-template-columns:repeat(2,1fr)}}
+.rtbtn{padding:7px 3px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);
+  color:var(--text);cursor:pointer;font-size:.76rem;text-align:center;transition:.2s;font-family:inherit}
+.rtbtn:hover{border-color:var(--accent)}
+.rtbtn.active{border-color:var(--accent);background:rgba(88,166,255,.1);color:var(--accent)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-top:9px}
+.sitem{padding:9px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border);text-align:center}
+.scount{font-size:1.4rem;font-weight:700;color:var(--accent)}
+.slabel{font-size:.7rem;color:var(--text2);margin-top:2px}
+.sqlbox{background:#010409;border:1px solid var(--border);border-radius:var(--r);padding:12px;
+  font-family:'Courier New',monospace;font-size:.73rem;color:#c9d1d9;overflow:auto;
+  max-height:380px;white-space:pre;line-height:1.5;margin-top:10px}
+.alert{padding:9px 13px;border-radius:var(--r);font-size:.83rem;margin-bottom:10px;display:flex;align-items:flex-start;gap:7px}
+.ai{background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.4);color:#79c0ff}
+.as{background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.4);color:#56d364}
+.aw{background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.4);color:#e3b341}
+.ad{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);color:#f85149}
+.irow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.83rem}
+.irow:last-child{border-bottom:none}
+.irow .k{color:var(--text2)}
+.irow .v{color:var(--text);font-family:monospace;word-break:break-all;text-align:right;max-width:60%}
+hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.hidden{display:none!important}
+.cbadge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:.7rem;font-weight:700;
+  background:var(--bg3);border:1px solid var(--border);color:var(--text2);margin-left:5px}
+.fnprev{font-family:monospace;font-size:.83rem;color:var(--green);padding:5px 9px;
+  background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);display:inline-block;margin-top:5px}
+.logbox{font-size:.76rem;color:var(--text2);margin-top:9px;font-family:monospace;line-height:1.6}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.2);
+  border-top-color:var(--accent);border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sesitem{display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:var(--r);
+  background:var(--bg3);border:1px solid var(--border);font-size:.8rem;margin-bottom:5px}
+.sesitem span{flex:1}
+
+/* ── CHAT PROMPT ── */
+.chat-wrap{display:flex;flex-direction:column;height:480px}
+.chat-messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;
+  background:#010409;border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0}
+.chat-inputrow{display:flex;gap:0;border:1px solid var(--border);border-top:none;
+  border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.chat-input{flex:1;background:var(--bg3);border:none;color:var(--text);
+  padding:11px 14px;font-size:.88rem;outline:none;font-family:'Segoe UI',system-ui,sans-serif}
+.chat-input:focus{background:#1c2128}
+.chat-send{background:var(--accent);border:none;color:#000;padding:0 18px;
+  cursor:pointer;font-size:1.1rem;font-weight:700;transition:opacity .15s}
+.chat-send:hover{opacity:.85}
+
+/* bubbles */
+.bubble{max-width:88%;padding:10px 14px;border-radius:14px;font-size:.84rem;line-height:1.55;word-break:break-word}
+.bubble.user{align-self:flex-end;background:var(--accent);color:#000;border-bottom-right-radius:4px}
+.bubble.bot{align-self:flex-start;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);border-bottom-left-radius:4px}
+.bubble.bot .sql-out{background:#010409;border:1px solid var(--border);border-radius:6px;
+  padding:9px 11px;font-family:'Courier New',monospace;font-size:.7rem;color:#c9d1d9;
+  white-space:pre;overflow-x:auto;margin-top:8px;max-height:180px}
+.bubble.bot .reward-chips{display:flex;flex-wrap:wrap;gap:4px;margin:7px 0 4px}
+.bubble.bot .rchip{padding:3px 9px;border-radius:20px;font-size:.7rem;font-family:monospace}
+.bubble.bot .act-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.bubble.bot .act-btns button{padding:5px 12px;border-radius:6px;border:none;cursor:pointer;
+  font-size:.75rem;font-weight:600;font-family:inherit;transition:opacity .15s}
+.bubble.bot .act-btns button:hover{opacity:.8}
+.bubble.error{background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.4);color:#f85149}
+.bubble.info{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.3);color:#79c0ff}
+.typing{display:flex;gap:4px;align-items:center;padding:4px 0}
+.typing span{width:7px;height:7px;background:var(--text2);border-radius:50%;
+  animation:blink 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <h1>⚔ MAILBOX SQL GENERATOR</h1>
+  <p>by Mhantappu</p>
+</div>
+
+<div class="steps">
+  <div class="step active" id="st0">1 · Nama File</div>
+  <div class="step"        id="st1">2 · Konfigurasi</div>
+  <div class="step"        id="st2">3 · Mode Input</div>
+  <div class="step"        id="st3">4 · Sumber Data</div>
+  <div class="step"        id="st4">5 · Generate</div>
+</div>
+
+<!-- ══ P0 FILENAME ══ -->
+<div id="p0">
+  <div class="card">
+    <div class="card-title">📄 Nama File Output SQL</div>
+    <label>Nama file (tanpa ekstensi)</label>
+    <input type="text" id="inp-fn" placeholder="contoh: mail_event_001" autocomplete="off" spellcheck="false">
+    <div id="fn-prev" class="fnprev hidden"></div>
+    <div class="brow"><button class="btn bp" onclick="submitFn()">Lanjut →</button></div>
+  </div>
+  <div id="ses-box" class="card hidden">
+    <div class="card-title">🗂 File Dibuat Sesi Ini</div>
+    <div id="ses-list"></div>
+  </div>
+</div>
+
+<!-- ══ P1 CONFIG ══ -->
+<div id="p1" class="hidden">
+  <div class="card">
+    <div class="card-title">⚙️ Konfigurasi Mail</div>
+    <label>mail_key</label>
+    <input type="text" id="inp-mk" value="mail_all_001" autocomplete="off">
+    <label>title</label>
+    <input type="text" id="inp-ti" value="Hadiah Spesial" autocomplete="off">
+    <label>body</label>
+    <input type="text" id="inp-bo" value="Klaim semua itemmu." autocomplete="off">
+    <hr>
+    <div class="tog-row">
+      <label class="sw"><input type="checkbox" id="tog-sid" onchange="togSid()"><span class="sl"></span></label>
+      <span>📌 <strong>Set To ID</strong> — kirim ke karakter ID tertentu</span>
+    </div>
+    <div id="sid-area" class="hidden">
+      <label>ID karakter (pisahkan koma)</label>
+      <input type="text" id="inp-sid" placeholder="1, 3, 10" autocomplete="off">
+    </div>
+    <div class="brow">
+      <button class="btn bg" onclick="goP(0)">← Kembali</button>
+      <button class="btn bp" onclick="submitCfg()">Lanjut →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P2 MODE ══ -->
+<div id="p2" class="hidden">
+  <div class="card">
+    <div class="card-title">🔀 Pilih Mode Input</div>
+    <div class="mcards">
+      <div class="mcard active" id="mc-A" onclick="selMode('A')">
+        <h3>🌐 Mode A — Sumber Data</h3>
+        <p>Fetch/load JSON otomatis dari library, skills, atau pet.</p>
+      </div>
+      <div class="mcard" id="mc-B" onclick="selMode('B')">
+        <h3>✏️ Mode B — Manual</h3>
+        <p>Pilih tipe reward &amp; isi satu per satu secara manual.</p>
+      </div>
+      <div class="mcard" id="mc-C" onclick="selMode('C')">
+        <h3>💬 Mode C — AI Prompt</h3>
+        <p>Chat bebas seperti ChatGPT. Sistem mengerti bahasa natural &amp; generate SQL otomatis.</p>
+      </div>
+    </div>
+    <div class="brow">
+      <button class="btn bg" onclick="goP(1)">← Kembali</button>
+      <button class="btn bp" onclick="submitMode()">Lanjut →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P3A SOURCE ══ -->
+<div id="p3a" class="hidden">
+  <div class="card">
+    <div class="card-title">📦 Sumber Data JSON</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn bg" id="smb1" onclick="setSub('url')">🌐 Fetch URL</button>
+      <button class="btn bg" id="smb2" onclick="setSub('file')">📂 File Lokal</button>
+      <button class="btn bg" id="smb3" onclick="setSub('paste')">📋 Tempel JSON</button>
+    </div>
+    <div id="sm-url" class="hidden">
+      <div class="alert ai">ℹ️ Jika fetch gagal karena CORS, gunakan File atau Tempel JSON.</div>
+      <div style="font-size:.83rem">Pilih sumber data:</div>
+      <div class="schecks">
+        <label class="scheck on" id="sc1"><input type="checkbox" value="1" checked onchange="togSc(1)"> library.json</label>
+        <label class="scheck"    id="sc2"><input type="checkbox" value="2"       onchange="togSc(2)"> skills.json</label>
+        <label class="scheck"    id="sc3"><input type="checkbox" value="3"       onchange="togSc(3)"> pet.json</label>
+      </div>
+      <div class="logbox" id="flog"></div>
+      <div class="brow"><button class="btn bp" id="btn-fetch" onclick="doFetch()">⚡ Fetch Sekarang</button></div>
+    </div>
+    <div id="sm-file" class="hidden">
+      <label>File JSON 1 — library</label>
+      <input type="file" id="fi1" accept=".json" onchange="loadFi(1)">
+      <label>File JSON 2 — skills (opsional)</label>
+      <input type="file" id="fi2" accept=".json" onchange="loadFi(2)">
+      <label>File JSON 3 — pet (opsional)</label>
+      <input type="file" id="fi3" accept=".json" onchange="loadFi(3)">
+      <div class="logbox" id="filog"></div>
+    </div>
+    <div id="sm-paste" class="hidden">
+      <label>Tempel teks JSON (harus array [ ... ])</label>
+      <textarea id="inp-paste" placeholder='[ {"id":"wpn_6044"}, {"id":"set_7060_1"} ]'></textarea>
+      <div class="brow">
+        <button class="btn bp" onclick="doPaste()">✔ Parse JSON</button>
+        <button class="btn bg" onclick="document.getElementById('inp-paste').value='';document.getElementById('plog').innerHTML=''">🗑 Bersihkan</button>
+      </div>
+      <div class="logbox" id="plog"></div>
+    </div>
+    <hr>
+    <div id="dcrow" class="hidden">
+      <div class="alert as">✔ <span id="dctxt">0 item dimuat.</span></div>
+    </div>
+    <div class="brow">
+      <button class="btn bg" onclick="goP(2)">← Kembali</button>
+      <button class="btn bs" id="btn-proc3a" onclick="procAuto()" disabled>⚙️ Proses &amp; Generate →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P3B MANUAL ══ -->
+<div id="p3b" class="hidden">
+  <div class="card">
+    <div class="card-title">✏️ Reward Manual <span class="cbadge" id="mcnt">0</span></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:13px">
+      <div style="font-size:.83rem;margin-bottom:7px;color:var(--text2)">Tambah reward baru:</div>
+      <div class="rtgrid">
+        <button class="rtbtn active" data-rt="tokens"    onclick="selRt(this)">🪙 tokens</button>
+        <button class="rtbtn"        data-rt="skill"     onclick="selRt(this)">⚡ skill</button>
+        <button class="rtbtn"        data-rt="pet"       onclick="selRt(this)">🐾 pet</button>
+        <button class="rtbtn"        data-rt="wpn"       onclick="selRt(this)">⚔️ wpn</button>
+        <button class="rtbtn"        data-rt="back"      onclick="selRt(this)">🎒 back</button>
+        <button class="rtbtn"        data-rt="accessory" onclick="selRt(this)">💍 accessory</button>
+        <button class="rtbtn"        data-rt="set"       onclick="selRt(this)">👗 set</button>
+        <button class="rtbtn"        data-rt="hair"      onclick="selRt(this)">💇 hair</button>
+      </div>
+      <div style="margin-top:11px">
+        <label id="rv-lbl">Jumlah tokens (angka)</label>
+        <input type="text" id="inp-rv" placeholder="contoh: 500" autocomplete="off">
+      </div>
+      <div class="brow"><button class="btn bs" onclick="addMR()">➕ Tambah</button></div>
+    </div>
+    <div id="mr-list" class="rlist"></div>
+    <div class="brow">
+      <button class="btn bg" onclick="goP(2)">← Kembali</button>
+      <button class="btn bg" onclick="clearMR()">🗑 Hapus Semua</button>
+      <button class="btn bs" id="btn-proc3b" onclick="procManual()" disabled>⚙️ Generate →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P3C AI PROMPT ══ -->
+<div id="p3c" class="hidden">
+  <div class="card">
+    <div class="card-title">💬 AI Prompt — Chat &amp; Generate SQL</div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="chat-msgs"></div>
+      <div class="chat-inputrow">
+        <input type="text" class="chat-input" id="chat-inp"
+          placeholder="Ketik perintah... contoh: kirim wpn_6044 ke id 174"
+          autocomplete="off" spellcheck="false">
+        <button class="chat-send" onclick="chatSend()">↵</button>
+      </div>
+    </div>
+    <div class="brow" style="margin-top:10px">
+      <button class="btn bg" onclick="goP(2)">← Kembali</button>
+      <button class="btn bg" onclick="chatClear()">🗑 Bersihkan Chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P4 OUTPUT ══ -->
+<div id="p4" class="hidden">
+  <div class="card">
+    <div class="card-title">📊 Ringkasan Rewards</div>
+    <div class="sgrid" id="sgrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Konfigurasi Mail</div>
+    <div id="cfg-sum"></div>
+  </div>
+  <div id="skip-card" class="card hidden">
+    <div class="card-title">⚠️ Item Tidak Dikenali</div>
+    <div id="skip-list" style="font-family:monospace;font-size:.76rem;color:var(--text2)"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">💾 Aksi Output</div>
+    <div class="brow">
+      <button class="btn bs" onclick="dlSQL()">⬇️ Download SQL</button>
+      <button class="btn bg" onclick="togSQLView()">👁 Lihat / Sembunyikan SQL</button>
+      <button class="btn bw" onclick="resetNew()">🔄 Buat File Baru</button>
+    </div>
+    <div id="sql-view" class="hidden">
+      <div class="brow" style="margin-top:7px">
+        <button class="btn bg" style="font-size:.73rem" onclick="copySQL()">📋 Copy SQL</button>
+      </div>
+      <div class="sqlbox" id="sqlbox"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.app -->
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+const S={
+  fn:'',mk:'mail_all_001',ti:'Hadiah Spesial',bo:'Klaim semua itemmu.',
+  charIds:null,mode:'A',sub:'url',
+  allData:[],rewards:[],skipped:[],sesFn:[],
+  sql:'',selUrls:new Set(['1']),manRew:[],selRt:'tokens'
+};
+
+const UMAP={
+  '1':['library.json','https://mhantappu.my.id/amf/public/game_data/library.json'],
+  '2':['skills.json','https://mhantappu.my.id/amf/public/game_data/skills.json'],
+  '3':['pet.json','https://mhantappu.my.id/amf/public/game_data/pet.json']
+};
+
+const RT={
+  tokens:{key:'amount',hint:'Jumlah tokens (angka)',isInt:true},
+  skill:{key:'skill_id',hint:'ID skill (contoh: skill_6029)',isInt:false},
+  pet:{key:'pet_id',hint:'ID pet (contoh: pet_pitou)',isInt:false},
+  wpn:{key:'item_id',hint:'ID weapon (contoh: wpn_6044)',isInt:false},
+  back:{key:'item_id',hint:'ID back (contoh: back_1234)',isInt:false},
+  accessory:{key:'item_id',hint:'ID accessory (contoh: accessory_01)',isInt:false},
+  set:{key:'item_id',hint:'ID set (contoh: set_7060_%s)',isInt:false},
+  hair:{key:'item_id',hint:'ID hair (contoh: hair_7006_%s)',isInt:false}
+};
+
+const BADGE_CLS={
+  tokens:'bt',wpn:'bwpn',set:'bset',hair:'bhair',
+  back:'bback',accessory:'bacc',skill:'bskill',pet:'bpet'
+};
+
+const TYPE_EMOJI={
+  tokens:'🪙',wpn:'⚔️',set:'👗',hair:'💇',
+  back:'🎒',accessory:'💍',skill:'⚡',pet:'🐾'
+};
+
+/* ═══════════════════════════════════════════
+   REWARD BUILDER
+═══════════════════════════════════════════ */
+function buildReward(id){
+  if(!id)return null;
+  id=id.trim();
+  if(id.startsWith('wpn_'))       return{type:'wpn',item_id:id};
+  if(id.startsWith('back_'))      return{type:'back',item_id:id};
+  if(id.startsWith('accessory_')) return{type:'accessory',item_id:id};
+  if(id.startsWith('skill_'))     return{type:'skill',skill_id:id};
+  if(id.startsWith('pet_'))       return{type:'pet',pet_id:id};
+  if(id.startsWith('set_')){
+    const p=id.split('_'),last=p[p.length-1];
+    const base=(!isNaN(last)&&last!=='')? p.slice(0,-1).join('_'):id;
+    const fid=base.endsWith('_%s')?base:base+'_%s';
+    return{type:'set',item_id:fid};
+  }
+  if(id.startsWith('hair_')){
+    const p=id.split('_'),last=p[p.length-1];
+    const base=(!isNaN(last)&&last!=='')? p.slice(0,-1).join('_'):id;
+    const fid=base.endsWith('_%s')?base:base+'_%s';
+    return{type:'hair',item_id:fid};
+  }
+  return null;
+}
+
+/* ═══════════════════════════════════════════
+   PHASES
+═══════════════════════════════════════════ */
+const ALL_P=['p0','p1','p2','p3a','p3b','p3c','p4'];
+const STEP_IDX={p0:0,p1:1,p2:2,p3a:3,p3b:3,p3c:3,p4:4};
+
+function showP(id){
+  ALL_P.forEach(p=>document.getElementById(p).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  const si=STEP_IDX[id]??0;
+  for(let i=0;i<5;i++){
+    const el=document.getElementById('st'+i);
+    el.classList.remove('active','done');
+    if(i<si) el.classList.add('done');
+    if(i===si) el.classList.add('active');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function goP(n){
+  if(n===0)showP('p0');
+  else if(n===1)showP('p1');
+  else if(n===2)showP('p2');
+}
+
+/* ═══════════════════════════════════════════
+   ALERT & LOG
+═══════════════════════════════════════════ */
+function showAlert(msg,type='info'){
+  const map={info:'ai',success:'as',warn:'aw',danger:'ad'};
+  const icons={info:'ℹ️',success:'✔',warn:'⚠️',danger:'❌'};
+  const d=document.createElement('div');
+  d.className=`alert ${map[type]||'ai'}`;
+  d.textContent=`${icons[type]||''} ${msg}`;
+  const vis=ALL_P.find(p=>!document.getElementById(p).classList.contains('hidden'));
+  document.querySelector(`#${vis} .card`)?.prepend(d);
+  setTimeout(()=>d.remove(),4000);
+}
+function appendLog(id,msg,type=''){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const colors={success:'var(--green)',danger:'var(--danger)',warn:'var(--warn)',info:'var(--accent)'};
+  const span=document.createElement('div');
+  span.style.color=colors[type]||'var(--text2)';
+  span.textContent=msg;
+  el.appendChild(span);
+  el.scrollTop=el.scrollHeight;
+}
+function esc(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════════
+   PHASE 0
+═══════════════════════════════════════════ */
+document.getElementById('inp-fn').addEventListener('input',function(){
+  const safe=this.value.replace(/[^a-zA-Z0-9_\-]/g,'');
+  const prev=document.getElementById('fn-prev');
+  if(safe){prev.textContent='📄 '+safe+'.sql';prev.classList.remove('hidden');}
+  else prev.classList.add('hidden');
+});
+document.getElementById('inp-fn').addEventListener('keydown',function(e){
+  if(e.key==='Enter')submitFn();
+});
+function submitFn(){
+  const raw=document.getElementById('inp-fn').value.trim();
+  const safe=raw.replace(/[^a-zA-Z0-9_\-]/g,'');
+  if(!safe){showAlert('Nama file tidak boleh kosong!','danger');return;}
+  S.fn=safe+'.sql';
+  showP('p1');
+}
+
+/* ═══════════════════════════════════════════
+   PHASE 1
+═══════════════════════════════════════════ */
+function togSid(){
+  const on=document.getElementById('tog-sid').checked;
+  document.getElementById('sid-area').classList.toggle('hidden',!on);
+}
+function parseCharIds(raw){
+  if(!raw.trim())return null;
+  const parts=raw.split(',').map(p=>p.trim()).filter(p=>p);
+  const ids=[];
+  for(const p of parts){
+    if(/^\d+$/.test(p))ids.push(parseInt(p));
+    else showAlert(`"${p}" bukan angka valid, dilewati.`,'warn');
+  }
+  return ids.length?JSON.stringify(ids):null;
+}
+function submitCfg(){
+  const mk=document.getElementById('inp-mk').value.trim();
+  const ti=document.getElementById('inp-ti').value.trim();
+  const bo=document.getElementById('inp-bo').value.trim();
+  if(!mk){showAlert('mail_key tidak boleh kosong!','danger');return;}
+  if(!ti){showAlert('title tidak boleh kosong!','danger');return;}
+  S.mk=mk;S.ti=ti;S.bo=bo;
+  if(document.getElementById('tog-sid').checked){
+    const raw=document.getElementById('inp-sid').value.trim();
+    const res=parseCharIds(raw);
+    if(!res&&raw){showAlert('Tidak ada ID valid dimasukkan.','danger');return;}
+    S.charIds=res;
+  }else{S.charIds=null;}
+  showP('p2');
+}
+
+/* ═══════════════════════════════════════════
+   PHASE 2
+═══════════════════════════════════════════ */
+function selMode(m){
+  S.mode=m;
+  ['A','B','C'].forEach(x=>document.getElementById('mc-'+x).classList.toggle('active',x===m));
+}
+function submitMode(){
+  S.allData=[];S.rewards=[];S.skipped=[];S.manRew=[];
+  if(S.mode==='A'){S.sub='url';setSub('url');showP('p3a');}
+  else if(S.mode==='B'){renderManList();showP('p3b');}
+  else{initChat();showP('p3c');}
+}
+
+/* ═══════════════════════════════════════════
+   PHASE 3A
+═══════════════════════════════════════════ */
+function setSub(s){
+  S.sub=s;
+  ['url','file','paste'].forEach(x=>{
+    document.getElementById('sm-'+x).classList.add('hidden');
+    const n=x==='url'?1:x==='file'?2:3;
+    document.getElementById('smb'+n).classList.remove('bp');
+    document.getElementById('smb'+n).classList.add('bg');
+  });
+  document.getElementById('sm-'+s).classList.remove('hidden');
+  const n=s==='url'?1:s==='file'?2:3;
+  document.getElementById('smb'+n).classList.remove('bg');
+  document.getElementById('smb'+n).classList.add('bp');
+}
+function togSc(n){
+  const cb=document.querySelector(`#sc${n} input`);
+  const lbl=document.getElementById('sc'+n);
+  if(cb.checked){S.selUrls.add(String(n));lbl.classList.add('on');}
+  else{S.selUrls.delete(String(n));lbl.classList.remove('on');}
+}
+async function doFetch(){
+  const chosen=[...S.selUrls];
+  if(!chosen.length){showAlert('Pilih minimal 1 sumber!','danger');return;}
+  const logEl=document.getElementById('flog');
+  logEl.innerHTML='';
+  const btn=document.getElementById('btn-fetch');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span>Fetching...';
+  S.allData=[];
+  for(const k of chosen){
+    const[label,url]=UMAP[k];
+    appendLog('flog',`🌐 Fetching ${label}...`,'info');
+    try{
+      const resp=await fetch(url,{headers:{'Accept':'application/json,text/plain,*/*'}});
+      if(!resp.ok)throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+      const data=await resp.json();
+      if(!Array.isArray(data))throw new Error('Response bukan array JSON.');
+      S.allData=S.allData.concat(data);
+      appendLog('flog',`   ✔ ${data.length} item dari ${label}.`,'success');
+    }catch(e){
+      appendLog('flog',`   ❌ Error: ${e.message}`,'danger');
+    }
+  }
+  btn.disabled=false;
+  btn.innerHTML='⚡ Fetch Sekarang';
+  updateDataCount();
+}
+function loadFi(n){
+  const fi=document.getElementById('fi'+n);
+  const f=fi.files[0];if(!f)return;
+  appendLog('filog',`📂 Membaca ${f.name}...`,'info');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data))throw new Error('Bukan array.');
+      S.allData=S.allData.concat(data);
+      appendLog('filog',`   ✔ ${data.length} item.`,'success');
+      updateDataCount();
+    }catch(err){appendLog('filog',`   ❌ ${err.message}`,'danger');}
+  };
+  reader.readAsText(f,'utf-8');
+}
+function doPaste(){
+  const raw=document.getElementById('inp-paste').value.trim();
+  if(!raw){appendLog('plog','❌ Kosong.','danger');return;}
+  try{
+    const data=JSON.parse(raw);
+    if(!Array.isArray(data))throw new Error('Bukan array.');
+    S.allData=S.allData.concat(data);
+    appendLog('plog',`✔ ${data.length} item.`,'success');
+    updateDataCount();
+  }catch(e){appendLog('plog',`❌ ${e.message}`,'danger');}
+}
+function updateDataCount(){
+  const n=S.allData.length;
+  document.getElementById('dcrow').classList.toggle('hidden',n===0);
+  document.getElementById('dctxt').textContent=`${n} item dimuat. Siap diproses.`;
+  document.getElementById('btn-proc3a').disabled=n===0;
+}
+function procAuto(){
+  const seen=new Set();
+  S.rewards=[];S.skipped=[];
+  for(const entry of S.allData){
+    if(typeof entry!=='object'||!entry)continue;
+    const id=(entry.id||'').trim();
+    if(!id||seen.has(id))continue;
+    seen.add(id);
+    const r=buildReward(id);
+    if(r===null)S.skipped.push(id);
+    else S.rewards.push(r);
+  }
+  if(!S.rewards.length){showAlert('Tidak ada reward valid!','danger');return;}
+  buildSQL();renderOutput();showP('p4');
+}
+
+/* ═══════════════════════════════════════════
+   PHASE 3B MANUAL
+═══════════════════════════════════════════ */
+function selRt(el){
+  document.querySelectorAll('.rtbtn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  S.selRt=el.dataset.rt;
+  const cfg=RT[S.selRt];
+  document.getElementById('rv-lbl').textContent=cfg.hint;
+  document.getElementById('inp-rv').value='';
+  const ph={tokens:'contoh: 500',skill:'contoh: skill_6029',pet:'contoh: pet_pitou',
+    wpn:'contoh: wpn_6044',back:'contoh: back_1234',accessory:'contoh: accessory_01',
+    set:'contoh: set_7060_%s',hair:'contoh: hair_7006_%s'};
+  document.getElementById('inp-rv').placeholder=ph[S.selRt]||'';
+}
+document.getElementById('inp-rv').addEventListener('keydown',function(e){
+  if(e.key==='Enter')addMR();
+});
+function addMR(){
+  const val=document.getElementById('inp-rv').value.trim();
+  if(!val){showAlert('Nilai tidak boleh kosong!','danger');return;}
+  const cfg=RT[S.selRt];
+  let rObj;
+  if(cfg.isInt){
+    if(!/^\d+$/.test(val)){showAlert('Amount harus angka!','danger');return;}
+    rObj={type:S.selRt,[cfg.key]:parseInt(val)};
+  }else{
+    rObj={type:S.selRt,[cfg.key]:val};
+  }
+  S.manRew.push(rObj);
+  document.getElementById('inp-rv').value='';
+  renderManList();
+}
+function delMR(i){S.manRew.splice(i,1);renderManList();}
+function clearMR(){
+  if(!S.manRew.length){showAlert('Daftar sudah kosong!','warn');return;}
+  S.manRew=[];renderManList();
+}
+function renderManList(){
+  const cnt=document.getElementById('mcnt');
+  const ul=document.getElementById('mr-list');
+  const btn=document.getElementById('btn-proc3b');
+  cnt.textContent=S.manRew.length;
+  btn.disabled=S.manRew.length===0;
+  if(!S.manRew.length){
+    ul.innerHTML='<div style="color:var(--text2);font-size:.8rem;text-align:center;padding:13px">Belum ada reward.</div>';
+    return;
+  }
+  ul.innerHTML=S.manRew.map((r,i)=>{
+    const bc=BADGE_CLS[r.type]||'bt';
+    const keyName=Object.keys(r).find(k=>k!=='type');
+    return `<div class="ritem">
+      <span class="badge ${bc}">${r.type}</span>
+      <span style="color:var(--text2)">${keyName}:</span>
+      <span>${r[keyName]}</span>
+      <button class="xbtn" onclick="delMR(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+function procManual(){
+  if(!S.manRew.length){showAlert('Tambahkan minimal 1 reward!','danger');return;}
+  S.rewards=[...S.manRew];S.skipped=[];
+  buildSQL();renderOutput();showP('p4');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 3C — AI CHAT PROMPT
+   Natural language understanding — no external API needed
+═══════════════════════════════════════════════════════════════ */
+
+// ── chat state
+const CHAT={msgs:[],pendingRewards:[],pendingCharIds:null,awaitingConfirm:false};
+
+// ── known item prefixes & their schema
+const KNOWN_PREFIXES=[
+  {pfx:'wpn_',      type:'wpn',       key:'item_id',   needSuffix:false},
+  {pfx:'back_',     type:'back',      key:'item_id',   needSuffix:false},
+  {pfx:'accessory_',type:'accessory', key:'item_id',   needSuffix:false},
+  {pfx:'skill_',    type:'skill',     key:'skill_id',  needSuffix:false},
+  {pfx:'pet_',      type:'pet',       key:'pet_id',    needSuffix:false},
+  {pfx:'set_',      type:'set',       key:'item_id',   needSuffix:true},
+  {pfx:'hair_',     type:'hair',      key:'item_id',   needSuffix:true},
+];
+
+// ── intent patterns (Indonesian + English)
+const INTENT={
+  greeting:/^(halo|hai|hi|hello|hei|hey|yo|oy)\b/i,
+  help:/\b(help|bantuan|cara|gimana|bagaimana|contoh|apa itu|apa saja|info|panduan)\b/i,
+  listTypes:/\b(tipe|type|format|jenis|macam|list|daftar)\b.*(item|reward|hadiah)/i,
+  setMailKey:/\b(mail[_\s]?key|key)\b.*[:=\s]+(\S+)/i,
+  setTitle:/\b(judul|title)\b.*[:=\s]+(.+)/i,
+  setBody:/\b(isi|body|pesan|message)\b.*[:=\s]+(.+)/i,
+  setChar:/\b(ke|to|kirim ke|send to|character|char|id)\b.*([\d,\s]+)/i,
+  clearChar:/\b(semua|all|hapus id|clear id|tanpa id|no id)\b/i,
+  reset:/\b(reset|bersihkan|hapus semua|clear all|mulai ulang|ulang)\b/i,
+  confirm:/^(ya|yes|iya|ok|oke|lanjut|generate|buat|confirm|yep|yup|boleh|jadi)\b/i,
+  cancel:/^(batal|cancel|tidak|no|nope|gak|ga|enggak|jangan)\b/i,
+  showStatus:/\b(status|cek|lihat|show|tampil|review|summary)\b/i,
+  download:/\b(download|unduh|simpan|save)\b/i,
+};
+
+// ── tokenize: split text into words + extract items/numbers
+function tokenize(text){
+  // normalize: lowercase, replace common separators
+  const norm=text.toLowerCase()
+    .replace(/[,،]/g,' ')
+    .replace(/\bdan\b|\band\b|\bsama\b|\bwith\b|\bplus\b/gi,' ')
+    .replace(/\s+/g,' ').trim();
+
+  const words=norm.split(' ').filter(x=>x);
+  const items=[];
+  const numbers=[];
+  const unknowns=[];
+
+  for(const w of words){
+    // check known prefix
+    const matched=KNOWN_PREFIXES.find(p=>w.startsWith(p.pfx));
+    if(matched){
+      items.push({raw:w,def:matched});
+      continue;
+    }
+    // check pure number
+    if(/^\d+$/.test(w)){numbers.push(parseInt(w));continue;}
+    // check "tokens" keyword followed by number already handled
+    unknowns.push(w);
+  }
+
+  // check for "tokens X" or "X tokens" patterns in original text
+  const tokMatch=text.match(/\btokens?\s+(\d+)\b|\b(\d+)\s+tokens?\b/gi)||[];
+  const tokenAmounts=tokMatch.map(m=>{
+    const n=m.match(/\d+/);
+    return n?parseInt(n[0]):0;
+  }).filter(x=>x>0);
+
+  // check for "X coin/gold/koin" as tokens alias
+  const coinMatch=text.match(/\b(\d+)\s*(koin|coin|gold|gems?|gem|crystal|diamonds?)\b/gi)||[];
+  const coinAmounts=coinMatch.map(m=>{
+    const n=m.match(/\d+/);
+    return n?parseInt(n[0]):0;
+  }).filter(x=>x>0);
+
+  return{words,items,numbers,unknowns,tokenAmounts,coinAmounts};
+}
+
+// ── extract character IDs from text
+function extractCharIds(text){
+  // "ke id 1,2,3" / "ke 1 2 3" / "id: 174" / "character 5,6"
+  const patterns=[
+    /\b(?:ke|to|kirim ke|send to|character|char|id)[:\s]+([0-9][0-9,\s]*)/gi,
+    /\buntuk\s+(?:id\s*)?([0-9][0-9,\s]*)/gi,
+    /\bfor\s+(?:id\s*)?([0-9][0-9,\s]*)/gi,
+  ];
+  const found=new Set();
+  for(const pat of patterns){
+    let m;
+    while((m=pat.exec(text))!==null){
+      m[1].split(/[\s,]+/).forEach(p=>{
+        if(/^\d+$/.test(p.trim()))found.add(parseInt(p.trim()));
+      });
+    }
+  }
+  return found.size?[...found]:null;
+}
+
+// ── build reward object from parsed item token
+function buildFromToken(tok){
+  const{raw,def}=tok;
+  let id=raw;
+  if(def.needSuffix){
+    // set_7060 / set_7060_1 / set_7060_%s → normalize to set_7060_%s
+    const parts=id.split('_');
+    const last=parts[parts.length-1];
+    const base=(!isNaN(last)&&last!=='')?parts.slice(0,-1).join('_'):id;
+    id=base.endsWith('_%s')?base:base+'_%s';
+  }
+  return{type:def.type,[def.key]:id};
+}
+
+// ── build SQL string
+function buildSQLStr(rewards,charIds,mk,ti,bo){
+  const charVal=charIds?`'${charIds}'`:'NULL';
+  const lines=rewards.map((r,i)=>`  ${JSON.stringify(r)}${i<rewards.length-1?',':''}`);
+  const block='[\n'+lines.join('\n')+'\n]';
+  return `INSERT INTO \`mailbox\` (\`mail_key\`, \`title\`, \`body\`, \`rewards\`, \`character_ids\`) VALUES\n`+
+    `('${mk}', '${ti}', '${bo}',\n'${block}', ${charVal});`;
+}
+
+// ── reward chip html
+function rewardChipsHTML(rewards){
+  return rewards.map(r=>{
+    const cls=BADGE_CLS[r.type]||'bt';
+    const keyName=Object.keys(r).find(k=>k!=='type');
+    return `<span class="rchip badge ${cls}">${TYPE_EMOJI[r.type]||''} ${r[keyName]}</span>`;
+  }).join('');
+}
+
+// ── NLU: main intent router
+function nlu(text){
+  const t=text.trim();
+
+  // greeting
+  if(INTENT.greeting.test(t)){
+    return{intent:'greeting'};
+  }
+  // help
+  if(INTENT.help.test(t)){
+    return{intent:'help'};
+  }
+  // list types
+  if(INTENT.listTypes.test(t)){
+    return{intent:'listTypes'};
+  }
+  // show status
+  if(INTENT.showStatus.test(t)){
+    return{intent:'status'};
+  }
+  // reset
+  if(INTENT.reset.test(t)){
+    return{intent:'reset'};
+  }
+  // confirm
+  if(INTENT.confirm.test(t)){
+    return{intent:'confirm'};
+  }
+  // cancel
+  if(INTENT.cancel.test(t)){
+    return{intent:'cancel'};
+  }
+  // download
+  if(INTENT.download.test(t)){
+    return{intent:'download'};
+  }
+  // clear char ids
+  if(INTENT.clearChar.test(t)){
+    return{intent:'clearChar'};
+  }
+  // set mail_key
+  {
+    const m=t.match(/\b(?:mail[_\s]?key|key)\s*[:=]\s*(\S+)/i);
+    if(m)return{intent:'setMailKey',value:m[1]};
+  }
+  // set title
+  {
+    const m=t.match(/\b(?:judul|title)\s*[:=]\s*(.+)/i);
+    if(m)return{intent:'setTitle',value:m[1].trim()};
+  }
+  // set body
+  {
+    const m=t.match(/\b(?:isi|body|pesan|message)\s*[:=]\s*(.+)/i);
+    if(m)return{intent:'setBody',value:m[1].trim()};
+  }
+
+  // ── Main: detect rewards + charIds
+  const tok=tokenize(t);
+  const charIds=extractCharIds(t);
+  const rewards=[];
+
+  // items from prefix detection
+  for(const item of tok.items){
+    const r=buildFromToken(item);
+    if(r)rewards.push(r);
+  }
+
+  // tokens by keyword
+  for(const amt of tok.tokenAmounts){
+    rewards.push({type:'tokens',amount:amt});
+  }
+  // coin/gold alias
+  for(const amt of tok.coinAmounts){
+    // avoid duplicate if already caught by tokenAmounts
+    const already=rewards.some(r=>r.type==='tokens'&&r.amount===amt);
+    if(!already)rewards.push({type:'tokens',amount:amt});
+  }
+
+  if(rewards.length>0||charIds){
+    return{intent:'addRewards',rewards,charIds};
+  }
+
+  // fallback: maybe user typed partial item id like "6044" or "pitou"
+  // try fuzzy match common aliases
+  const aliases=tryAliasMatch(t);
+  if(aliases.length){
+    return{intent:'addRewards',rewards:aliases,charIds};
+  }
+
+  return{intent:'unknown',text:t};
+}
+
+// ── fuzzy alias matching for common shorthand
+function tryAliasMatch(text){
+  const lower=text.toLowerCase();
+  const rewards=[];
+  // "sword X" → wpn_X pattern
+  const swordMatch=lower.match(/\b(?:sword|weapon|senjata|pedang|wpn)\s*[_#]?(\d+)/g)||[];
+  for(const m of swordMatch){
+    const n=m.match(/\d+/);
+    if(n)rewards.push({type:'wpn',item_id:`wpn_${n[0]}`});
+  }
+  // "pet X" without underscore
+  const petMatch=lower.match(/\bpet\s+([a-z]+)/g)||[];
+  for(const m of petMatch){
+    const name=m.replace(/^pet\s+/,'').trim();
+    if(name&&name!=='id')rewards.push({type:'pet',pet_id:`pet_${name}`});
+  }
+  // "skill X"
+  const skillMatch=lower.match(/\bskill\s*[_#]?(\d+)/g)||[];
+  for(const m of skillMatch){
+    const n=m.match(/\d+/);
+    if(n)rewards.push({type:'skill',skill_id:`skill_${n[0]}`});
+  }
+  // "set X" or "costume X"
+  const setMatch=lower.match(/\b(?:set|costume|baju|outfit)\s*[_#]?(\d+)/g)||[];
+  for(const m of setMatch){
+    const n=m.match(/\d+/);
+    if(n)rewards.push({type:'set',item_id:`set_${n[0]}_%s`});
+  }
+  // "hair X"
+  const hairMatch=lower.match(/\b(?:hair|rambut)\s*[_#]?(\d+)/g)||[];
+  for(const m of hairMatch){
+    const n=m.match(/\d+/);
+    if(n)rewards.push({type:'hair',item_id:`hair_${n[0]}_%s`});
+  }
+  // "back X"
+  const backMatch=lower.match(/\b(?:back|tas|ransel|wing|sayap)\s*[_#]?(\d+)/g)||[];
+  for(const m of backMatch){
+    const n=m.match(/\d+/);
+    if(n)rewards.push({type:'back',item_id:`back_${n[0]}`});
+  }
+  return rewards;
+}
+
+/* ── CHAT ENGINE ── */
+function initChat(){
+  CHAT.msgs=[];
+  CHAT.pendingRewards=[];
+  CHAT.pendingCharIds=null;
+  CHAT.awaitingConfirm=false;
+  const el=document.getElementById('chat-msgs');
+  el.innerHTML='';
+  // welcome message
+  addBotMsg(
+    `👋 Halo! Saya siap bantu generate SQL mailbox.\n\n`+
+    `Ketik perintah bebas, contoh:\n`+
+    `• <code>kirim wpn_6044 sama back_01 ke id 174</code>\n`+
+    `• <code>berikan tokens 500 dan pet_pitou ke semua player</code>\n`+
+    `• <code>set_7060 hair_7006 untuk id 1,2,3</code>\n`+
+    `• <code>help</code> untuk panduan lengkap`,
+    'info'
+  );
+}
+
+function chatClear(){
+  initChat();
+}
+
+document.getElementById('chat-inp').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chatSend();}
+});
+
+function chatSend(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim();
+  if(!text)return;
+  inp.value='';
+  addUserMsg(text);
+  // simulate brief typing delay
+  showTyping();
+  setTimeout(()=>{
+    removeTyping();
+    processChat(text);
+  },420);
+}
+
+function processChat(text){
+  const intent=nlu(text);
+
+  switch(intent.intent){
+
+    case 'greeting':
+      addBotMsg(`Hai! 😊 Siap generate SQL mailbox. Ketik item yang mau dikirim, atau ketik <code>help</code> untuk bantuan.`);
+      break;
+
+    case 'help':
+      addBotMsg(
+        `📖 <b>Panduan Singkat</b>\n\n`+
+        `<b>Format item yang dikenali:</b>\n`+
+        `• <code>wpn_XXXX</code> — senjata\n`+
+        `• <code>back_XXXX</code> — back item\n`+
+        `• <code>accessory_XXXX</code> — aksesori\n`+
+        `• <code>skill_XXXX</code> — skill\n`+
+        `• <code>pet_nama</code> — pet\n`+
+        `• <code>set_XXXX</code> — costume set\n`+
+        `• <code>hair_XXXX</code> — rambut\n`+
+        `• <code>tokens 500</code> — koin/token\n\n`+
+        `<b>Contoh perintah:</b>\n`+
+        `• <code>kirim wpn_6044 ke id 1,2,174</code>\n`+
+        `• <code>berikan set_7060 hair_7006 tokens 1000 ke semua</code>\n`+
+        `• <code>pet_pitou skill_6029 untuk id 5</code>\n\n`+
+        `<b>Pengaturan:</b>\n`+
+        `• <code>title: Judul Baru</code>\n`+
+        `• <code>body: Isi pesan</code>\n`+
+        `• <code>mail_key: kode_mail</code>\n\n`+
+        `Ketik <code>status</code> untuk lihat reward terkumpul.`
+      );
+      break;
+
+    case 'listTypes':
+      addBotMsg(
+        `📦 <b>Tipe Reward yang Didukung:</b>\n\n`+
+        `⚔️ <code>wpn_</code> — Weapon (item_id)\n`+
+        `🎒 <code>back_</code> — Back Item (item_id)\n`+
+        `💍 <code>accessory_</code> — Aksesori (item_id)\n`+
+        `⚡ <code>skill_</code> — Skill (skill_id)\n`+
+        `🐾 <code>pet_</code> — Pet (pet_id)\n`+
+        `👗 <code>set_</code> — Costume Set (item_id, auto _%s)\n`+
+        `💇 <code>hair_</code> — Rambut (item_id, auto _%s)\n`+
+        `🪙 <code>tokens N</code> — Token/Koin (amount)`
+      );
+      break;
+
+    case 'status':
+      chatShowStatus();
+      break;
+
+    case 'reset':
+      CHAT.pendingRewards=[];
+      CHAT.pendingCharIds=null;
+      CHAT.awaitingConfirm=false;
+      addBotMsg(`🔄 Reset! Semua reward dikosongkan. Silakan mulai perintah baru.`,'success');
+      break;
+
+    case 'clearChar':
+      CHAT.pendingCharIds=null;
+      addBotMsg(`✔ Character ID dihapus. Mail akan dikirim ke semua player (NULL).`,'success');
+      break;
+
+    case 'setMailKey':
+      S.mk=intent.value;
+      addBotMsg(`✔ mail_key diubah ke: <code>${esc(S.mk)}</code>`,'success');
+      break;
+
+    case 'setTitle':
+      S.ti=intent.value;
+      addBotMsg(`✔ Title diubah ke: <b>${esc(S.ti)}</b>`,'success');
+      break;
+
+    case 'setBody':
+      S.bo=intent.value;
+      addBotMsg(`✔ Body diubah ke: <i>${esc(S.bo)}</i>`,'success');
+      break;
+
+    case 'confirm':
+      if(CHAT.awaitingConfirm){
+        chatDoGenerate();
+      }else{
+        addBotMsg(`Tidak ada yang perlu dikonfirmasi. Ketik item dulu ya 😊`);
+      }
+      break;
+
+    case 'cancel':
+      if(CHAT.awaitingConfirm){
+        CHAT.awaitingConfirm=false;
+        addBotMsg(`Dibatalkan. Reward masih tersimpan. Ketik <code>status</code> untuk cek, atau lanjut tambah item.`);
+      }else{
+        addBotMsg(`Tidak ada yang perlu dibatalkan.`);
+      }
+      break;
+
+    case 'download':
+      if(S.sql){
+        dlSQL();
+        addBotMsg(`⬇️ File <b>${esc(S.fn)}</b> didownload!`,'success');
+      }else{
+        addBotMsg(`Belum ada SQL yang di-generate. Tambahkan reward dulu, lalu konfirmasi.`,'warn');
+      }
+      break;
+
+    case 'addRewards':
+      chatHandleRewards(intent);
+      break;
+
+    case 'unknown':
+    default:
+      addBotMsg(
+        `🤔 Maaf, saya kurang mengerti perintah itu.\n\n`+
+        `Coba ketik item langsung seperti:\n`+
+        `<code>wpn_6044 back_01 tokens 500</code>\n\n`+
+        `Atau ketik <code>help</code> untuk panduan.`,
+        'warn'
+      );
+      break;
+  }
+}
+
+function chatHandleRewards(intent){
+  const{rewards,charIds}=intent;
+
+  // merge into pending
+  if(rewards&&rewards.length){
+    CHAT.pendingRewards=[...CHAT.pendingRewards,...rewards];
+  }
+  if(charIds){
+    CHAT.pendingCharIds=JSON.stringify(charIds);
+  }
+
+  if(!CHAT.pendingRewards.length&&!CHAT.pendingCharIds){
+    addBotMsg(`Tidak ada reward yang terdeteksi. Coba format seperti <code>wpn_6044</code> atau <code>tokens 500</code>.`,'warn');
+    return;
+  }
+
+  // build preview
+  const charDisp=CHAT.pendingCharIds
+    ?`Karakter ID: <b>${esc(CHAT.pendingCharIds)}</b>`
+    :`Kirim ke: <b>Semua player</b>`;
+
+  const chipsHTML=rewardChipsHTML(CHAT.pendingRewards);
+  const sqlPrev=buildSQLStr(CHAT.pendingRewards,CHAT.pendingCharIds,S.mk,S.ti,S.bo);
+
+  CHAT.awaitingConfirm=true;
+
+  const html=
+    `✅ Reward terdeteksi <b>${CHAT.pendingRewards.length} item</b>. ${charDisp}<br><br>`+
+    `<div class="reward-chips">${chipsHTML}</div>`+
+    `<div style="font-size:.75rem;color:var(--text2);margin-top:6px">Preview SQL:</div>`+
+    `<div class="sql-out">${esc(sqlPrev)}</div>`+
+    `<div class="act-btns">`+
+    `<button onclick="chatConfirmGen()" style="background:var(--green);color:#000">✔ Generate & Simpan</button>`+
+    `<button onclick="chatAddMore()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border)">➕ Tambah Lagi</button>`+
+    `<button onclick="chatResetPending()" style="background:var(--danger);color:#fff">🗑 Reset</button>`+
+    `</div>`;
+
+  addBotHTML(html);
+}
+
+function chatConfirmGen(){
+  CHAT.awaitingConfirm=false;
+  chatDoGenerate();
+}
+
+function chatAddMore(){
+  CHAT.awaitingConfirm=false;
+  addBotMsg(`Oke! Ketik item tambahan yang mau ditambahkan.`,'info');
+}
+
+function chatResetPending(){
+  CHAT.pendingRewards=[];
+  CHAT.pendingCharIds=null;
+  CHAT.awaitingConfirm=false;
+  addBotMsg(`🗑 Reward di-reset. Mulai perintah baru ya!`);
+}
+
+function chatDoGenerate(){
+  if(!CHAT.pendingRewards.length){
+    addBotMsg(`Tidak ada reward untuk di-generate.`,'warn');
+    return;
+  }
+  S.rewards=[...CHAT.pendingRewards];
+  S.charIds=CHAT.pendingCharIds;
+  S.skipped=[];
+  buildSQL();
+  renderOutput();
+
+  const chipsHTML=rewardChipsHTML(S.rewards);
+  const html=
+    `🎉 <b>SQL berhasil di-generate!</b><br><br>`+
+    `<div class="reward-chips">${chipsHTML}</div>`+
+    `<div style="font-size:.75rem;color:var(--text2);margin-top:8px;margin-bottom:4px">File: <b>${esc(S.fn)}</b></div>`+
+    `<div class="act-btns">`+
+    `<button onclick="dlSQL();addBotMsg('⬇️ File didownload!','success')" style="background:var(--green);color:#000">⬇️ Download SQL</button>`+
+    `<button onclick="showP('p4')" style="background:var(--accent);color:#000">📊 Lihat Output</button>`+
+    `<button onclick="chatResetPending()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border)">🔄 Buat Lagi</button>`+
+    `</div>`;
+
+  addBotHTML(html);
+
+  // reset pending
+  CHAT.pendingRewards=[];
+  CHAT.pendingCharIds=null;
+}
+
+function chatShowStatus(){
+  if(!CHAT.pendingRewards.length){
+    addBotMsg(
+      `📭 Belum ada reward terkumpul.\n\n`+
+      `Config saat ini:\n`+
+      `• mail_key: <code>${esc(S.mk)}</code>\n`+
+      `• title: <b>${esc(S.ti)}</b>\n`+
+      `• body: ${esc(S.bo)}\n`+
+      `• character_ids: ${S.charIds||'NULL (semua)'}`
+    );
+    return;
+  }
+  const chipsHTML=rewardChipsHTML(CHAT.pendingRewards);
+  const charDisp=CHAT.pendingCharIds||'NULL (semua)';
+  const html=
+    `📦 <b>Status Reward Saat Ini (${CHAT.pendingRewards.length} item)</b><br><br>`+
+    `<div class="reward-chips">${chipsHTML}</div>`+
+    `<br>📌 Karakter ID: <code>${esc(charDisp)}</code><br>`+
+    `🔑 mail_key: <code>${esc(S.mk)}</code><br>`+
+    `📝 title: <b>${esc(S.ti)}</b><br><br>`+
+    `<div class="act-btns">`+
+    `<button onclick="chatConfirmGen()" style="background:var(--green);color:#000">✔ Generate Sekarang</button>`+
+    `<button onclick="chatResetPending()" style="background:var(--danger);color:#fff">🗑 Reset</button>`+
+    `</div>`;
+  addBotHTML(html);
+}
+
+/* ── CHAT DOM HELPERS ── */
+function addUserMsg(text){
+  const el=document.createElement('div');
+  el.className='bubble user';
+  el.textContent=text;
+  appendChatMsg(el);
+}
+
+function addBotMsg(html,type=''){
+  const el=document.createElement('div');
+  el.className='bubble bot'+(type?' '+type:'');
+  // allow safe inline html (code, b, i, br)
+  el.innerHTML=html.replace(/\n/g,'<br>');
+  appendChatMsg(el);
+}
+
+function addBotHTML(html){
+  const el=document.createElement('div');
+  el.className='bubble bot';
+  el.innerHTML=html;
+  appendChatMsg(el);
+}
+
+function showTyping(){
+  const el=document.createElement('div');
+  el.className='bubble bot';
+  el.id='chat-typing';
+  el.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+  appendChatMsg(el);
+}
+function removeTyping(){
+  document.getElementById('chat-typing')?.remove();
+}
+
+function appendChatMsg(el){
+  const box=document.getElementById('chat-msgs');
+  box.appendChild(el);
+  box.scrollTop=box.scrollHeight;
+}
+
+/* ═══════════════════════════════════════════
+   BUILD SQL (normal flow)
+═══════════════════════════════════════════ */
+function buildSQL(){
+  S.sql=buildSQLStr(S.rewards,S.charIds,S.mk,S.ti,S.bo);
+}
+
+/* ═══════════════════════════════════════════
+   RENDER OUTPUT
+═══════════════════════════════════════════ */
+function renderOutput(){
+  const counter={};
+  for(const r of S.rewards) counter[r.type]=(counter[r.type]||0)+1;
+  const sg=document.getElementById('sgrid');
+  sg.innerHTML=Object.entries(counter).map(([t,n])=>
+    `<div class="sitem">
+      <div class="scount">${n}</div>
+      <div class="slabel">${TYPE_EMOJI[t]||''} ${t}</div>
+    </div>`
+  ).join('')+
+  `<div class="sitem" style="border-color:var(--accent)">
+    <div class="scount" style="color:var(--accent)">${S.rewards.length}</div>
+    <div class="slabel">📦 TOTAL</div>
+  </div>`;
+
+  const charVal=S.charIds||'NULL';
+  document.getElementById('cfg-sum').innerHTML=
+    `<div class="irow"><span class="k">mail_key</span><span class="v">${esc(S.mk)}</span></div>
+     <div class="irow"><span class="k">title</span><span class="v">${esc(S.ti)}</span></div>
+     <div class="irow"><span class="k">body</span><span class="v">${esc(S.bo)}</span></div>
+     <div class="irow"><span class="k">character_ids</span><span class="v">${esc(charVal)}</span></div>
+     <div class="irow"><span class="k">file</span><span class="v">${esc(S.fn)}</span></div>`;
+
+  const sc=document.getElementById('skip-card');
+  if(S.skipped.length){
+    sc.classList.remove('hidden');
+    const show=S.skipped.slice(0,30);
+    const more=S.skipped.length>30?`<div>... dan ${S.skipped.length-30} lainnya</div>`:'';
+    document.getElementById('skip-list').innerHTML=show.map(s=>`<div>- ${esc(s)}</div>`).join('')+more;
+  }else{sc.classList.add('hidden');}
+
+  document.getElementById('sqlbox').textContent=S.sql;
+}
+
+/* ═══════════════════════════════════════════
+   SQL ACTIONS
+═══════════════════════════════════════════ */
+function togSQLView(){
+  document.getElementById('sql-view').classList.toggle('hidden');
+}
+function copySQL(){
+  if(!S.sql)return;
+  navigator.clipboard.writeText(S.sql).then(()=>{
+    showAlert('SQL berhasil disalin!','success');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=S.sql;ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    showAlert('SQL disalin!','success');
+  });
+}
+function dlSQL(){
+  if(!S.sql)return;
+  const blob=new Blob([S.sql],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=S.fn||'mailbox.sql';
+  a.click();URL.revokeObjectURL(a.href);
+  if(!S.sesFn.includes(S.fn)){S.sesFn.push(S.fn);renderSes();}
+  showAlert(`File "${S.fn}" didownload!`,'success');
+}
+function renderSes(){
+  const box=document.getElementById('ses-box');
+  const lst=document.getElementById('ses-list');
+  if(!S.sesFn.length){box.classList.add('hidden');return;}
+  box.classList.remove('hidden');
+  lst.innerHTML=S.sesFn.map((f,i)=>
+    `<div class="sesitem">
+      <span style="color:var(--text2);font-size:.75rem">${i+1}.</span>
+      <span>📄 ${esc(f)}</span>
+      <span style="color:var(--green);font-size:.72rem">✔ tersimpan</span>
+    </div>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════ */
+function resetNew(){
+  S.fn='';S.mk='mail_all_001';S.ti='Hadiah Spesial';
+  S.bo='Klaim semua itemmu.';S.charIds=null;
+  S.mode='A';S.sub='url';S.allData=[];
+  S.rewards=[];S.skipped=[];S.sql='';
+  S.selUrls=new Set(['1']);S.manRew=[];S.selRt='tokens';
+
+  document.getElementById('inp-mk').value='mail_all_001';
+  document.getElementById('inp-ti').value='Hadiah Spesial';
+  document.getElementById('inp-bo').value='Klaim semua itemmu.';
+  document.getElementById('tog-sid').checked=false;
+  document.getElementById('sid-area').classList.add('hidden');
+  document.getElementById('inp-sid').value='';
+  document.getElementById('flog').innerHTML='';
+  document.getElementById('filog').innerHTML='';
+  document.getElementById('plog').innerHTML='';
+  document.getElementById('inp-paste').value='';
+  document.getElementById('dcrow').classList.add('hidden');
+  document.getElementById('btn-proc3a').disabled=true;
+  document.getElementById('inp-fn').value='';
+  document.getElementById('fn-prev').classList.add('hidden');
+  document.getElementById('sql-view').classList.add('hidden');
+
+  ['fi1','fi2','fi3'].forEach(id=>{
+    try{document.getElementById(id).value='';}catch(e){}
+  });
+  ['1','2','3'].forEach(n=>{
+    const cb=document.querySelector(`#sc${n} input`);
+    const lbl=document.getElementById('sc'+n);
+    cb.checked=n==='1';
+    lbl.classList.toggle('on',n==='1');
+  });
+
+  S.selUrls=new Set(['1']);
+  S.manRew=[];
+  renderManList();
+  selMode('A');
+  renderSes();
+  showP('p0');
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+setSub('url');
+selMode('A');
+renderManList();
+showP('p0');
+</script>
+</body>
+</html>
