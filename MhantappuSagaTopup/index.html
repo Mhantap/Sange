@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mhantappu Saga Topups</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0d1a3a 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(120,40,200,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0,150,255,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(255,60,120,0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header { text-align: center; padding: 50px 20px 30px; }
+
+        .header-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            box-shadow: 0 0 20px rgba(124,58,237,0.5);
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 30px rgba(167,139,250,0.3));
+        }
+
+        .header > p { color: #94a3b8; font-size: 15px; margin-bottom: 20px; }
+
+        .rate-banner {
+            background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(124,58,237,0.2));
+            border: 1px solid rgba(96,165,250,0.3);
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .rate-icon { font-size: 24px; }
+        .rate-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .rate-value { font-size: 18px; font-weight: 700; color: #60a5fa; }
+        .rate-time  { font-size: 11px; color: #64748b; }
+        .rate-source { font-size: 10px; color: #475569; margin-top: 2px; }
+
+        .rate-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #4ade80;
+            margin-left: 8px;
+        }
+
+        .rate-dot {
+            width: 8px; height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity:1; transform:scale(1); }
+            50%      { opacity:0.5; transform:scale(1.3); }
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 40px 0 16px;
+        }
+
+        .payment-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .pay-btn {
+            padding: 10px 22px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #94a3b8;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .pay-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
+        .pay-btn.active { color: #fff; border-color: transparent; }
+        .pay-btn[data-pay="dana"].active      { background: linear-gradient(135deg,#4f46e5,#7c3aed); box-shadow:0 4px 20px rgba(79,70,229,0.4); }
+        .pay-btn[data-pay="gopay"].active     { background: linear-gradient(135deg,#059669,#10b981); box-shadow:0 4px 20px rgba(5,150,105,0.4); }
+        .pay-btn[data-pay="shopeepay"].active { background: linear-gradient(135deg,#dc2626,#ef4444); box-shadow:0 4px 20px rgba(220,38,38,0.4); }
+        .pay-btn[data-pay="saweria"].active   { background: linear-gradient(135deg,#d97706,#f59e0b); box-shadow:0 4px 20px rgba(217,119,6,0.4); }
+        .pay-btn[data-pay="paypal"].active    { background: linear-gradient(135deg,#1d4ed8,#3b82f6); box-shadow:0 4px 20px rgba(29,78,216,0.4); }
+
+        .topup-panel { display: none; }
+        .topup-panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity:0; transform:translateY(20px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .payment-header { text-align: center; margin-bottom: 30px; }
+        .payment-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .payment-header > p { color: #64748b; font-size: 13px; }
+
+        .paypal-note {
+            background: linear-gradient(135deg,rgba(29,78,216,0.2),rgba(59,130,246,0.15));
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 13px; color: #93c5fd;
+            margin-top: 12px;
+            display: inline-block;
+        }
+
+        .saweria-note {
+            background: linear-gradient(135deg,rgba(217,119,6,0.2),rgba(245,158,11,0.15));
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 13px; color: #fcd34d;
+            margin-top: 12px;
+            display: inline-block;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .item-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 22px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); }
+        .item-card.selected { border-color: rgba(167,139,250,0.6); background: rgba(124,58,237,0.15); box-shadow: 0 0 30px rgba(124,58,237,0.2); }
+        .item-card.unavailable { opacity: 0.5; cursor: not-allowed; }
+        .item-card.unavailable:hover { transform: none; }
+
+        .unavailable-badge {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(239,68,68,0.3);
+            border: 1px solid rgba(239,68,68,0.5);
+            color: #fca5a5;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 6px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .selected-check {
+            position: absolute; top: 12px; right: 12px;
+            width: 24px; height: 24px;
+            background: linear-gradient(135deg,#7c3aed,#6d28d9);
+            border-radius: 50%;
+            display: none;
+            align-items: center; justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 0 12px rgba(124,58,237,0.5);
+        }
+
+        .item-card.selected .selected-check { display: flex; }
+        .item-icon  { font-size: 32px; margin-bottom: 12px; }
+        .item-name  { font-size: 15px; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+        .item-price { font-size: 20px; font-weight: 800; color: #a78bfa; }
+        .item-price-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .item-price-sub span { color: #60a5fa; font-weight: 600; }
+
+        .action-buttons {
+            display: flex; gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 50px;
+        }
+
+        .btn-topup {
+            padding: 15px 40px;
+            background: linear-gradient(135deg,#7c3aed,#2563eb);
+            color: #fff; border: none;
+            border-radius: 14px;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .btn-topup:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(124,58,237,0.6); }
+
+        .btn-instructions {
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.06);
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .btn-instructions:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
+
+        .payment-info {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .info-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .info-value { font-size: 16px; font-weight: 700; color: #a78bfa; }
+        .payment-info a { color: #60a5fa; text-decoration: none; font-weight: 700; }
+        .payment-info a:hover { text-decoration: underline; }
+
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { display: flex; animation: fadeIn 0.3s ease; }
+
+        .modal, .instr-modal {
+            background: linear-gradient(135deg,#1e1b4b,#1a1a2e);
+            border: 1px solid rgba(167,139,250,0.2);
+            border-radius: 24px;
+            padding: 36px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.5), 0 0 60px rgba(124,58,237,0.1);
+        }
+
+        .modal { max-width: 520px; }
+        .instr-modal { max-width: 600px; }
+
+        .modal::-webkit-scrollbar,
+        .instr-modal::-webkit-scrollbar { width: 4px; }
+        .modal::-webkit-scrollbar-thumb,
+        .instr-modal::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.4); border-radius: 4px; }
+
+        .modal-close {
+            position: absolute; top: 18px; right: 18px;
+            width: 34px; height: 34px;
+            background: rgba(255,255,255,0.08);
+            border: none; border-radius: 50%;
+            color: #94a3b8; font-size: 18px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+        .modal-title {
+            font-size: 22px; font-weight: 800;
+            background: linear-gradient(135deg,#a78bfa,#60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+
+        .order-summary {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 20px; margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 14px;
+        }
+
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: #94a3b8; }
+        .summary-value { font-weight: 600; color: #e2e8f0; text-align: right; max-width: 60%; }
+        .summary-value.price { color: #a78bfa; font-size: 18px; font-weight: 800; }
+
+        .copy-section-label {
+            font-size: 12px; font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+
+        .copy-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(167,139,250,0.25);
+            border-radius: 14px;
+            padding: 18px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px; line-height: 1.8;
+            color: #c4b5fd;
+            margin-bottom: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            user-select: all;
+        }
+
+        .copy-btn {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg,#7c3aed,#4f46e5);
+            color: #fff; border: none;
+            border-radius: 12px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .copy-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
+        .copy-btn.copied { background: linear-gradient(135deg,#059669,#10b981); }
+
+        .go-discord-btn {
+            width: 100%; padding: 13px;
+            background: rgba(88,101,242,0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(88,101,242,0.35);
+            border-radius: 12px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none;
+        }
+
+        .go-discord-btn:hover { background: rgba(88,101,242,0.35); transform: translateY(-2px); }
+
+        .confirm-note {
+            background: linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.1));
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 13px; color: #fcd34d;
+            line-height: 1.6; margin-bottom: 16px;
+        }
+
+        .no-select-alert {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.35);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 14px; color: #fca5a5;
+            text-align: center; margin-bottom: 20px;
+            display: none;
+        }
+
+        .lang-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+
+        .lang-tab {
+            padding: 8px 20px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            color: #94a3b8;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        .lang-tab.active { background: linear-gradient(135deg,#7c3aed,#2563eb); border-color: transparent; color: #fff; }
+
+        .instructions-content { display: none; }
+        .instructions-content.active { display: block; }
+
+        .step { display: flex; gap: 16px; margin-bottom: 18px; align-items: flex-start; }
+
+        .step-num {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg,#7c3aed,#2563eb);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(124,58,237,0.4);
+        }
+
+        .step-text { flex: 1; font-size: 14px; line-height: 1.6; color: #cbd5e1; padding-top: 6px; }
+        .step-text strong { color: #a78bfa; }
+
+        .special-note {
+            background: linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.1));
+            border: 1px solid rgba(245,158,11,0.25);
+            border-radius: 12px;
+            padding: 14px 18px; margin-top: 20px;
+            font-size: 13px; color: #fcd34d; line-height: 1.6;
+        }
+
+        .special-note .note-title { font-weight: 700; margin-bottom: 6px; }
+        .special-note a { color: #60a5fa; font-weight: 600; }
+
+        .footer { text-align: center; color: #374151; font-size: 12px; padding-bottom: 40px; }
+        .footer span { color: #7c3aed; }
+
+        .loading {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(96,165,250,0.3);
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle; margin-left: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Rate error badge */
+        .rate-error {
+            display: inline-block;
+            background: rgba(239,68,68,0.2);
+            border: 1px solid rgba(239,68,68,0.4);
+            color: #fca5a5;
+            font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 6px;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .items-grid { grid-template-columns: 1fr 1fr; }
+            .item-card { padding: 16px; }
+            .item-icon { font-size: 24px; }
+            .item-price { font-size: 16px; }
+            .modal, .instr-modal { padding: 24px 18px; }
+        }
+
+        @media (max-width: 380px) { .items-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-badge">⚔️ Official Topup Store</div>
+        <h1>Mhantappu Saga<br>Topups</h1>
+        <p>Fast, Safe & Trusted • Instant Delivery</p>
+
+        <div class="rate-banner">
+            <div class="rate-icon">💱</div>
+            <div>
+                <div class="rate-label">USD/IDR Rate • XE.com</div>
+                <div class="rate-value">
+                    1 USD = <span id="rateDisplay">Loading...</span> IDR
+                    <span class="loading" id="rateLoader"></span>
+                </div>
+                <div class="rate-time">Updated: <span id="rateTime">--</span></div>
+                <div class="rate-source" id="rateSource"></div>
+            </div>
+            <div class="rate-status">
+                <div class="rate-dot"></div>
+                Live
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Selector -->
+    <div class="section-title">🏦 Pilih Metode Pembayaran</div>
+    <div class="payment-selector">
+        <button class="pay-btn active" data-pay="dana"      onclick="switchPayment('dana')">💜 DANA</button>
+        <button class="pay-btn"        data-pay="gopay"     onclick="switchPayment('gopay')">💚 GOPAY</button>
+        <button class="pay-btn"        data-pay="saweria"   onclick="switchPayment('saweria')">🟡 SAWERIA</button>
+        <button class="pay-btn"        data-pay="shopeepay" onclick="switchPayment('shopeepay')">🔴 SHOPEEPAY</button>
+        <button class="pay-btn"        data-pay="paypal"    onclick="switchPayment('paypal')">🔵 PAYPAL</button>
+    </div>
+
+    <!-- DANA -->
+    <div class="topup-panel active" id="panel-dana">
+        <div class="payment-header">
+            <h2>💜 DANA</h2>
+            <p>Transfer to: <strong>082220573388</strong></p>
+        </div>
+        <div class="items-grid" id="grid-dana"></div>
+        <div class="action-buttons">
+            <button class="btn-topup" onclick="openTopupModal('dana')">🚀 Topup Now</button>
+            <button class="btn-instructions" onclick="openInstrModal()">📋 Instructions</button>
+        </div>
+        <div class="payment-info">
+            <div class="info-label">Nomor DANA</div>
+            <div class="info-value">082220573388</div>
+        </div>
+    </div>
+
+    <!-- GOPAY -->
+    <div class="topup-panel" id="panel-gopay">
+        <div class="payment-header">
+            <h2>💚 GOPAY</h2>
+            <p>Transfer to: <strong>082220573388</strong></p>
+        </div>
+        <div class="items-grid" id="grid-gopay"></div>
+        <div class="action-buttons">
+            <button class="btn-topup" onclick="openTopupModal('gopay')">🚀 Topup Now</button>
+            <button class="btn-instructions" onclick="openInstrModal()">📋 Instructions</button>
+        </div>
+        <div class="payment-info">
+            <div class="info-label">Nomor GOPAY</div>
+            <div class="info-value">082220573388</div>
+        </div>
+    </div>
+
+    <!-- SAWERIA -->
+    <div class="topup-panel" id="panel-saweria">
+        <div class="payment-header">
+            <h2>🟡 SAWERIA</h2>
+            <p>⚠️ Harap konfirmasi ke admin terlebih dahulu sebelum bertransaksi</p>
+            <div class="saweria-note">⚠️ Please confirm to admin before making any transaction</div>
+        </div>
+        <div class="items-grid" id="grid-saweria"></div>
+        <div class="action-buttons">
+            <button class="btn-topup" onclick="openTopupModal('saweria')">🚀 Topup Now</button>
+            <button class="btn-instructions" onclick="openInstrModal()">📋 Instructions</button>
+        </div>
+        <div class="payment-info">
+            <div class="info-label">Saweria Link</div>
+            <div class="info-value"><a href="https://saweria.co/hadrianus" target="_blank">saweria.co/hadrianus</a></div>
+        </div>
+    </div>
+
+    <!-- SHOPEEPAY -->
+    <div class="topup-panel" id="panel-shopeepay">
+        <div class="payment-header">
+            <h2>🔴 SHOPEEPAY</h2>
+            <p>Transfer to: <strong>082220573388</strong></p>
+        </div>
+        <div class="items-grid" id="grid-shopeepay"></div>
+        <div class="action-buttons">
+            <button class="btn-topup" onclick="openTopupModal('shopeepay')">🚀 Topup Now</button>
+            <button class="btn-instructions" onclick="openInstrModal()">📋 Instructions</button>
+        </div>
+        <div class="payment-info">
+            <div class="info-label">Nomor ShopeePay</div>
+            <div class="info-value">082220573388</div>
+        </div>
+    </div>
+
+    <!-- PAYPAL -->
+    <div class="topup-panel" id="panel-paypal">
+        <div class="payment-header">
+            <h2>🔵 PAYPAL</h2>
+            <p>⚠️ Harap konfirmasi ke admin terlebih dahulu sebelum bertransaksi</p>
+            <div class="paypal-note">💱 Harga otomatis konversi ke USD sesuai kurs XE.com realtime • Konfirmasi admin dulu</div>
+        </div>
+        <div class="items-grid" id="grid-paypal"></div>
+        <div class="action-buttons">
+            <button class="btn-topup" onclick="openTopupModal('paypal')">🚀 Topup Now</button>
+            <button class="btn-instructions" onclick="openInstrModal()">📋 Instructions</button>
+        </div>
+        <div class="payment-info">
+            <div class="info-label">PayPal Link</div>
+            <div class="info-value"><a href="https://www.paypal.me/HadrianusSatrio" target="_blank">paypal.me/HadrianusSatrio</a></div>
+        </div>
+    </div>
+
+    <div class="footer">Made with <span>♥</span> by Mhantappu Saga Team</div>
+</div>
+
+<!-- Topup Modal -->
+<div class="modal-overlay" id="topupModal" onclick="closeModalOutside(event,'topupModal')">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('topupModal')">✕</button>
+        <div class="modal-title">🛒 Order Summary</div>
+        <div class="modal-subtitle">Review your order before sending to admin</div>
+
+        <div class="no-select-alert" id="noSelectAlert">
+            ⚠️ Kamu belum memilih item! Silakan tap salah satu item terlebih dahulu.
+        </div>
+
+        <div id="orderContent">
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span class="summary-label">Item</span>
+                    <span class="summary-value" id="sum-item">—</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Payment</span>
+                    <span class="summary-value" id="sum-payment">—</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Price</span>
+                    <span class="summary-value price" id="sum-price">—</span>
+                </div>
+            </div>
+
+            <div class="confirm-note" id="confirmNote" style="display:none;">
+                ⚠️ <strong>Saweria / PayPal:</strong> Harap konfirmasi ke admin via Discord sebelum melakukan pembayaran.<br>
+                <small>Please confirm via Discord before proceeding with payment.</small>
+            </div>
+
+            <div id="copySection">
+                <div class="copy-section-label">📋 Copy & Paste ke Admin</div>
+                <div class="copy-box" id="copyBox"></div>
+                <button class="copy-btn" id="copyBtn" onclick="copyText()">📋 Copy Text</button>
+            </div>
+
+            <a href="https://discord.com/channels/1204632293461983264/1480832824410898432"
+               target="_blank" class="go-discord-btn">
+                💬 Go to Admin (Discord)
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Instructions Modal -->
+<div class="modal-overlay" id="instrModal" onclick="closeModalOutside(event,'instrModal')">
+    <div class="instr-modal">
+        <button class="modal-close" onclick="closeModal('instrModal')">✕</button>
+        <div class="modal-title">📋 How to Topup</div>
+        <div class="modal-subtitle">Follow these steps carefully</div>
+
+        <div class="lang-tabs">
+            <button class="lang-tab active" onclick="switchLang('id',this)">🇮🇩 Bahasa Indonesia</button>
+            <button class="lang-tab" onclick="switchLang('en',this)">🇺🇸 English</button>
+        </div>
+
+        <div class="instructions-content active" id="lang-id">
+            <div class="step"><div class="step-num">1</div><div class="step-text">Silakan <strong>pilih item yang ingin di-topup</strong>, misalkan emblem atau token.</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text">Silakan <strong>pilih metode pembayaran</strong> (DANA, GOPAY, ShopeePay, Saweria, atau PayPal).</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text">Klik tombol <strong>"Topup Now"</strong> — akan muncul ringkasan pesanan beserta teks yang siap di-copy.</div></div>
+            <div class="step"><div class="step-num">4</div><div class="step-text">Klik <strong>"Copy Text"</strong>, lalu klik <strong>"Go to Admin"</strong> untuk buka Discord dan paste teks ke admin.</div></div>
+            <div class="step"><div class="step-num">5</div><div class="step-text"><strong>Tunggu admin membalas</strong> dan memberi instruksi untuk menyelesaikan transaksi.</div></div>
+            <div class="step"><div class="step-num">6</div><div class="step-text">Kirimkan <strong>ID kamu kepada admin</strong>, dan admin akan mengirimkan pesanan ke akunmu.</div></div>
+            <div class="special-note">
+                <div class="note-title">⚠️ Khusus Saweria & PayPal</div>
+                Untuk <strong>Saweria</strong> dan <strong>PayPal</strong>, kamu harus <strong>konfirmasi ke admin terlebih dahulu</strong> sebelum melakukan pembayaran.<br><br>
+                💬 Konfirmasi di: <a href="https://discord.com/channels/1204632293461983264/1480832824410898432" target="_blank">Discord Channel</a>
+            </div>
+        </div>
+
+        <div class="instructions-content" id="lang-en">
+            <div class="step"><div class="step-num">1</div><div class="step-text">Please <strong>select the item you want to topup</strong>, e.g. emblem or tokens.</div></div>
+            <div class="step"><div class="step-num">2</div><div class="step-text">Please <strong>choose your payment method</strong> (DANA, GOPAY, ShopeePay, Saweria, or PayPal).</div></div>
+            <div class="step"><div class="step-num">3</div><div class="step-text">Click <strong>"Topup Now"</strong> — an order summary with a ready-to-copy message will appear.</div></div>
+            <div class="step"><div class="step-num">4</div><div class="step-text">Click <strong>"Copy Text"</strong>, then click <strong>"Go to Admin"</strong> to open Discord and paste the message.</div></div>
+            <div class="step"><div class="step-num">5</div><div class="step-text"><strong>Wait for the admin to reply</strong> with instructions to complete the transaction.</div></div>
+            <div class="step"><div class="step-num">6</div><div class="step-text">Send your <strong>in-game ID to the admin</strong>, and admin will deliver your order.</div></div>
+            <div class="special-note">
+                <div class="note-title">⚠️ Saweria & PayPal Special Note</div>
+                For <strong>Saweria</strong> and <strong>PayPal</strong>, you must <strong>confirm with admin first</strong> before making any payment.<br><br>
+                💬 Confirm here: <a href="https://discord.com/channels/1204632293461983264/1480832824410898432" target="_blank">Discord Channel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =============================================
+// RATE — XE.com via CORS proxy + fallback chain
+// =============================================
+let currentRate = 16877;
+let rateReady   = false;
+
+async function fetchRate() {
+    const loader = document.getElementById('rateLoader');
+    loader.style.display = 'inline-block';
+
+    /*
+     * Strategi:
+     * 1) Scrape XE.com melalui allorigins.win (CORS proxy) — parse HTML
+     * 2) Scrape XE.com melalui corsproxy.io
+     * 3) fawazahmed0 currency-api (data interbank sama dengan XE)
+     * 4) frankfurter.app
+     * 5) Hardcoded fallback
+     */
+
+    const XE_URL = 'https://www.xe.com/currencyconverter/convert/?Amount=1&From=USD&To=IDR';
+
+    const strategies = [
+
+        // ── 1. allorigins proxy → scrape XE.com ──
+        async () => {
+            const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(XE_URL)}&t=${Date.now()}`;
+            const res   = await fetch(proxy, { cache: 'no-cache' });
+            const json  = await res.json();
+            const html  = json.contents;
+
+            // XE.com menyimpan hasil di: <p class="sc-...">16,876.58</p>
+            // Cari angka dengan format ribuan koma & desimal titik
+            const match = html.match(/>\s*([\d]{2,3}[,\d]*\.\d{1,4})\s*<\/p>/);
+            if (!match) throw new Error('XE parse fail');
+            const rate = parseFloat(match[1].replace(/,/g, ''));
+            if (rate < 10000) throw new Error('XE rate invalid');
+            return { rate, source: 'XE.com (allorigins proxy)' };
+        },
+
+        // ── 2. corsproxy.io → scrape XE.com ──
+        async () => {
+            const proxy = `https://corsproxy.io/?${encodeURIComponent(XE_URL)}`;
+            const res   = await fetch(proxy, { cache: 'no-cache' });
+            const html  = await res.text();
+            const match = html.match(/>\s*([\d]{2,3}[,\d]*\.\d{1,4})\s*<\/p>/);
+            if (!match) throw new Error('XE parse fail');
+            const rate = parseFloat(match[1].replace(/,/g, ''));
+            if (rate < 10000) throw new Error('XE rate invalid');
+            return { rate, source: 'XE.com (corsproxy.io)' };
+        },
+
+        // ── 3. fawazahmed0 (interbank = same as XE) ──
+        async () => {
+            const res  = await fetch(
+                `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json`,
+                { cache: 'no-cache' }
+            );
+            const data = await res.json();
+            const rate = data.usd.idr;
+            if (!rate || rate < 10000) throw new Error('invalid');
+            return { rate, source: 'fawazahmed0/currency-api (interbank)' };
+        },
+
+        // ── 4. frankfurter.app ──
+        async () => {
+            const res  = await fetch('https://api.frankfurter.app/latest?from=USD&to=IDR', { cache: 'no-cache' });
+            const data = await res.json();
+            const rate = data.rates.IDR;
+            if (!rate || rate < 10000) throw new Error('invalid');
+            return { rate, source: 'frankfurter.app' };
+        },
+    ];
+
+    let success = false;
+    for (const fn of strategies) {
+        try {
+            const { rate, source } = await fn();
+            currentRate = rate;
+            rateReady   = true;
+            success     = true;
+            document.getElementById('rateSource').textContent = '📡 ' + source;
+            break;
+        } catch (_) { /* lanjut ke berikutnya */ }
+    }
+
+    if (!success) {
+        currentRate = 16877;
+        rateReady   = true;
+        document.getElementById('rateSource').innerHTML =
+            '<span class="rate-error">⚠️ Offline — using cached rate</span>';
+    }
+
+    // Tampilkan rate
+    document.getElementById('rateDisplay').textContent =
+        new Intl.NumberFormat('id-ID').format(Math.round(currentRate));
+    loader.style.display = 'none';
+
+    const now = new Date();
+    document.getElementById('rateTime').textContent =
+        now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+    buildAllGrids();
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function idrToUsd(idr) { return (idr / currentRate).toFixed(2); }
+function formatIDR(n)   { return 'Rp\u00A0' + new Intl.NumberFormat('id-ID').format(n); }
+
+// =============================================
+// DATA
+// =============================================
+const paymentNames = {
+    dana:      'DANA (082220573388)',
+    gopay:     'GOPAY (082220573388)',
+    shopeepay: 'ShopeePay (082220573388)',
+    saweria:   'Saweria (saweria.co/hadrianus)',
+    paypal:    'PayPal (paypal.me/HadrianusSatrio)',
+};
+
+const allItems = {
+    dana: [
+        { icon:'🪙', name:'250K Tokens',                               idr:7500,  unavailable:true, note:'Not available — transfer to banks' },
+        { icon:'🪙', name:'500K Tokens',                               idr:15000 },
+        { icon:'🪙', name:'1M Tokens',                                idr:30000 },
+        { icon:'⚔️', name:'One Hit Weapon & Skill (Package)',          idr:15000 },
+        { icon:'🏅', name:'Emblem',                                    idr:5000  },
+        { icon:'💎', name:'Emblem + 1M Tokens + One Hit W&S (Bundle)', idr:50000 },
+        { icon:'🆔', name:'Change ID',                                 idr:12000 },
+    ],
+    gopay: [
+        { icon:'🪙', name:'250K Tokens',                               idr:7500,  unavailable:true, note:'Not available — transfer to banks' },
+        { icon:'🪙', name:'500K Tokens',                               idr:15000 },
+        { icon:'🪙', name:'1M Tokens',                                idr:30000 },
+        { icon:'⚔️', name:'One Hit Weapon & Skill (Package)',          idr:15000 },
+        { icon:'🏅', name:'Emblem',                                    idr:5000  },
+        { icon:'💎', name:'Emblem + 1M Tokens + One Hit W&S (Bundle)', idr:50000 },
+        { icon:'🆔', name:'Change ID',                                 idr:12000 },
+    ],
+    saweria: [
+        { icon:'🪙', name:'250K Tokens',                               idr:7500,  unavailable:true, note:'Not available — transfer to banks' },
+        { icon:'🪙', name:'500K Tokens',                               idr:15000 },
+        { icon:'🪙', name:'1M Tokens',                                idr:30000 },
+        { icon:'⚔️', name:'One Hit Weapon & Skill (Package)',          idr:15000 },
+        { icon:'🏅', name:'Emblem',                                    idr:5000  },
+        { icon:'💎', name:'Emblem + 1M Tokens + One Hit W&S (Bundle)', idr:50000 },
+        { icon:'🆔', name:'Change ID',                                 idr:12000 },
+    ],
+    shopeepay: [
+        { icon:'🪙', name:'500K Tokens',                               idr:15000 },
+        { icon:'🪙', name:'1M Tokens',                                idr:30000 },
+        { icon:'⚔️', name:'One Hit Weapon & Skill (Package)',          idr:15000 },
+        { icon:'💎', name:'Emblem + 1M Tokens + One Hit W&S (Bundle)', idr:50000 },
+        { icon:'🆔', name:'Change ID',                                 idr:12000 },
+    ],
+    paypal: [
+        { icon:'🪙', name:'250K Tokens',                               idr:7500  },
+        { icon:'🪙', name:'500K Tokens',                               idr:15000 },
+        { icon:'🪙', name:'1M Tokens',                                idr:30000 },
+        { icon:'⚔️', name:'One Hit Weapon & Skill (Package)',          idr:15000 },
+        { icon:'🏅', name:'Emblem',                                    idr:5000  },
+        { icon:'💎', name:'Emblem + 1M Tokens + One Hit W&S (Bundle)', idr:50000 },
+        { icon:'🆔', name:'Change ID',                                 idr:12000 },
+    ],
+};
+
+const selectedItems = { dana:null, gopay:null, saweria:null, shopeepay:null, paypal:null };
+let currentPayment  = 'dana';
+
+// =============================================
+// BUILD GRIDS
+// =============================================
+function buildGrid(payType) {
+    const grid = document.getElementById('grid-' + payType);
+    if (!grid) return;
+    const isPaypal = payType === 'paypal';
+
+    grid.innerHTML = allItems[payType].map((item, idx) => `
+        <div class="item-card ${item.unavailable ? 'unavailable' : ''} ${selectedItems[payType] === idx ? 'selected' : ''}"
+             ${item.unavailable ? '' : `onclick="selectItem('${payType}',${idx},this)"`}
+             title="${item.unavailable ? (item.note || '') : ''}">
+            ${item.unavailable
+                ? `<div class="unavailable-badge">N/A</div>`
+                : `<div class="selected-check">✓</div>`}
+            <div class="item-icon">${item.icon}</div>
+            <div class="item-name">${item.name}</div>
+            ${isPaypal
+                ? `<div class="item-price">$${idrToUsd(item.idr)}</div>
+                   <div class="item-price-sub">≈ <span>${formatIDR(item.idr)}</span></div>`
+                : `<div class="item-price">${formatIDR(item.idr)}</div>`}
+            ${item.unavailable
+                ? `<div style="font-size:10px;color:#ef4444;margin-top:6px;">${item.note||''}</div>`
+                : ''}
+        </div>
+    `).join('');
+}
+
+function buildAllGrids() {
+    Object.keys(allItems).forEach(p => buildGrid(p));
+}
+
+// =============================================
+// SELECT ITEM
+// =============================================
+function selectItem(payType, idx, el) {
+    selectedItems[payType] = idx;
+    document.querySelectorAll(`#grid-${payType} .item-card`).forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+// =============================================
+// SWITCH PAYMENT
+// =============================================
+function switchPayment(payType) {
+    currentPayment = payType;
+    document.querySelectorAll('.topup-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + payType).classList.add('active');
+    document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.pay-btn[data-pay="${payType}"]`).classList.add('active');
+}
+
+// =============================================
+// TOPUP MODAL
+// =============================================
+function openTopupModal(payType) {
+    currentPayment = payType;
+    const idx            = selectedItems[payType];
+    const noAlert        = document.getElementById('noSelectAlert');
+    const orderContent   = document.getElementById('orderContent');
+    const copyBtn        = document.getElementById('copyBtn');
+
+    document.getElementById('topupModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Reset copy btn
+    copyBtn.innerHTML = '📋 Copy Text';
+    copyBtn.classList.remove('copied');
+
+    if (idx === null || idx === undefined) {
+        noAlert.style.display      = 'block';
+        orderContent.style.display = 'none';
+        return;
+    }
+
+    noAlert.style.display      = 'none';
+    orderContent.style.display = 'block';
+
+    const item              = allItems[payType][idx];
+    const isPaypal          = payType === 'paypal';
+    const isSaweriaOrPaypal = payType === 'saweria' || payType === 'paypal';
+
+    // Harga string
+    const priceIDR = formatIDR(item.idr);
+    const priceStr = isPaypal
+        ? `$${idrToUsd(item.idr)} USD (≈ ${priceIDR})`
+        : priceIDR;
+
+    // Isi summary
+    document.getElementById('sum-item').textContent    = item.icon + ' ' + item.name;
+    document.getElementById('sum-payment').textContent = paymentNames[payType];
+    document.getElementById('sum-price').textContent   = priceStr;
+
+    // Confirm note (Saweria & PayPal)
+    document.getElementById('confirmNote').style.display = isSaweriaOrPaypal ? 'block' : 'none';
+
+    // Copy section
+    const copySection = document.getElementById('copySection');
+    if (isSaweriaOrPaypal) {
+        copySection.style.display = 'none';
+    } else {
+        copySection.style.display = 'block';
+
+        const now       = new Date();
+        const timestamp = now.toLocaleString('id-ID', {
+            day: '2-digit', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        const pasteText =
+`📦 TOPUP ORDER — Mhantappu Saga
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎮 Item      : ${item.icon} ${item.name}
+💳 Payment   : ${paymentNames[payType]}
+💰 Price     : ${priceStr}
+🕐 Time      : ${timestamp}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Halo admin, saya ingin melakukan topup item di atas.
+Mohon bantuannya! 🙏`;
+
+        document.getElementById('copyBox').textContent = pasteText;
+    }
+}
+
+// =============================================
+// COPY TEXT
+// =============================================
+function copyText() {
+    const text = document.getElementById('copyBox').textContent;
+    const btn  = document.getElementById('copyBtn');
+
+    const doSuccess = () => {
+        btn.innerHTML = '✅ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerHTML = '📋 Copy Text';
+            btn.classList.remove('copied');
+        }, 2500);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(doSuccess).catch(() => fallbackCopy(text, doSuccess));
+    } else {
+        fallbackCopy(text, doSuccess);
+    }
+}
+
+function fallbackCopy(text, callback) {
+    const ta         = document.createElement('textarea');
+    ta.value         = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); callback(); } catch (_) {}
+    document.body.removeChild(ta);
+}
+
+// =============================================
+// INSTRUCTIONS MODAL
+// =============================================
+function openInstrModal() {
+    document.getElementById('instrModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function switchLang(lang, btn) {
+    document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.instructions-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('lang-' + lang).classList.add('active');
+}
+
+// =============================================
+// CLOSE MODALS
+// =============================================
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function closeModalOutside(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+// Tutup dengan tombol Escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeModal('topupModal');
+        closeModal('instrModal');
+    }
+});
+
+// =============================================
+// INIT
+// =============================================
+buildAllGrids();
+fetchRate();
+
+// Auto refresh tiap 5 menit
+setInterval(() => {
+    document.getElementById('rateLoader').style.display = 'inline-block';
+    fetchRate();
+}, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>
