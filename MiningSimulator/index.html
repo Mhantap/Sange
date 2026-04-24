@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mining Simulator</title>
+    <title>Mining Simulator HTML</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
@@ -14,10 +14,10 @@
         <!-- Loading Screen -->
         <div id="loading-screen" class="screen active">
             <div class="game-logo">
-                <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon">
+                <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon" referrerpolicy="no-referrer">
             </div>
             <div class="loader"></div>
-            <h1>Mining Simulator</h1>
+            <h1>Mining Simulator HTML</h1>
             <p>Memuat sumber daya...</p>
         </div>
 
@@ -25,7 +25,7 @@
         <div id="auth-screen" class="screen hidden">
             <div class="glass-panel auth-panel">
                 <div class="game-logo small">
-                    <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon">
+                    <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon" referrerpolicy="no-referrer">
                 </div>
                 <h1 id="auth-title">Masuk</h1>
                 <div class="input-group">
@@ -50,12 +50,12 @@
         <div id="lobby-screen" class="screen hidden">
             <div class="glass-panel">
                 <div class="game-logo small">
-                    <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon">
+                    <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon" referrerpolicy="no-referrer">
                 </div>
                 <h1>Halo, <span id="player-name">Player</span>!</h1>
                 <div class="stats">
                     <p>Level: <span id="player-level">1</span></p>
-                    <p>Stone: <span id="player-stones">0</span> <img src="https://minecraft.wiki/images/Stone_JE5_BE3.png?5780c" class="inline-icon"></p>
+                    <p>Stone: <span id="player-stones">0</span> <img src="https://minecraft.wiki/images/Stone_JE5_BE3.png" class="inline-icon" referrerpolicy="no-referrer"></p>
                 </div>
                 <div class="action-buttons">
                     <button class="btn primary" onclick="startGame()" data-i18n="start_mining">Mulai Menambang</button>
@@ -113,7 +113,7 @@
                 </div>
                 <button class="btn secondary small centered-btn" onclick="returnToLobby()">Lobi</button>
                 <div class="menu-dots-btn" onclick="toggleMenuBar()">
-                    <img src="https://static.thenounproject.com/png/3077536-200.png" alt="Menu">
+                    <img src="https://static.thenounproject.com/png/3077536-200.png" alt="Menu" referrerpolicy="no-referrer">
                 </div>
             </div>
 
@@ -121,25 +121,25 @@
             <div id="game-menu-bar" class="game-menu-bar glass-panel hidden" onclick="resetMenuInactivityTimer()">
                 <div class="menu-items-container" id="menu-items-container">
                     <div class="menu-item" onclick="openInventoryModal()">
-                        <img src="https://minecraft.wiki/images/Bundle_JE2_BE2.png?0aba5" alt="Inventaris">
+                        <img src="https://minecraft.wiki/images/Bundle_JE2_BE2.png" alt="Inventaris" referrerpolicy="no-referrer">
                         <span>Inventaris</span>
                     </div>
                     <div class="menu-item" onclick="openRepairModal()">
-                        <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Anvil_%28N%29_JE3.png/revision/latest/scale-to-width-down/268?cb=20201126085258" alt="Repair">
+                        <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Anvil_%28N%29_JE3.png" alt="Repair" referrerpolicy="no-referrer">
                         <span>Repair</span>
                     </div>
                                         <div class="menu-item" onclick="openSettingsModal()">
-                        <img src="https://static.thenounproject.com/png/1922582-200.png" alt="Settings" style="filter: invert(70%) sepia(80%) saturate(300%) hue-rotate(140deg) drop-shadow(0 0 5px var(--primary));">
+                        <img src="https://static.thenounproject.com/png/1922582-200.png" alt="Settings" style="filter: invert(70%) sepia(80%) saturate(300%) hue-rotate(140deg) drop-shadow(0 0 5px var(--primary));" referrerpolicy="no-referrer">
                         <span>Setting</span>
                     </div>
                                         <div class="menu-item" onclick="openCraftingModal()">
-                        <img src="https://minecraft.wiki/images/thumb/Crafting_Table_JE4_BE3.png/150px-Crafting_Table_JE4_BE3.png?5767f" alt="Crafting">
+                        <img src="https://minecraft.wiki/images/thumb/Crafting_Table_JE4_BE3.png/150px-Crafting_Table_JE4_BE3.png" alt="Crafting" referrerpolicy="no-referrer">
                         <span>Crafting</span>
                     </div>
                     <!-- Placeholder for future menus -->
                 </div>
                 <button class="menu-next-btn" onclick="nextMenuPage()">
-                    <img src="https://www.freeiconspng.com/uploads/next-button-icon-png-32.png" alt="Next">
+                    <img src="https://www.freeiconspng.com/uploads/next-button-icon-png-32.png" alt="Next" referrerpolicy="no-referrer">
                 </button>
             </div>
 
@@ -149,23 +149,23 @@
                     <h1>Inventaris</h1>
                     <div class="inventory-content">
                         <div class="drawer-item">
-                            <img src="https://minecraft.wiki/images/Stone_JE5_BE3.png?5780c" alt="Stone">
+                            <img src="https://minecraft.wiki/images/Stone_JE5_BE3.png" alt="Stone" referrerpolicy="no-referrer">
                             <span>Stone: <strong id="modal-stone-count">0</strong></span>
                         </div>
                         <div class="drawer-item">
-                            <img src="https://minecraft.wiki/images/thumb/Dirt_JE2_BE2.png/150px-Dirt_JE2_BE2.png?438ac" alt="Dirt">
+                            <img src="https://minecraft.wiki/images/thumb/Dirt_JE2_BE2.png/150px-Dirt_JE2_BE2.png" alt="Dirt" referrerpolicy="no-referrer">
                             <span>Dirt: <strong id="modal-dirt-count">0</strong></span>
                         </div>
                         <div class="drawer-item">
-                            <img src="https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png?8a080" alt="Oak Log">
+                            <img src="https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png" alt="Oak Log" referrerpolicy="no-referrer">
                             <span>Oak Log: <strong id="modal-log-count">0</strong></span>
                         </div>
                         <div class="drawer-item">
-                            <img src="https://minecraft.wiki/images/thumb/Oak_Planks.png/150px-Oak_Planks.png?d9efa" alt="Oak Planks">
+                            <img src="https://minecraft.wiki/images/thumb/Oak_Planks.png/150px-Oak_Planks.png" alt="Oak Planks" referrerpolicy="no-referrer">
                             <span>Planks: <strong id="modal-planks-count">0</strong></span>
                         </div>
                         <div class="drawer-item">
-                            <img src="https://minecraft.wiki/images/Stick_JE1_BE1.png?1fc15" alt="Stick">
+                            <img src="https://minecraft.wiki/images/Stick_JE1_BE1.png" alt="Stick" referrerpolicy="no-referrer">
                             <span>Stick: <strong id="modal-stick-count">0</strong></span>
                         </div>
                     </div>
@@ -176,7 +176,7 @@
             <!-- Repair Modal (Centered popup) -->
             <div id="repair-modal" class="screen hidden overlay">
                 <div class="glass-panel inventory-popup">
-                    <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Anvil_%28N%29_JE3.png/revision/latest/scale-to-width-down/268?cb=20201126085258" class="anvil-icon" alt="Anvil">
+                    <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Anvil_%28N%29_JE3.png" class="anvil-icon" alt="Anvil" referrerpolicy="no-referrer">
                     <h1>Repair</h1>
                     <div class="repair-info">
                         <div class="item-stats">
@@ -300,7 +300,7 @@
             
             <div class="mining-area">
                 <div class="block-container" id="block-container">
-                    <img src="https://minecraft.wiki/images/Cobblestone_JE5_BE3.png?25024" id="current-block" alt="Cobblestone">
+                    <img src="https://minecraft.wiki/images/Cobblestone_JE5_BE3.png" id="current-block" alt="Cobblestone" referrerpolicy="no-referrer">
                     <div class="health-bar-bg">
                         <div class="health-bar-fill" id="block-health"></div>
                     </div>
@@ -309,7 +309,7 @@
             
             <!-- Tool cursor -->
             <div class="pickaxe-container" id="tool-cursor">
-                <img src="https://minecraft.wiki/images/Wooden_Pickaxe_JE3_BE3.png?fa797" id="tool-img" alt="Tool">
+                <img src="https://minecraft.wiki/images/Wooden_Pickaxe_JE3_BE3.png" id="tool-img" alt="Tool" referrerpolicy="no-referrer">
             </div>
             
             <!-- Game Sound (Hidden, Autoplay via JS) -->
