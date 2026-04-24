@@ -901,7 +901,9 @@ input:focus {
     #current-block { width: 200px; height: 200px; }
     .health-bar-bg { margin-top: 20px; height: 10px; }
 
-    .pickaxe-container { display: none; }
+    .pickaxe-container { display: block; opacity: 0; pointer-events: none; }
+    #game-screen.active .pickaxe-container { opacity: 1; }
+    .pickaxe-container img { width: 80px; height: 80px; }
     .block-container { cursor: crosshair; }
     
     .floating-text { font-size: 1.4rem; }

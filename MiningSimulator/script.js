@@ -392,15 +392,18 @@ function updateBlockAndToolVisuals() {
     const toolImg = document.querySelector('.pickaxe-container img');
     if(!blockImg || !toolImg) return;
     
+    blockImg.referrerPolicy = "no-referrer";
+    toolImg.referrerPolicy = "no-referrer";
+    
     if (currentBlockType === 'cobblestone') {
-        blockImg.src = 'https://minecraft.wiki/images/Cobblestone_JE5_BE3.png?25024';
-        toolImg.src = activeTools.pickaxe === 'stone' ? 'https://minecraft.wiki/images/Stone_Pickaxe_JE2_BE2.png?650b0' : 'https://minecraft.wiki/images/Wooden_Pickaxe_JE3_BE3.png?fa797';
+        blockImg.src = 'https://minecraft.wiki/images/Cobblestone_JE5_BE3.png';
+        toolImg.src = activeTools.pickaxe === 'stone' ? 'https://minecraft.wiki/images/Stone_Pickaxe_JE2_BE2.png' : 'https://minecraft.wiki/images/Wooden_Pickaxe_JE3_BE3.png';
     } else if (currentBlockType === 'grass') {
-        blockImg.src = 'https://minecraft.wiki/images/thumb/Grass_Block_JE7_BE6.png/150px-Grass_Block_JE7_BE6.png?2bd37';
-        toolImg.src = activeTools.shovel === 'stone' ? 'https://minecraft.wiki/images/Stone_Shovel_JE2_BE2.png?d7fc8' : 'https://minecraft.wiki/images/Wooden_Shovel_JE2_BE2.png?749b7';
+        blockImg.src = 'https://minecraft.wiki/images/thumb/Grass_Block_JE7_BE6.png/150px-Grass_Block_JE7_BE6.png';
+        toolImg.src = activeTools.shovel === 'stone' ? 'https://minecraft.wiki/images/Stone_Shovel_JE2_BE2.png' : 'https://minecraft.wiki/images/Wooden_Shovel_JE2_BE2.png';
     } else if (currentBlockType === 'oak_log') {
-        blockImg.src = 'https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png?8a080';
-        toolImg.src = activeTools.axe === 'stone' ? 'https://minecraft.wiki/images/Stone_Axe_JE2_BE2.png?d33a8' : 'https://minecraft.wiki/images/Wooden_Axe_JE2_BE2.png?ff0b9';
+        blockImg.src = 'https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png';
+        toolImg.src = activeTools.axe === 'stone' ? 'https://minecraft.wiki/images/Stone_Axe_JE2_BE2.png' : 'https://minecraft.wiki/images/Wooden_Axe_JE2_BE2.png';
     }
 }
 
@@ -417,6 +420,23 @@ document.addEventListener('mousemove', (e) => {
         toolCursor.style.top = e.clientY + 'px';
     }
 });
+
+// Mobile Touch Support for Tool Cursor
+document.addEventListener('touchstart', (e) => {
+    if (screens.game.classList.contains('active')) {
+        const touch = e.touches[0];
+        toolCursor.style.left = touch.clientX + 'px';
+        toolCursor.style.top = touch.clientY + 'px';
+    }
+}, {passive: true});
+
+document.addEventListener('touchmove', (e) => {
+    if (screens.game.classList.contains('active')) {
+        const touch = e.touches[0];
+        toolCursor.style.left = touch.clientX + 'px';
+        toolCursor.style.top = touch.clientY + 'px';
+    }
+}, {passive: true});
 
 blockContainer.addEventListener('click', (e) => {
     if (isMiningCooldown) return;
@@ -593,6 +613,8 @@ function toggleMenuBar() {
     const menuBar = document.getElementById('game-menu-bar');
     if (menuBar.classList.contains('hidden')) {
         menuBar.classList.remove('hidden');
+        currentMenuPage = 1;
+        updateMenuPage();
         resetMenuInactivityTimer();
     } else {
         menuBar.classList.add('hidden');
@@ -609,6 +631,69 @@ function resetMenuInactivityTimer() {
         }
     }, 5000);
 }
+
+// Menu Pagination Logic
+function nextMenuPage() {
+    const items = document.querySelectorAll('#menu-items-container .menu-item');
+    const itemsPerPage = 2;
+    const maxPages = Math.ceil(items.length / itemsPerPage);
+    
+    currentMenuPage++;
+    if (currentMenuPage > maxPages) currentMenuPage = 1;
+    updateMenuPage();
+}
+
+function prevMenuPage() {
+    const items = document.querySelectorAll('#menu-items-container .menu-item');
+    const itemsPerPage = 2;
+    const maxPages = Math.ceil(items.length / itemsPerPage);
+    
+    currentMenuPage--;
+    if (currentMenuPage < 1) currentMenuPage = maxPages;
+    updateMenuPage();
+}
+
+function updateMenuPage() {
+    const container = document.getElementById('menu-items-container');
+    if (!container) return;
+    
+    const items = container.querySelectorAll('.menu-item');
+    const itemsPerPage = 2; // Show 2 items at a time on mobile
+    
+    container.style.opacity = '0';
+    setTimeout(() => {
+        items.forEach((item, index) => {
+            if (index >= (currentMenuPage - 1) * itemsPerPage && index < currentMenuPage * itemsPerPage) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        container.style.opacity = '1';
+    }, 150);
+}
+
+// Swipe Support for Menu Bar
+let menuTouchStartX = 0;
+let menuTouchEndX = 0;
+
+window.addEventListener('load', () => {
+    const menuBar = document.getElementById('game-menu-bar');
+    if (menuBar) {
+        menuBar.addEventListener('touchstart', e => {
+            menuTouchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        menuBar.addEventListener('touchend', e => {
+            menuTouchEndX = e.changedTouches[0].screenX;
+            const diff = menuTouchEndX - menuTouchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) nextMenuPage();
+                else prevMenuPage();
+            }
+        }, {passive: true});
+    }
+});
 
 function showTutorial() {
     document.getElementById('tutorial-screen').classList.remove('hidden');
@@ -912,14 +997,14 @@ let craftGrid = [null, null, null, null, null, null, null, null, null];
 let selectedMaterial = null;
 
 const ASSETS = {
-    stone: 'https://minecraft.wiki/images/Stone_JE5_BE3.png?5780c',
-    dirt: 'https://minecraft.wiki/images/thumb/Dirt_JE2_BE2.png/150px-Dirt_JE2_BE2.png?438ac',
-    log: 'https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png?8a080',
-    planks: 'https://minecraft.wiki/images/thumb/Oak_Planks.png/150px-Oak_Planks.png?d9efa',
-    stick: 'https://minecraft.wiki/images/Stick_JE1_BE1.png?1fc15',
-    pickaxe_stone: 'https://minecraft.wiki/images/Stone_Pickaxe_JE2_BE2.png?650b0',
-    shovel_stone: 'https://minecraft.wiki/images/Stone_Shovel_JE2_BE2.png?d7fc8',
-    axe_stone: 'https://minecraft.wiki/images/Stone_Axe_JE2_BE2.png?d33a8'
+    stone: 'https://minecraft.wiki/images/Stone_JE5_BE3.png',
+    dirt: 'https://minecraft.wiki/images/thumb/Dirt_JE2_BE2.png/150px-Dirt_JE2_BE2.png',
+    log: 'https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png',
+    planks: 'https://minecraft.wiki/images/thumb/Oak_Planks.png/150px-Oak_Planks.png',
+    stick: 'https://minecraft.wiki/images/Stick_JE1_BE1.png',
+    pickaxe_stone: 'https://minecraft.wiki/images/Stone_Pickaxe_JE2_BE2.png',
+    shovel_stone: 'https://minecraft.wiki/images/Stone_Shovel_JE2_BE2.png',
+    axe_stone: 'https://minecraft.wiki/images/Stone_Axe_JE2_BE2.png'
 };
 
 function openCraftingModal() {
@@ -952,7 +1037,7 @@ function updateCraftingMaterials() {
         if(inventory[item] > 0) {
             const div = document.createElement('div');
             div.className = 'material-item' + (selectedMaterial === item ? ' selected' : '');
-            div.innerHTML = `<img src="${ASSETS[item]}"><span style="color:white; font-size:10px; position:absolute; bottom:2px; right:2px;">${inventory[item]}</span>`;
+            div.innerHTML = `<img src="${ASSETS[item]}" referrerpolicy="no-referrer"><span style="color:white; font-size:10px; position:absolute; bottom:2px; right:2px;">${inventory[item]}</span>`;
             div.onclick = () => selectMaterial(item);
             container.appendChild(div);
         }
@@ -1051,7 +1136,7 @@ function checkRecipe() {
     const resSlot = document.getElementById('craft-result-slot');
     if(resSlot) {
         if (currentRecipeOutput) {
-            resSlot.innerHTML = `<img src="${ASSETS[currentRecipeOutput.id] || ASSETS[currentRecipeOutput.id.replace('_stone','')]}"><span class="item-count" style="color:white; font-size:10px; position:absolute; bottom:2px; right:2px;">${currentRecipeOutput.count}</span>`;
+            resSlot.innerHTML = `<img src="${ASSETS[currentRecipeOutput.id] || ASSETS[currentRecipeOutput.id.replace('_stone','')]}" referrerpolicy="no-referrer"><span class="item-count" style="color:white; font-size:10px; position:absolute; bottom:2px; right:2px;">${currentRecipeOutput.count}</span>`;
         } else {
             resSlot.innerHTML = '';
         }
