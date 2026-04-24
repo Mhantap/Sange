@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mining Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-container"></div>
+    
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <div class="game-logo">
+                <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon">
+            </div>
+            <div class="loader"></div>
+            <h1>Mining Simulator</h1>
+            <p>Memuat sumber daya...</p>
+        </div>
+
+        <!-- Auth Screen (Login/Register) -->
+        <div id="auth-screen" class="screen hidden">
+            <div class="glass-panel auth-panel">
+                <div class="game-logo small">
+                    <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon">
+                </div>
+                <h1 id="auth-title">Masuk</h1>
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group password-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                    <div class="password-toggle" onclick="togglePasswordVisibility()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </div>
+                </div>
+                <div class="remember-me">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Ingat Saya</label>
+                </div>
+                <button class="btn primary" id="auth-btn" onclick="handleAuth()">Masuk</button>
+                <p class="toggle-auth">Belum punya akun? <span onclick="toggleAuthMode()">Daftar</span></p>
+            </div>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby-screen" class="screen hidden">
+            <div class="glass-panel">
+                <div class="game-logo small">
+                    <img src="https://static.wikia.nocookie.net/logopedia/images/7/7a/Minecraft_2013_launcher.svg/revision/latest/scale-to-width-down/250?cb=20240606114031" alt="Game Icon">
+                </div>
+                <h1>Halo, <span id="player-name">Player</span>!</h1>
+                <div class="stats">
+                    <p>Level: <span id="player-level">1</span></p>
+                    <p>Stone: <span id="player-stones">0</span> <img src="https://minecraft.wiki/images/Stone_JE5_BE3.png?5780c" class="inline-icon"></p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn primary" onclick="startGame()" data-i18n="start_mining">Mulai Menambang</button>
+                    <button class="btn secondary" onclick="showTutorial()" data-i18n="tutorial">Cara Bermain</button>
+                    <button class="btn danger" onclick="logout()" data-i18n="logout">Keluar</button>
+                </div>
+                
+                <div class="language-switcher">
+                    <button onclick="setLanguage('id')">🇮🇩 ID</button>
+                    <button onclick="setLanguage('en')">🇺🇸 EN</button>
+                    <button onclick="setLanguage('ms')">🇲🇾 MS</button>
+                    <button onclick="setLanguage('kr')">🇰🇷 KR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tutorial Screen -->
+        <div id="tutorial-screen" class="screen hidden">
+            <div class="glass-panel">
+                <h1 data-i18n="tutorial_title">Cara Bermain</h1>
+                <div class="tutorial-content">
+                    <div class="tutorial-row">
+                        <div class="tut-icon">⛏️</div>
+                        <p data-i18n="tut_1">Klik blok untuk menambang. Blok akan berganti secara acak antara Cobblestone dan Grass Block.</p>
+                    </div>
+                    <div class="tutorial-row">
+                        <div class="tut-icon">🔄</div>
+                        <p data-i18n="tut_2">Alat akan otomatis menyesuaikan! Pickaxe untuk menambang batu (Stone) dan Shovel untuk tanah (Dirt).</p>
+                    </div>
+                    <div class="tutorial-row">
+                        <div class="tut-icon">📦</div>
+                        <p data-i18n="tut_3">Hasil tambang akan masuk ke Inventaris di menu titik empat.</p>
+                    </div>
+                    <div class="tutorial-row">
+                        <div class="tut-icon">🔨</div>
+                        <p data-i18n="tut_4">Setiap alat memiliki ketahanan. Gunakan menu Repair di Anvil untuk memperbaikinya menggunakan hasil tambangmu.</p>
+                    </div>
+                </div>
+                <button class="btn primary" onclick="closeTutorial()" data-i18n="understand">Mengerti!</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header glass-panel">
+                <div class="header-spacer">
+                    <div class="durability-container" id="durability-trigger">
+                        <div class="info-icon-trigger">?</div>
+                        <span id="tool-label" class="durability-label">Wooden Pickaxe</span>
+                        <div class="durability-bar-bg">
+                            <div id="durability-fill" class="durability-bar-fill"></div>
+                        </div>
+                        <span id="durability-text" class="durability-text">60/60</span>
+                    </div>
+                </div>
+                <button class="btn secondary small centered-btn" onclick="returnToLobby()">Lobi</button>
+                <div class="menu-dots-btn" onclick="toggleMenuBar()">
+                    <img src="https://static.thenounproject.com/png/3077536-200.png" alt="Menu">
+                </div>
+            </div>
+
+            <!-- Game Menu Bar (Horizontal bar) -->
+            <div id="game-menu-bar" class="game-menu-bar glass-panel hidden" onclick="resetMenuInactivityTimer()">
+                <div class="menu-items-container" id="menu-items-container">
+                    <div class="menu-item" onclick="openInventoryModal()">
+                        <img src="https://minecraft.wiki/images/Bundle_JE2_BE2.png?0aba5" alt="Inventaris">
+                        <span>Inventaris</span>
+                    </div>
+                    <div class="menu-item" onclick="openRepairModal()">
+                        <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Anvil_%28N%29_JE3.png/revision/latest/scale-to-width-down/268?cb=20201126085258" alt="Repair">
+                        <span>Repair</span>
+                    </div>
+                                        <div class="menu-item" onclick="openSettingsModal()">
+                        <img src="https://static.thenounproject.com/png/1922582-200.png" alt="Settings" style="filter: invert(70%) sepia(80%) saturate(300%) hue-rotate(140deg) drop-shadow(0 0 5px var(--primary));">
+                        <span>Setting</span>
+                    </div>
+                                        <div class="menu-item" onclick="openCraftingModal()">
+                        <img src="https://minecraft.wiki/images/thumb/Crafting_Table_JE4_BE3.png/150px-Crafting_Table_JE4_BE3.png?5767f" alt="Crafting">
+                        <span>Crafting</span>
+                    </div>
+                    <!-- Placeholder for future menus -->
+                </div>
+                <button class="menu-next-btn" onclick="nextMenuPage()">
+                    <img src="https://www.freeiconspng.com/uploads/next-button-icon-png-32.png" alt="Next">
+                </button>
+            </div>
+
+            <!-- Inventory Modal (Centered popup) -->
+            <div id="inventory-modal" class="screen hidden overlay">
+                <div class="glass-panel inventory-popup">
+                    <h1>Inventaris</h1>
+                    <div class="inventory-content">
+                        <div class="drawer-item">
+                            <img src="https://minecraft.wiki/images/Stone_JE5_BE3.png?5780c" alt="Stone">
+                            <span>Stone: <strong id="modal-stone-count">0</strong></span>
+                        </div>
+                        <div class="drawer-item">
+                            <img src="https://minecraft.wiki/images/thumb/Dirt_JE2_BE2.png/150px-Dirt_JE2_BE2.png?438ac" alt="Dirt">
+                            <span>Dirt: <strong id="modal-dirt-count">0</strong></span>
+                        </div>
+                        <div class="drawer-item">
+                            <img src="https://minecraft.wiki/images/Oak_Log_%28UD%29_JE8_BE3.png?8a080" alt="Oak Log">
+                            <span>Oak Log: <strong id="modal-log-count">0</strong></span>
+                        </div>
+                        <div class="drawer-item">
+                            <img src="https://minecraft.wiki/images/thumb/Oak_Planks.png/150px-Oak_Planks.png?d9efa" alt="Oak Planks">
+                            <span>Planks: <strong id="modal-planks-count">0</strong></span>
+                        </div>
+                        <div class="drawer-item">
+                            <img src="https://minecraft.wiki/images/Stick_JE1_BE1.png?1fc15" alt="Stick">
+                            <span>Stick: <strong id="modal-stick-count">0</strong></span>
+                        </div>
+                    </div>
+                    <button class="btn primary" onclick="closeInventoryModal()">Tutup</button>
+                </div>
+            </div>
+
+            <!-- Repair Modal (Centered popup) -->
+            <div id="repair-modal" class="screen hidden overlay">
+                <div class="glass-panel inventory-popup">
+                    <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Anvil_%28N%29_JE3.png/revision/latest/scale-to-width-down/268?cb=20201126085258" class="anvil-icon" alt="Anvil">
+                    <h1>Repair</h1>
+                    <div class="repair-info">
+                        <div class="item-stats">
+                            <strong id="repair-tool-name">Wooden Pickaxe</strong>
+                            <p><span data-i18n="status">Status</span>: <span id="repair-status">Baik</span></p>
+                            <p><span data-i18n="durability">Durability</span>: <span id="repair-durability">60/60</span></p>
+                        </div>
+                        <div class="repair-cost">
+                            <span data-i18n="cost">Biaya</span>: <strong id="repair-cost-text">5-8</strong> <span id="repair-cost-currency">Stone</span>
+                        </div>
+                    </div>
+                    <button class="btn primary" id="repair-btn" onclick="repairPickaxe()" data-i18n="repair_btn">Perbaiki</button>
+                    <button class="btn secondary" onclick="closeRepairModal()" data-i18n="cancel">Batal</button>
+                </div>
+            </div>
+            
+                        <!-- Settings Modal -->
+            <div id="settings-modal" class="screen hidden overlay">
+                <div class="glass-panel inventory-popup">
+                    <h1>Pengaturan</h1>
+                    
+                    <div class="settings-content" style="width: 100%; text-align: left; display: flex; flex-direction: column; gap: 15px;">
+                        
+                        <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 10px;">
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem;">Grid Hologram</label>
+                            <input type="checkbox" id="setting-grid" onchange="toggleGrid()" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+
+                        <div class="setting-item" style="display: flex; flex-direction: column; gap: 5px; border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 10px;">
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem;">Volume Musik: <span id="vol-val" style="color: white; text-shadow: 0 0 5px #00f3ff;">30%</span></label>
+                            <input type="range" id="setting-volume" min="0" max="100" value="30" oninput="changeVolume()" style="width: 100%; accent-color: #00f3ff; cursor: pointer;">
+                        </div>
+
+                        <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 10px;">
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem;">Auto Repair</label>
+                            <input type="checkbox" id="setting-autorepair" onchange="toggleAutoRepair()" style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                        
+                        <div class="setting-item" style="display: flex; flex-direction: column; gap: 5px; border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 10px;">
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem;">Teks Melayang (Makin lambat): <span id="text-speed-val" style="color: white; text-shadow: 0 0 5px #00f3ff;">0.8s</span></label>
+                            <input type="range" id="setting-text-speed" min="400" max="3000" step="100" value="800" oninput="changeTextSpeed()" style="width: 100%; accent-color: #00f3ff; cursor: pointer;">
+                        </div>
+
+                        <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 243, 255, 0.2); padding-bottom: 10px;">
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem;">Auto Mining <span style="font-size: 0.7rem; color:#facc15;">(x2.5 Lambat)</span></label>
+                            <input type="checkbox" id="setting-automining" onchange="toggleAutoMining()" style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+
+                        <div class="setting-item" style="display: flex; flex-direction: column; gap: 5px;">
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem;">Pilih Pickaxe</label>
+                            <select id="setting-tool-pickaxe" onchange="changeActiveTool('pickaxe')" style="background: rgba(0,243,255,0.1); color: #fff; padding: 5px; border: 1px solid #00f3ff; border-radius: 5px; font-family: 'Orbitron';">
+                            </select>
+                            
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem; margin-top: 5px;">Pilih Shovel</label>
+                            <select id="setting-tool-shovel" onchange="changeActiveTool('shovel')" style="background: rgba(0,243,255,0.1); color: #fff; padding: 5px; border: 1px solid #00f3ff; border-radius: 5px; font-family: 'Orbitron';">
+                            </select>
+
+                            <label style="color: #00f3ff; font-family: 'Orbitron'; font-size: 0.9rem; margin-top: 5px;">Pilih Axe</label>
+                            <select id="setting-tool-axe" onchange="changeActiveTool('axe')" style="background: rgba(0,243,255,0.1); color: #fff; padding: 5px; border: 1px solid #00f3ff; border-radius: 5px; font-family: 'Orbitron';">
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn primary" onclick="closeSettingsModal()">Tutup</button>
+                </div>
+            </div>
+            
+                        <!-- Crafting Modal -->
+            <div id="crafting-modal" class="screen hidden overlay">
+                <div class="glass-panel inventory-popup" style="max-width: 450px !important;">
+                    <h1>Crafting</h1>
+                    
+                    <div class="crafting-layout" style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 15px;">
+                        <div class="crafting-grid" id="crafting-grid">
+                            <div class="craft-slot" data-slot="1" onclick="slotClick(1)"></div>
+                            <div class="craft-slot" data-slot="2" onclick="slotClick(2)"></div>
+                            <div class="craft-slot" data-slot="3" onclick="slotClick(3)"></div>
+                            <div class="craft-slot" data-slot="4" onclick="slotClick(4)"></div>
+                            <div class="craft-slot" data-slot="5" onclick="slotClick(5)"></div>
+                            <div class="craft-slot" data-slot="6" onclick="slotClick(6)"></div>
+                            <div class="craft-slot" data-slot="7" onclick="slotClick(7)"></div>
+                            <div class="craft-slot" data-slot="8" onclick="slotClick(8)"></div>
+                            <div class="craft-slot" data-slot="9" onclick="slotClick(9)"></div>
+                        </div>
+                        <div style="color: #00f3ff; font-size: 2rem;">➡️</div>
+                        <div class="crafting-result">
+                            <div class="craft-slot result-slot" id="craft-result-slot" onclick="claimCraft()"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px; color: #a5f3ff; font-size: 0.9rem;">
+                        <label>Jumlah yg diambil: </label>
+                        <input type="number" id="craft-amount" value="1" min="1" max="64" style="width: 60px; padding: 5px; text-align: center; background: rgba(0,243,255,0.1); color: #fff; border: 1px solid #00f3ff; border-radius: 5px;">
+                        <p style="font-size: 0.75rem; margin-top: 5px;">Klik bahan di bawah lalu klik kotak grid di atas untuk menaruh.</p>
+                    </div>
+
+                    <div class="crafting-materials" id="crafting-materials" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <div style="display:flex; gap: 10px; margin-top: 15px; width: 100%;">
+                        <button class="btn secondary" onclick="clearCrafting()" style="flex:1;">Clear</button>
+                        <button class="btn primary" onclick="closeCraftingModal()" style="flex:1;">Tutup</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Item Info Modal (Centered popup) -->
+            <div id="item-info-modal" class="screen hidden overlay">
+                <div class="glass-panel inventory-popup">
+                    <div class="tut-icon" id="info-icon">⛏️</div>
+                    <h1 id="info-name">Wooden Pickaxe</h1>
+                    <div class="repair-info">
+                        <p id="info-desc">Basic pickaxe.</p>
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <p><span data-i18n="durability">Durability</span>: <strong id="info-durability">60/60</strong></p>
+                    </div>
+                    <button class="btn primary" onclick="closeItemInfo()" data-i18n="understand">Mengerti!</button>
+                </div>
+            </div>
+            
+            <div class="mining-area">
+                <div class="block-container" id="block-container">
+                    <img src="https://minecraft.wiki/images/Cobblestone_JE5_BE3.png?25024" id="current-block" alt="Cobblestone">
+                    <div class="health-bar-bg">
+                        <div class="health-bar-fill" id="block-health"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tool cursor -->
+            <div class="pickaxe-container" id="tool-cursor">
+                <img src="https://minecraft.wiki/images/Wooden_Pickaxe_JE3_BE3.png?fa797" id="tool-img" alt="Tool">
+            </div>
+            
+            <!-- Game Sound (Hidden, Autoplay via JS) -->
+            <audio id="game-bgm" loop>
+                <source src="https://www.myinstants.com/media/sounds/minecraft-theme-trap-remix-holder.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+    </div>
+    <script src="script.js?v=2.5"></script>
+</body>
+</html>
