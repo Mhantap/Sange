@@ -856,7 +856,104 @@
 .video-wrapper.no-controls .controls {
     display: none !important;
 }
+/* Filter Video */
+.filter-panel {
+    background: #212121;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
 
+.filter-panel-title {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-btn {
+    padding: 5px 12px;
+    border-radius: 15px;
+    border: 1px solid #444;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover { background: #333; }
+.filter-btn.active { border-color: currentColor; }
+.filter-btn.filter-normal { color: #fff; }
+.filter-btn.filter-normal.active { background: #555; }
+.filter-btn.filter-warm { color: #ff7043; }
+.filter-btn.filter-warm.active { background: rgba(255,112,67,0.2); border-color: #ff7043; }
+.filter-btn.filter-pink { color: #f48fb1; }
+.filter-btn.filter-pink.active { background: rgba(244,143,177,0.2); border-color: #f48fb1; }
+.filter-btn.filter-dark { color: #90a4ae; }
+.filter-btn.filter-dark.active { background: rgba(144,164,174,0.2); border-color: #90a4ae; }
+
+.filter-intensity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.filter-intensity input[type="range"] {
+    width: 100px;
+    height: 4px;
+    accent-color: #ff0000;
+    cursor: pointer;
+}
+
+/* PiP Autoplay Controls */
+.pip-controls {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    display: none;
+    z-index: 10000;
+    gap: 8px;
+    align-items: center;
+}
+
+.pip-controls.show { display: flex; }
+
+.pip-mini-btn {
+    background: #333;
+    border: none;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.pip-mini-btn:hover { background: #555; }
+
+/* Playlist hidden style */
+.playlist-section.hidden {
+    display: none;
+}
+
+.container.playlist-hidden {
+    grid-template-columns: 1fr;
+}
     </style>
 </head>
 <body>
@@ -928,6 +1025,21 @@
             </div>
             
             <div class="info-panel">
+                <!-- Filter Panel -->
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-panel-title">🎨 Filter Video</div>
+    <div class="filter-controls">
+        <button class="filter-btn filter-normal active" data-filter="none">⬜ Normal</button>
+        <button class="filter-btn filter-warm" data-filter="warm">🔥 Panas</button>
+        <button class="filter-btn filter-pink" data-filter="pink">🌸 Pink Muda</button>
+        <button class="filter-btn filter-dark" data-filter="dark">🌑 Gelap</button>
+    </div>
+    <div class="filter-intensity" id="filterIntensityRow" style="display:none;">
+        <span>Intensitas:</span>
+        <input type="range" id="filterIntensity" min="0" max="100" value="50">
+        <span id="filterIntensityValue">50%</span>
+    </div>
+</div>
                 <div class="current-title" id="currentTitle">Pilih video untuk diputar</div>
                 <div class="video-info">
                     <span>Total Video: <span id="totalVideos">Memuat...</span></span>
@@ -1002,6 +1114,16 @@
     <div class="pip-indicator" id="pipIndicator">
         📺 Mode Picture-in-Picture aktif
     </div>
+    
+    <!-- PiP Mini Controls -->
+<div class="pip-controls" id="pipControls">
+    <span>📺 PiP</span>
+    <button class="pip-mini-btn" id="pipPrevBtn">⏮</button>
+    <button class="pip-mini-btn" id="pipPlayBtn">▶</button>
+    <button class="pip-mini-btn" id="pipNextBtn">⏭</button>
+    <button class="pip-mini-btn" id="pipAutoplayToggle">Auto: ON</button>
+</div>
+
 
     <!-- Keyboard Shortcuts Help -->
     <div class="shortcuts-help" id="shortcutsHelp">
@@ -1143,47 +1265,45 @@ let savedAutoplayState = autoplayMode;
 // Toggle playlist visibility
 hidePlaylistToggle.onchange = () => {
     if (hidePlaylistToggle.checked) {
-        // Sembunyikan playlist
         playlistSection.classList.add('hidden');
         container.classList.add('playlist-hidden');
-        videoWrapper.classList.add('no-controls'); // Tambah class untuk hide controls
+        videoWrapper.classList.add('no-controls');
         
-        // Simpan state autoplay saat ini dan paksa autoplay ON
         savedAutoplayState = autoplayMode;
         autoplayMode = true;
         autoplayToggle.checked = true;
         autoplayStatus.textContent = 'Autoplay: ON';
         autoplayStatus.classList.add('active');
         
-        // Disable autoplay toggle saat playlist hidden
         autoplayToggle.disabled = true;
         autoplayToggle.parentElement.style.opacity = '0.5';
         
-        // Disable click pada video untuk play/pause
-        videoPlayer.style.pointerEvents = 'auto'; // Tetap bisa diklik untuk fullscreen
+        videoPlayer.style.pointerEvents = 'auto';
         
-        // Auto play jika video sedang pause
         if (videoPlayer.paused && videoPlayer.readyState >= 2) {
             videoPlayer.play();
         }
         
+        // ✅ TAMBAHAN BARU - pastikan PiP autoplay juga aktif
+        pipAutoplay = true;
+        if (document.getElementById('pipAutoplayToggle')) {
+            pipAutoplayToggle.textContent = 'Auto: ON';
+            pipAutoplayToggle.style.background = '#ff0000';
+        }
+        
     } else {
-        // Tampilkan playlist
         playlistSection.classList.remove('hidden');
         container.classList.remove('playlist-hidden');
-        videoWrapper.classList.remove('no-controls'); // Hapus class
+        videoWrapper.classList.remove('no-controls');
         
-        // Kembalikan state autoplay yang tersimpan
         autoplayMode = savedAutoplayState;
         autoplayToggle.checked = savedAutoplayState;
         autoplayStatus.textContent = savedAutoplayState ? 'Autoplay: ON' : 'Autoplay: OFF';
         autoplayStatus.classList.toggle('active', savedAutoplayState);
         
-        // Enable kembali autoplay toggle
         autoplayToggle.disabled = false;
         autoplayToggle.parentElement.style.opacity = '1';
         
-        // Enable kembali click pada video
         videoPlayer.style.pointerEvents = 'auto';
     }
 };
@@ -2173,6 +2293,184 @@ case 'p':
                 localStorage.setItem(`videoPosition_${video.number}`, videoPlayer.currentTime);
             }
         });
+        
+        // =============================================
+// FILTER VIDEO SYSTEM
+// =============================================
+
+let currentFilter = 'none';
+let filterIntensity = 50;
+
+// Hapus CSS filter, gunakan SVG filter overlay
+const filterPresets = {
+    none: () => '',
+    warm: (intensity) => {
+        const i = intensity / 100;
+        return `sepia(${0.4 * i}) saturate(${1 + 0.6 * i}) brightness(${1 + 0.08 * i}) contrast(${1 + 0.1 * i})`;
+    },
+    pink: (intensity) => {
+        const i = intensity / 100;
+        // Tidak pakai hue-rotate, pakai sepia + saturate + brightness tinggi
+        return `grayscale(${0.1 * i}) sepia(${0.8 * i}) saturate(${3 * i}) hue-rotate(${290 + 20 * i}deg) brightness(${1.1 + 0.1 * i})`;
+    },
+    dark: (intensity) => {
+        const i = intensity / 100;
+        return `brightness(${1 - 0.5 * i}) contrast(${1 + 0.3 * i}) saturate(${1 - 0.2 * i})`;
+    }
+};
+
+function applyFilter() {
+    if (currentFilter === 'none') {
+        videoPlayer.style.filter = '';
+    } else {
+        videoPlayer.style.filter = filterPresets[currentFilter](filterIntensity);
+    }
+    // Save to localStorage
+    localStorage.setItem('videoFilter', JSON.stringify({ filter: currentFilter, intensity: filterIntensity }));
+}
+
+// Load saved filter
+const savedFilter = localStorage.getItem('videoFilter');
+if (savedFilter) {
+    try {
+        const { filter, intensity } = JSON.parse(savedFilter);
+        currentFilter = filter;
+        filterIntensity = intensity;
+        document.getElementById('filterIntensity').value = intensity;
+        document.getElementById('filterIntensityValue').textContent = intensity + '%';
+        applyFilter();
+        
+        // Update active button
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+        });
+        
+        if (currentFilter !== 'none') {
+            document.getElementById('filterIntensityRow').style.display = 'flex';
+        }
+    } catch(e) {}
+}
+
+// Filter button click
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.onclick = () => {
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const intensityRow = document.getElementById('filterIntensityRow');
+        intensityRow.style.display = currentFilter === 'none' ? 'none' : 'flex';
+        
+        applyFilter();
+    };
+});
+
+// Filter intensity slider
+document.getElementById('filterIntensity').oninput = (e) => {
+    filterIntensity = parseInt(e.target.value);
+    document.getElementById('filterIntensityValue').textContent = filterIntensity + '%';
+    applyFilter();
+};
+
+
+// =============================================
+// PiP AUTOPLAY & CONTROLS
+// =============================================
+
+const pipControls = document.getElementById('pipControls');
+const pipPlayBtn = document.getElementById('pipPlayBtn');
+const pipNextBtn = document.getElementById('pipNextBtn');
+const pipPrevBtn = document.getElementById('pipPrevBtn');
+const pipAutoplayToggle = document.getElementById('pipAutoplayToggle');
+
+let pipAutoplay = true;
+
+// Update PiP play button
+function updatePipPlayBtn() {
+    pipPlayBtn.textContent = videoPlayer.paused ? '▶' : '❚❚';
+}
+
+videoPlayer.onplay = () => {
+    updatePlayPauseIcon();
+    updatePipPlayBtn();
+};
+
+videoPlayer.onpause = () => {
+    updatePlayPauseIcon();
+    updatePipPlayBtn();
+};
+
+// PiP Controls
+pipPlayBtn.onclick = () => {
+    if (videoPlayer.paused) {
+        videoPlayer.play();
+    } else {
+        videoPlayer.pause();
+    }
+};
+
+pipNextBtn.onclick = () => {
+    const nextIndex = getNextVideoIndex();
+    loadVideo(nextIndex);
+    videoPlayer.addEventListener('loadeddata', function autoPlayPip() {
+        videoPlayer.play();
+        videoPlayer.removeEventListener('loadeddata', autoPlayPip);
+    });
+};
+
+pipPrevBtn.onclick = () => {
+    const prevIndex = getPrevVideoIndex();
+    loadVideo(prevIndex);
+    videoPlayer.addEventListener('loadeddata', function autoPlayPip() {
+        videoPlayer.play();
+        videoPlayer.removeEventListener('loadeddata', autoPlayPip);
+    });
+};
+
+pipAutoplayToggle.onclick = () => {
+    pipAutoplay = !pipAutoplay;
+    pipAutoplayToggle.textContent = `Auto: ${pipAutoplay ? 'ON' : 'OFF'}`;
+    pipAutoplayToggle.style.background = pipAutoplay ? '#ff0000' : '#333';
+};
+
+// PiP Enter/Leave - override existing handlers
+videoPlayer.addEventListener('enterpictureinpicture', () => {
+    pipIndicator.classList.add('show');
+    pipBtn.classList.add('active');
+    pipControls.classList.add('show'); // Tampilkan PiP controls
+    
+    // Force autoplay ON saat masuk PiP
+    if (!autoplayMode) {
+        autoplayMode = true;
+    }
+});
+
+videoPlayer.addEventListener('leavepictureinpicture', () => {
+    pipIndicator.classList.remove('show');
+    pipBtn.classList.remove('active');
+    pipControls.classList.remove('show'); // Sembunyikan PiP controls
+});
+
+// Override onended untuk support PiP autoplay
+videoPlayer.onended = () => {
+    const isPiP = !!document.pictureInPictureElement;
+    
+    if (loopMode) {
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+        return;
+    }
+    
+    // Auto next jika: autoplayMode aktif ATAU sedang dalam PiP dengan pipAutoplay aktif
+    if (autoplayMode || (isPiP && pipAutoplay)) {
+        const nextIndex = getNextVideoIndex();
+        loadVideo(nextIndex);
+        videoPlayer.addEventListener('loadeddata', function autoPlayNext() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', autoPlayNext);
+        });
+    }
+};
 
         // Start the app
         initializePlayer();
