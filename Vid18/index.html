@@ -954,6 +954,34 @@
 .container.playlist-hidden {
     grid-template-columns: 1fr;
 }
+/* Tambahkan ini - video fill penuh saat fullscreen */
+.video-wrapper:-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    background: #000 !important;
+}
+
+.video-wrapper:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    background: #000 !important;
+}
+
+.video-wrapper:-webkit-full-screen video {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+}
+
+.video-wrapper:fullscreen video {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+}
     </style>
 </head>
 <body>
@@ -1066,6 +1094,10 @@
                     <label class="control-item">
     <input type="checkbox" id="hidePlaylistToggle">
     <span>Sembunyikan daftar video</span>
+</label>
+<label class="control-item">
+    <input type="checkbox" id="autoFullscreenToggle">
+    <span>Mode Layar Penuh</span>
 </label>
                 </div>
             </div>
@@ -1948,14 +1980,6 @@ videoPlayer.onended = () => {
             }
         };
 
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fullscreenBtn.style.transform = 'rotate(45deg)';
-            } else {
-                fullscreenBtn.style.transform = 'rotate(0deg)';
-            }
-        });
-
         // Search
         searchInput.oninput = () => {
             const query = searchInput.value.toLowerCase();
@@ -2471,6 +2495,68 @@ videoPlayer.onended = () => {
         });
     }
 };
+
+// =============================================
+// MODE LAYAR PENUH OTOMATIS
+// =============================================
+
+const autoFullscreenToggle = document.getElementById('autoFullscreenToggle');
+let savedAutoplayStateFS = autoplayMode;
+
+autoFullscreenToggle.onchange = () => {
+    const wrapper = document.querySelector('.video-wrapper');
+    
+    if (autoFullscreenToggle.checked) {
+        // Masuk fullscreen pada video-wrapper (agar controls tetap ada)
+        const fsRequest = wrapper.requestFullscreen || 
+                          wrapper.webkitRequestFullscreen || 
+                          wrapper.mozRequestFullScreen;
+        if (fsRequest) {
+            fsRequest.call(wrapper).catch(err => {
+                console.error('Fullscreen error:', err);
+                autoFullscreenToggle.checked = false;
+            });
+        }
+        
+        // Simpan & paksa autoplay ON
+        savedAutoplayStateFS = autoplayMode;
+        autoplayMode = true;
+        autoplayToggle.checked = true;
+        autoplayStatus.textContent = 'Autoplay: ON';
+        autoplayStatus.classList.add('active');
+        
+        // Auto play jika sedang pause
+        if (videoPlayer.paused && videoPlayer.readyState >= 2) {
+            videoPlayer.play();
+        }
+        
+    } else {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    }
+};
+
+// Ganti/extend fullscreenchange listener yang sudah ada
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        fullscreenBtn.style.transform = 'rotate(45deg)';
+    } else {
+        fullscreenBtn.style.transform = 'rotate(0deg)';
+        
+        // Jika keluar fullscreen dari tombol browser/back
+        if (autoFullscreenToggle.checked) {
+            autoFullscreenToggle.checked = false;
+            
+            // Kembalikan autoplay state
+            autoplayMode = savedAutoplayStateFS;
+            autoplayToggle.checked = savedAutoplayStateFS;
+            autoplayStatus.textContent = savedAutoplayStateFS ? 'Autoplay: ON' : 'Autoplay: OFF';
+            autoplayStatus.classList.toggle('active', savedAutoplayStateFS);
+        }
+    }
+});
+
 
         // Start the app
         initializePlayer();
