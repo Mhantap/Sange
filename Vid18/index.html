@@ -901,10 +901,16 @@
 .filter-btn.filter-dark.active { background: rgba(144,164,174,0.2); border-color: #90a4ae; }
 .filter-btn.filter-romantic { color: #e91e63; }
 .filter-btn.filter-romantic.active { background: rgba(233,30,99,0.2); border-color: #e91e63; }
-.filter-btn.filter-purple { color: #9c27b0; }
-.filter-btn.filter-purple.active { background: rgba(156,39,176,0.2); border-color: #9c27b0; }
 .filter-btn.filter-golden { color: #ffc107; }
 .filter-btn.filter-golden.active { background: rgba(255,193,7,0.2); border-color: #ffc107; }
+.filter-btn.filter-crimson { color: #c62828; }
+.filter-btn.filter-crimson.active { background: rgba(198,40,40,0.2); border-color: #c62828; }
+.filter-btn.filter-rose { color: #f48fb1; }
+.filter-btn.filter-rose.active { background: rgba(244,143,177,0.2); border-color: #f48fb1; }
+.filter-btn.filter-sunset { color: #ff6f00; }
+.filter-btn.filter-sunset.active { background: rgba(255,111,0,0.2); border-color: #ff6f00; }
+.filter-btn.filter-midnight { color: #5c6bc0; }
+.filter-btn.filter-midnight.active { background: rgba(92,107,192,0.2); border-color: #5c6bc0; }
 
 .filter-intensity {
     display: flex;
@@ -1326,8 +1332,11 @@
         <button class="filter-btn filter-pink" data-filter="pink">🌸 Pink Muda</button>
         <button class="filter-btn filter-dark" data-filter="dark">🌑 Gelap</button>
         <button class="filter-btn filter-romantic" data-filter="romantic">💋 Romantic Red</button>
-        <button class="filter-btn filter-purple" data-filter="purple">💜 Purple Dream</button>
         <button class="filter-btn filter-golden" data-filter="golden">✨ Golden Glow</button>
+        <button class="filter-btn filter-crimson" data-filter="crimson">🔴 Crimson Heat</button>
+        <button class="filter-btn filter-rose" data-filter="rose">💗 Soft Rose</button>
+        <button class="filter-btn filter-sunset" data-filter="sunset">🌅 Sunset Glow</button>
+        <button class="filter-btn filter-midnight" data-filter="midnight">🌙 Midnight Blue</button>
     </div>
     <div class="filter-intensity" id="filterIntensityRow" style="display:none;">
         <span>Intensitas:</span>
@@ -1371,10 +1380,20 @@
                         <span>Equalizer Audio</span>
                     </label>
                     <label class="control-item" style="gap: 8px;">
-                        <span>Mode Video:</span>
-                        <select id="videoModeSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
-                            <option value="landscape">Landscape</option>
-                            <option value="portrait">Portrait</option>
+                        <span>Video Orientation:</span>
+                        <select id="videoOrientationSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <option value="auto">Auto</option>
+                            <option value="landscape">Force Landscape</option>
+                            <option value="portrait">Force Portrait</option>
+                            <option value="fit">Fit to Screen</option>
+                        </select>
+                    </label>
+                    <label class="control-item" style="gap: 8px;">
+                        <span>Voice Changer:</span>
+                        <select id="voiceChangerSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <option value="normal">Normal</option>
+                            <option value="male">Male Voice</option>
+                            <option value="female">Female Voice</option>
                         </select>
                     </label>
                 </div>
@@ -1548,7 +1567,8 @@
         const favoriteModeStatus = document.getElementById('favoriteModeStatus');
         const noRepeatToggle = document.getElementById('noRepeatToggle');
         const equalizerToggle = document.getElementById('equalizerToggle');
-        const videoModeSelect = document.getElementById('videoModeSelect');
+        const videoOrientationSelect = document.getElementById('videoOrientationSelect');
+        const voiceChangerSelect = document.getElementById('voiceChangerSelect');
         const historyBtn = document.getElementById('historyBtn');
         const historyModal = document.getElementById('historyModal');
         const historyCloseBtn = document.getElementById('historyCloseBtn');
@@ -1685,11 +1705,17 @@ hidePlaylistToggle.onchange = () => {
                 rememberPositionToggle.checked = rememberPosition === 'true';
             }
             
-            // Video mode
-            const savedVideoMode = localStorage.getItem('videoMode');
-            if (savedVideoMode) {
-                videoModeSelect.value = savedVideoMode;
-                applyVideoMode(savedVideoMode);
+            // Video orientation
+            const savedOrientation = localStorage.getItem('videoOrientation');
+            if (savedOrientation) {
+                videoOrientationSelect.value = savedOrientation;
+                applyVideoOrientation(savedOrientation);
+            }
+            
+            // Voice changer
+            const savedVoice = localStorage.getItem('voiceChanger');
+            if (savedVoice) {
+                voiceChangerSelect.value = savedVoice;
             }
         }
 
@@ -2046,9 +2072,6 @@ hidePlaylistToggle.onchange = () => {
             
             videoPlayer.muted = false;
             videoPlayer.volume = volumeSlider.value / 100;
-            
-            // Generate random thumbnail
-            generateRandomThumbnail(video.src);
             
             if (rememberPositionToggle.checked) {
                 const savedPosition = localStorage.getItem(`videoPosition_${video.number}`);
@@ -2651,8 +2674,8 @@ const filterPresets = {
         return `sepia(${0.4 * i}) saturate(${1 + 0.6 * i}) brightness(${1 + 0.08 * i}) contrast(${1 + 0.1 * i})`;
     },
     pink: () => {
-        // Pink Muda: 100% fixed intensity, medium pink (tidak pekat, tidak pudar)
-        return `sepia(0.3) saturate(1.8) hue-rotate(300deg) brightness(1.1) contrast(0.95)`;
+        // Pink Muda: 100% fixed intensity, LEBIH SUBTLE - pink medium tapi video asli masih jelas
+        return `sepia(0.15) saturate(1.3) hue-rotate(310deg) brightness(1.05) contrast(0.98)`;
     },
     dark: (intensity) => {
         const i = intensity / 100;
@@ -2663,15 +2686,30 @@ const filterPresets = {
         // Romantic Red - nuansa merah sensual
         return `sepia(${0.5 * i}) saturate(${1 + 0.8 * i}) hue-rotate(${-20 * i}deg) brightness(${1 + 0.05 * i}) contrast(${1 + 0.15 * i})`;
     },
-    purple: (intensity) => {
-        const i = intensity / 100;
-        // Purple Dream - ungu dreamy
-        return `sepia(${0.4 * i}) saturate(${1 + 1 * i}) hue-rotate(${250 * i}deg) brightness(${1 + 0.1 * i}) contrast(${1 + 0.1 * i})`;
-    },
     golden: (intensity) => {
         const i = intensity / 100;
         // Golden Glow - cahaya emas sensual
         return `sepia(${0.6 * i}) saturate(${1 + 0.5 * i}) hue-rotate(${-10 * i}deg) brightness(${1 + 0.15 * i}) contrast(${1 + 0.05 * i})`;
+    },
+    crimson: (intensity) => {
+        const i = intensity / 100;
+        // Crimson Heat - merah gelap intens
+        return `sepia(${0.7 * i}) saturate(${1 + 1.2 * i}) hue-rotate(${-30 * i}deg) brightness(${0.95 + 0.05 * i}) contrast(${1 + 0.25 * i})`;
+    },
+    rose: (intensity) => {
+        const i = intensity / 100;
+        // Soft Rose - rose/mawar lembut romantis
+        return `sepia(${0.35 * i}) saturate(${1 + 0.6 * i}) hue-rotate(${320 * i}deg) brightness(${1 + 0.08 * i}) contrast(${0.98 + 0.02 * i})`;
+    },
+    sunset: (intensity) => {
+        const i = intensity / 100;
+        // Sunset Glow - orange/amber warm
+        return `sepia(${0.5 * i}) saturate(${1 + 0.7 * i}) hue-rotate(${-15 * i}deg) brightness(${1 + 0.1 * i}) contrast(${1 + 0.08 * i})`;
+    },
+    midnight: (intensity) => {
+        const i = intensity / 100;
+        // Midnight Blue - biru malam misterius
+        return `sepia(${0.3 * i}) saturate(${1 + 0.5 * i}) hue-rotate(${190 * i}deg) brightness(${0.9 + 0.05 * i}) contrast(${1 + 0.2 * i})`;
     }
 };
 
@@ -2912,86 +2950,215 @@ function showExpiredMessage() {
 }
 
 // =============================================
-// VIDEO MODE (LANDSCAPE/PORTRAIT)
+// VIDEO ORIENTATION (AUTO-ROTATE/RESPONSIVE)
 // =============================================
 
-function applyVideoMode(mode) {
-    if (mode === 'portrait') {
-        videoPlayer.style.objectFit = 'contain';
-        videoPlayer.style.maxHeight = '80vh';
-        videoPlayer.style.maxWidth = '60vh';
-        videoPlayer.style.margin = '0 auto';
-    } else {
-        videoPlayer.style.objectFit = 'contain';
-        videoPlayer.style.maxHeight = '600px';
-        videoPlayer.style.maxWidth = '100%';
-        videoPlayer.style.margin = '0';
+function applyVideoOrientation(mode) {
+    const wrapper = document.querySelector('.video-wrapper');
+    
+    switch(mode) {
+        case 'auto':
+            // Auto - responsive to window/device orientation
+            videoPlayer.style.objectFit = 'contain';
+            videoPlayer.style.maxHeight = '600px';
+            videoPlayer.style.maxWidth = '100%';
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = 'auto';
+            videoPlayer.style.margin = '0';
+            break;
+            
+        case 'landscape':
+            // Force Landscape - always horizontal
+            videoPlayer.style.objectFit = 'contain';
+            videoPlayer.style.maxHeight = '600px';
+            videoPlayer.style.maxWidth = '100%';
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = 'auto';
+            videoPlayer.style.margin = '0';
+            break;
+            
+        case 'portrait':
+            // Force Portrait - vertical centered
+            videoPlayer.style.objectFit = 'contain';
+            videoPlayer.style.maxHeight = '80vh';
+            videoPlayer.style.maxWidth = '60vh';
+            videoPlayer.style.width = 'auto';
+            videoPlayer.style.height = '80vh';
+            videoPlayer.style.margin = '0 auto';
+            videoPlayer.style.display = 'block';
+            break;
+            
+        case 'fit':
+            // Fit to Screen - fill container
+            videoPlayer.style.objectFit = 'cover';
+            videoPlayer.style.maxHeight = 'none';
+            videoPlayer.style.maxWidth = '100%';
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = '600px';
+            videoPlayer.style.margin = '0';
+            break;
     }
 }
 
-videoModeSelect.onchange = () => {
-    const mode = videoModeSelect.value;
-    applyVideoMode(mode);
-    localStorage.setItem('videoMode', mode);
+videoOrientationSelect.onchange = () => {
+    const mode = videoOrientationSelect.value;
+    applyVideoOrientation(mode);
+    localStorage.setItem('videoOrientation', mode);
 };
 
+// Responsive orientation on window resize (for auto mode)
+window.addEventListener('resize', () => {
+    if (videoOrientationSelect.value === 'auto') {
+        applyVideoOrientation('auto');
+    }
+});
+
 // =============================================
-// EQUALIZER AUDIO (WEB AUDIO API)
+// EQUALIZER AUDIO (BALANCED - TIDAK NGE-BASS)
 // =============================================
 
 let audioContext = null;
 let sourceNode = null;
-let bassBoostFilter = null;
-let clarityFilter = null;
+let equalizerNode = null;
+let gainNode = null;
 let equalizerEnabled = false;
+let audioInitialized = false;
 
 function initAudioEqualizer() {
     if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        sourceNode = audioContext.createMediaElementSource(videoPlayer);
-        
-        // Bass Boost Filter (Low frequencies)
-        bassBoostFilter = audioContext.createBiquadFilter();
-        bassBoostFilter.type = 'lowshelf';
-        bassBoostFilter.frequency.value = 200;
-        bassBoostFilter.gain.value = 8; // +8dB bass boost
-        
-        // Clarity Filter (High frequencies)
-        clarityFilter = audioContext.createBiquadFilter();
-        clarityFilter.type = 'highshelf';
-        clarityFilter.frequency.value = 3000;
-        clarityFilter.gain.value = 4; // +4dB clarity boost
-        
-        // Connect nodes
-        sourceNode.connect(bassBoostFilter);
-        bassBoostFilter.connect(clarityFilter);
-        clarityFilter.connect(audioContext.destination);
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            sourceNode = audioContext.createMediaElementSource(videoPlayer);
+            
+            // Gain node for volume control
+            gainNode = audioContext.createGain();
+            gainNode.gain.value = 1.0;
+            
+            // Equalizer - Multi-band for balanced sound
+            const frequencies = [60, 170, 350, 1000, 3500, 10000];
+            const gains = [2, 3, 2, 3, 4, 3]; // Balanced, not too bassy
+            
+            let lastNode = sourceNode;
+            
+            frequencies.forEach((freq, i) => {
+                const filter = audioContext.createBiquadFilter();
+                filter.type = i === 0 ? 'lowshelf' : i === frequencies.length - 1 ? 'highshelf' : 'peaking';
+                filter.frequency.value = freq;
+                filter.Q.value = 1;
+                filter.gain.value = 0; // Start disabled
+                
+                lastNode.connect(filter);
+                lastNode = filter;
+                
+                if (!equalizerNode) equalizerNode = [];
+                equalizerNode.push(filter);
+            });
+            
+            lastNode.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            audioInitialized = true;
+        } catch (error) {
+            console.error('Error initializing audio:', error);
+            throw error;
+        }
     }
 }
 
-equalizerToggle.onchange = () => {
-    equalizerEnabled = equalizerToggle.checked;
+function toggleEqualizer(enable) {
+    if (!audioInitialized) {
+        initAudioEqualizer();
+    }
     
-    if (equalizerEnabled) {
-        try {
-            initAudioEqualizer();
-            console.log('Equalizer enabled: Bass Boost + Clarity');
-        } catch (error) {
-            console.error('Error enabling equalizer:', error);
-            alert('Browser Anda tidak mendukung Audio Equalizer');
-            equalizerToggle.checked = false;
-            equalizerEnabled = false;
-        }
-    } else {
-        // Note: Can't disconnect once connected to avoid issues
-        // Just disable by setting gains to 0
-        if (bassBoostFilter && clarityFilter) {
-            bassBoostFilter.gain.value = 0;
-            clarityFilter.gain.value = 0;
-        }
-        console.log('Equalizer disabled');
+    if (equalizerNode) {
+        const gains = [2, 3, 2, 3, 4, 3];
+        equalizerNode.forEach((filter, i) => {
+            filter.gain.value = enable ? gains[i] : 0;
+        });
+    }
+    
+    equalizerEnabled = enable;
+}
+
+equalizerToggle.onchange = () => {
+    try {
+        toggleEqualizer(equalizerToggle.checked);
+        console.log(`Equalizer ${equalizerToggle.checked ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+        console.error('Error toggling equalizer:', error);
+        alert('Browser Anda tidak mendukung Audio Equalizer');
+        equalizerToggle.checked = false;
     }
 };
+
+// =============================================
+// VOICE CHANGER (PITCH SHIFT)
+// =============================================
+
+let pitchShiftNode = null;
+
+function initVoiceChanger() {
+    if (!audioContext) {
+        initAudioEqualizer(); // Initialize audio context first
+    }
+}
+
+function applyVoiceChange(mode) {
+    if (!audioInitialized) {
+        try {
+            initAudioEqualizer();
+        } catch (error) {
+            console.error('Error initializing voice changer:', error);
+            alert('Browser Anda tidak mendukung Voice Changer');
+            voiceChangerSelect.value = 'normal';
+            return;
+        }
+    }
+    
+    // Simple pitch shift using playbackRate
+    // Note: This also affects video speed, so we use subtle changes
+    switch(mode) {
+        case 'normal':
+            videoPlayer.playbackRate = parseFloat(speedBtn.textContent) || 1.0;
+            videoPlayer.preservesPitch = true;
+            break;
+            
+        case 'male':
+            // Male voice - slightly lower pitch
+            videoPlayer.preservesPitch = false;
+            const currentSpeed = parseFloat(speedBtn.textContent) || 1.0;
+            videoPlayer.playbackRate = currentSpeed * 0.95; // 5% slower = deeper
+            break;
+            
+        case 'female':
+            // Female voice - slightly higher pitch
+            videoPlayer.preservesPitch = false;
+            const currentSpeedF = parseFloat(speedBtn.textContent) || 1.0;
+            videoPlayer.playbackRate = currentSpeedF * 1.05; // 5% faster = higher
+            break;
+    }
+    
+    localStorage.setItem('voiceChanger', mode);
+}
+
+voiceChangerSelect.onchange = () => {
+    applyVoiceChange(voiceChangerSelect.value);
+};
+
+// Reset voice when speed changes
+const originalSpeedOptions = document.querySelectorAll('.speed-option');
+originalSpeedOptions.forEach(option => {
+    const originalClick = option.onclick;
+    option.onclick = () => {
+        originalClick?.();
+        // Re-apply voice change after speed change
+        setTimeout(() => {
+            if (voiceChangerSelect.value !== 'normal') {
+                applyVoiceChange(voiceChangerSelect.value);
+            }
+        }, 100);
+    };
+});
 
 
 
@@ -3144,52 +3311,102 @@ setInterval(() => {
 }, 5000);
 
 // =============================================
-// CUSTOM THUMBNAILS (RANDOM FRAME)
+// CUSTOM THUMBNAILS (RANDOM FRAME) - FIXED
 // =============================================
 
 function generateRandomThumbnail(videoSrc) {
-    // Create temporary video element for thumbnail generation
+    // Remove old poster first
+    videoPlayer.poster = '';
+    
+    // Create canvas for thumbnail
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Create temporary video for thumbnail capture
     const tempVideo = document.createElement('video');
     tempVideo.src = videoSrc;
     tempVideo.crossOrigin = 'anonymous';
     tempVideo.muted = true;
     tempVideo.playsInline = true;
+    tempVideo.preload = 'metadata';
     
-    tempVideo.addEventListener('loadedmetadata', function() {
-        // Random time between 10% - 70% of video duration
-        const randomTime = tempVideo.duration * (0.1 + Math.random() * 0.6);
-        tempVideo.currentTime = randomTime;
-    });
+    let thumbnailGenerated = false;
     
-    tempVideo.addEventListener('seeked', function() {
-        try {
-            // Create canvas to capture frame
-            const canvas = document.createElement('canvas');
-            canvas.width = tempVideo.videoWidth;
-            canvas.height = tempVideo.videoHeight;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-            
-            // Convert to data URL and set as poster
-            const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
-            videoPlayer.poster = thumbnailUrl;
-            
-            // Cleanup
-            tempVideo.src = '';
-            tempVideo.remove();
-        } catch (error) {
-            console.error('Error generating thumbnail:', error);
-            // Fallback: no poster
-            videoPlayer.poster = '';
+    tempVideo.addEventListener('loadedmetadata', function onMetadata() {
+        if (thumbnailGenerated) return;
+        
+        // Random time between 10% - 70% of duration
+        const duration = tempVideo.duration;
+        if (duration && !isNaN(duration)) {
+            const randomTime = duration * (0.1 + Math.random() * 0.6);
+            tempVideo.currentTime = randomTime;
         }
     });
     
-    tempVideo.addEventListener('error', function() {
-        console.error('Error loading video for thumbnail');
-        videoPlayer.poster = '';
+    tempVideo.addEventListener('seeked', function onSeeked() {
+        if (thumbnailGenerated) return;
+        thumbnailGenerated = true;
+        
+        try {
+            // Set canvas size to video dimensions
+            canvas.width = tempVideo.videoWidth || 640;
+            canvas.height = tempVideo.videoHeight || 360;
+            
+            // Draw video frame to canvas
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL
+            const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Set as poster (will show before play)
+            videoPlayer.poster = thumbnailUrl;
+            
+            console.log('✅ Thumbnail generated successfully');
+        } catch (error) {
+            console.error('Error generating thumbnail:', error);
+            videoPlayer.poster = '';
+        } finally {
+            // Cleanup
+            tempVideo.pause();
+            tempVideo.src = '';
+            tempVideo.remove();
+        }
     });
+    
+    tempVideo.addEventListener('error', function onError(e) {
+        console.error('Error loading video for thumbnail:', e);
+        videoPlayer.poster = '';
+        tempVideo.remove();
+    });
+    
+    // Timeout fallback (5 seconds)
+    setTimeout(() => {
+        if (!thumbnailGenerated) {
+            console.warn('Thumbnail generation timeout');
+            videoPlayer.poster = '';
+            tempVideo.src = '';
+            tempVideo.remove();
+        }
+    }, 5000);
 }
+
+// Generate thumbnail on video load
+videoPlayer.addEventListener('loadstart', function() {
+    const currentVideo = videos[currentVideoIndex];
+    if (currentVideo && currentVideo.src) {
+        generateRandomThumbnail(currentVideo.src);
+    }
+});
+
+// Clear poster when playing
+videoPlayer.addEventListener('play', function() {
+    // Keep poster visible until video actually starts playing
+    setTimeout(() => {
+        if (!videoPlayer.paused) {
+            videoPlayer.removeAttribute('poster');
+        }
+    }, 100);
+});
 
 
         // Start the app
