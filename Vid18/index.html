@@ -899,6 +899,12 @@
 .filter-btn.filter-pink.active { background: rgba(244,143,177,0.2); border-color: #f48fb1; }
 .filter-btn.filter-dark { color: #90a4ae; }
 .filter-btn.filter-dark.active { background: rgba(144,164,174,0.2); border-color: #90a4ae; }
+.filter-btn.filter-romantic { color: #e91e63; }
+.filter-btn.filter-romantic.active { background: rgba(233,30,99,0.2); border-color: #e91e63; }
+.filter-btn.filter-purple { color: #9c27b0; }
+.filter-btn.filter-purple.active { background: rgba(156,39,176,0.2); border-color: #9c27b0; }
+.filter-btn.filter-golden { color: #ffc107; }
+.filter-btn.filter-golden.active { background: rgba(255,193,7,0.2); border-color: #ffc107; }
 
 .filter-intensity {
     display: flex;
@@ -982,14 +988,272 @@
     max-height: 100vh !important;
     object-fit: contain !important;
 }
+
+/* Expired message overlay */
+.expired-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.expired-message {
+    background: #212121;
+    padding: 30px 40px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.expired-message button {
+    margin-top: 20px;
+    padding: 10px 30px;
+    background: #ff0000;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.expired-message button:hover {
+    background: #cc0000;
+}
+
+/* Watch History Modal */
+.history-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 20px;
+}
+
+.history-modal.show {
+    display: flex;
+}
+
+.history-content {
+    background: #212121;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.history-header {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-header h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.history-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.history-close:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.history-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.history-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.history-body::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+.history-item {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background: #333;
+}
+
+.history-item-info {
+    flex: 1;
+}
+
+.history-item-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.history-item-meta {
+    font-size: 12px;
+    color: #aaa;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.history-item-progress {
+    width: 100%;
+    height: 3px;
+    background: #444;
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.history-item-progress-bar {
+    height: 100%;
+    background: #ff0000;
+    border-radius: 2px;
+}
+
+.history-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.history-item-btn {
+    padding: 6px 12px;
+    background: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-item-btn:hover {
+    background: #444;
+    border-color: #555;
+}
+
+.history-item-btn.danger {
+    background: #660000;
+    border-color: #880000;
+}
+
+.history-item-btn.danger:hover {
+    background: #880000;
+    border-color: #aa0000;
+}
+
+.history-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-clear-all {
+    padding: 8px 16px;
+    background: #660000;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.history-clear-all:hover {
+    background: #880000;
+}
+
+.history-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.history-badge {
+    background: #ff0000;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* Thumbnail loading indicator */
+.thumbnail-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #fff;
+    z-index: 3;
+    pointer-events: none;
+}
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Video Player</h1>
         <div class="header-controls">
+            <button class="theme-toggle" id="historyBtn">📜 History</button>
             <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
-            <button class="theme-toggle" id="helpBtn">❓ Bantuan</button>
         </div>
     </div>
 
@@ -1061,6 +1325,9 @@
         <button class="filter-btn filter-warm" data-filter="warm">🔥 Panas</button>
         <button class="filter-btn filter-pink" data-filter="pink">🌸 Pink Muda</button>
         <button class="filter-btn filter-dark" data-filter="dark">🌑 Gelap</button>
+        <button class="filter-btn filter-romantic" data-filter="romantic">💋 Romantic Red</button>
+        <button class="filter-btn filter-purple" data-filter="purple">💜 Purple Dream</button>
+        <button class="filter-btn filter-golden" data-filter="golden">✨ Golden Glow</button>
     </div>
     <div class="filter-intensity" id="filterIntensityRow" style="display:none;">
         <span>Intensitas:</span>
@@ -1084,21 +1351,32 @@
                         <span>Autoplay berikutnya</span>
                     </label>
                     <label class="control-item">
-                        <input type="checkbox" id="rememberVolumeToggle" checked>
-                        <span>Ingat volume</span>
-                    </label>
-                    <label class="control-item">
                         <input type="checkbox" id="rememberPositionToggle">
                         <span>Ingat posisi video</span>
                     </label>
                     <label class="control-item">
-    <input type="checkbox" id="hidePlaylistToggle">
-    <span>Sembunyikan daftar video</span>
-</label>
-<label class="control-item">
-    <input type="checkbox" id="autoFullscreenToggle">
-    <span>Mode Layar Penuh</span>
-</label>
+                        <input type="checkbox" id="hidePlaylistToggle">
+                        <span>Sembunyikan daftar video</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="autoFullscreenToggle">
+                        <span>Mode Layar Penuh</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="noRepeatToggle">
+                        <span>Jangan putar video yang sudah diputar</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="equalizerToggle">
+                        <span>Equalizer Audio</span>
+                    </label>
+                    <label class="control-item" style="gap: 8px;">
+                        <span>Mode Video:</span>
+                        <select id="videoModeSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <option value="landscape">Landscape</option>
+                            <option value="portrait">Portrait</option>
+                        </select>
+                    </label>
                 </div>
             </div>
         </div>
@@ -1206,6 +1484,25 @@
         </div>
     </div>
 
+    <!-- Watch History Modal -->
+    <div class="history-modal" id="historyModal">
+        <div class="history-content">
+            <div class="history-header">
+                <h2>📜 Watch History</h2>
+                <button class="history-close" id="historyCloseBtn">×</button>
+            </div>
+            <div class="history-body" id="historyBody">
+                <div class="history-empty">Belum ada history tontonan</div>
+            </div>
+            <div class="history-footer">
+                <div>
+                    <span style="color: #aaa; font-size: 12px;">Total: <span id="historyCount">0</span> video</span>
+                </div>
+                <button class="history-clear-all" id="historyClearAll">🗑️ Hapus Semua</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Elements
         const videoPlayer = document.getElementById('videoPlayer');
@@ -1243,13 +1540,21 @@
         const sortBtn = document.getElementById('sortBtn');
         const sortDropdown = document.getElementById('sortDropdown');
         const themeToggle = document.getElementById('themeToggle');
-        const helpBtn = document.getElementById('helpBtn');
         const shortcutsHelp = document.getElementById('shortcutsHelp');
         const shortcutsClose = document.getElementById('shortcutsClose');
         const loadingProgress = document.getElementById('loadingProgress');
         const loadingText = document.getElementById('loadingText');
         const favoritesBtn = document.getElementById('favoritesBtn');
         const favoriteModeStatus = document.getElementById('favoriteModeStatus');
+        const noRepeatToggle = document.getElementById('noRepeatToggle');
+        const equalizerToggle = document.getElementById('equalizerToggle');
+        const videoModeSelect = document.getElementById('videoModeSelect');
+        const historyBtn = document.getElementById('historyBtn');
+        const historyModal = document.getElementById('historyModal');
+        const historyCloseBtn = document.getElementById('historyCloseBtn');
+        const historyBody = document.getElementById('historyBody');
+        const historyCount = document.getElementById('historyCount');
+        const historyClearAll = document.getElementById('historyClearAll');
 
         let videos = [];
         let currentVideoIndex = 0;
@@ -1264,6 +1569,13 @@
         let showingFavoritesOnly = false;
         let clickTimeout = null;
         const favoriteControlBtn = document.getElementById('favoriteControlBtn');
+        
+        // No-repeat tracking
+        let playedVideos = [];
+        let noRepeatMode = false;
+        
+        // Watch History
+        let watchHistory = JSON.parse(localStorage.getItem('watchHistory') || '[]');
 
 // Toggle favorite untuk video yang sedang diputar
 favoriteControlBtn.onclick = () => {
@@ -1349,13 +1661,11 @@ hidePlaylistToggle.onchange = () => {
                 themeToggle.textContent = '☀️ Light';
             }
 
-            // Volume
-            if (rememberVolumeToggle.checked) {
-                const savedVolume = localStorage.getItem('volume');
-                if (savedVolume !== null) {
-                    videoPlayer.volume = parseFloat(savedVolume);
-                    volumeSlider.value = parseFloat(savedVolume) * 100;
-                }
+            // Volume - always remember
+            const savedVolume = localStorage.getItem('volume');
+            if (savedVolume !== null) {
+                videoPlayer.volume = parseFloat(savedVolume);
+                volumeSlider.value = parseFloat(savedVolume) * 100;
             } else {
                 videoPlayer.volume = 0.7;
                 volumeSlider.value = 70;
@@ -1369,15 +1679,17 @@ hidePlaylistToggle.onchange = () => {
                 autoplayToggle.checked = autoplayMode;
             }
 
-            // Remember checkboxes state
-            const rememberVolume = localStorage.getItem('rememberVolume');
-            if (rememberVolume !== null) {
-                rememberVolumeToggle.checked = rememberVolume === 'true';
-            }
-
+            // Remember position
             const rememberPosition = localStorage.getItem('rememberPosition');
             if (rememberPosition !== null) {
                 rememberPositionToggle.checked = rememberPosition === 'true';
+            }
+            
+            // Video mode
+            const savedVideoMode = localStorage.getItem('videoMode');
+            if (savedVideoMode) {
+                videoModeSelect.value = savedVideoMode;
+                applyVideoMode(savedVideoMode);
             }
         }
 
@@ -1450,14 +1762,6 @@ hidePlaylistToggle.onchange = () => {
             autoplayStatus.classList.toggle('active', autoplayMode);
         };
 
-        // Remember volume toggle
-        rememberVolumeToggle.onchange = () => {
-            localStorage.setItem('rememberVolume', rememberVolumeToggle.checked);
-            if (rememberVolumeToggle.checked) {
-                localStorage.setItem('volume', videoPlayer.volume);
-            }
-        };
-
         // Remember position toggle
         rememberPositionToggle.onchange = () => {
             localStorage.setItem('rememberPosition', rememberPositionToggle.checked);
@@ -1472,17 +1776,29 @@ hidePlaylistToggle.onchange = () => {
             let sourceVideos = showingFavoritesOnly ? 
                 videos.filter(v => v.isFavorite) : videos;
             
+            // Filter out played videos if no-repeat mode
+            if (noRepeatMode) {
+                sourceVideos = sourceVideos.filter(v => !playedVideos.includes(videos.indexOf(v)));
+                
+                // Check if all videos played
+                if (sourceVideos.length === 0) {
+                    showExpiredMessage();
+                    return currentVideoIndex;
+                }
+            }
+            
             if (sourceVideos.length === 0) {
                 return currentVideoIndex;
             }
             
             if (shuffleMode) {
-                shufflePosition = (shufflePosition + 1) % shuffledIndices.length;
-                return shuffledIndices[shufflePosition];
+                // Rebuild shuffle indices from remaining unplayed videos
+                const indices = sourceVideos.map(v => videos.indexOf(v));
+                const shuffled = shuffleArray(indices);
+                return shuffled[0];
             } else {
                 const currentInSource = sourceVideos.findIndex(v => videos.indexOf(v) === currentVideoIndex);
                 if (currentInSource === -1) {
-                    // Current video not in source, get first from source
                     return videos.indexOf(sourceVideos[0]);
                 }
                 const nextInSource = (currentInSource + 1) % sourceVideos.length;
@@ -1522,13 +1838,14 @@ hidePlaylistToggle.onchange = () => {
                 isFavorite: favorites.includes(num)
             }));
             
+            // Faster loading - reduced delay
             for (let i = 0; i <= VIDEO_CONFIG.numbers.length; i++) {
                 const percentage = (i / VIDEO_CONFIG.numbers.length) * 100;
                 loadingProgress.style.width = percentage + '%';
                 loadingText.textContent = `Memuat daftar video... (${i}/${VIDEO_CONFIG.numbers.length})`;
                 
                 if (i < VIDEO_CONFIG.numbers.length) {
-                    await new Promise(resolve => setTimeout(resolve, 10));
+                    await new Promise(resolve => setTimeout(resolve, 2)); // Reduced from 10ms to 2ms
                 }
             }
             
@@ -1714,6 +2031,14 @@ hidePlaylistToggle.onchange = () => {
             currentVideoIndex = index;
             const video = videos[index];
             
+            // Add to played list if no-repeat mode
+            if (noRepeatMode && !playedVideos.includes(index)) {
+                playedVideos.push(index);
+            }
+            
+            // Add to watch history
+            addToWatchHistory(video.number, video.title);
+            
             videoOverlay.classList.add('show');
             
             videoSource.src = video.src;
@@ -1721,6 +2046,9 @@ hidePlaylistToggle.onchange = () => {
             
             videoPlayer.muted = false;
             videoPlayer.volume = volumeSlider.value / 100;
+            
+            // Generate random thumbnail
+            generateRandomThumbnail(video.src);
             
             if (rememberPositionToggle.checked) {
                 const savedPosition = localStorage.getItem(`videoPosition_${video.number}`);
@@ -1746,10 +2074,9 @@ hidePlaylistToggle.onchange = () => {
             currentTitle.textContent = video.title;
             localStorage.setItem('lastPlayedVideo', video.number);
             
-                        updateMuteIcon();
+            updateMuteIcon();
             renderPlaylist();
-        updateFavoriteControlButton();
-
+            updateFavoriteControlButton();
         }
 
         // Update play/pause icon
@@ -1898,9 +2225,8 @@ videoPlayer.onended = () => {
             videoPlayer.muted = false;
             updateMuteIcon();
             
-            if (rememberVolumeToggle.checked) {
-                localStorage.setItem('volume', videoPlayer.volume);
-            }
+            // Always save volume
+            localStorage.setItem('volume', videoPlayer.volume);
         };
 
         muteBtn.onclick = () => {
@@ -2057,11 +2383,7 @@ videoPlayer.onended = () => {
             }
         };
 
-        // Help/Shortcuts
-        helpBtn.onclick = () => {
-            shortcutsHelp.classList.add('show');
-        };
-
+        // Shortcuts help close
         shortcutsClose.onclick = () => {
             shortcutsHelp.classList.remove('show');
         };
@@ -2114,9 +2436,7 @@ videoPlayer.onended = () => {
                     volumeSlider.value = videoPlayer.volume * 100;
                     videoPlayer.muted = false;
                     updateMuteIcon();
-                    if (rememberVolumeToggle.checked) {
-                        localStorage.setItem('volume', videoPlayer.volume);
-                    }
+                    localStorage.setItem('volume', videoPlayer.volume);
                     break;
                     
                 case 'arrowdown':
@@ -2124,9 +2444,7 @@ videoPlayer.onended = () => {
                     videoPlayer.volume = Math.max(0, videoPlayer.volume - 0.1);
                     volumeSlider.value = videoPlayer.volume * 100;
                     updateMuteIcon();
-                    if (rememberVolumeToggle.checked) {
-                        localStorage.setItem('volume', videoPlayer.volume);
-                    }
+                    localStorage.setItem('volume', videoPlayer.volume);
                     break;
                     
                 case 'm':
@@ -2325,31 +2643,47 @@ case 'p':
 let currentFilter = 'none';
 let filterIntensity = 50;
 
-// Hapus CSS filter, gunakan SVG filter overlay
+// Filter presets with new filters
 const filterPresets = {
     none: () => '',
     warm: (intensity) => {
         const i = intensity / 100;
         return `sepia(${0.4 * i}) saturate(${1 + 0.6 * i}) brightness(${1 + 0.08 * i}) contrast(${1 + 0.1 * i})`;
     },
-    pink: (intensity) => {
-        const i = intensity / 100;
-        // Tidak pakai hue-rotate, pakai sepia + saturate + brightness tinggi
-        return `grayscale(${0.1 * i}) sepia(${0.8 * i}) saturate(${3 * i}) hue-rotate(${290 + 20 * i}deg) brightness(${1.1 + 0.1 * i})`;
+    pink: () => {
+        // Pink Muda: 100% fixed intensity, medium pink (tidak pekat, tidak pudar)
+        return `sepia(0.3) saturate(1.8) hue-rotate(300deg) brightness(1.1) contrast(0.95)`;
     },
     dark: (intensity) => {
         const i = intensity / 100;
         return `brightness(${1 - 0.5 * i}) contrast(${1 + 0.3 * i}) saturate(${1 - 0.2 * i})`;
+    },
+    romantic: (intensity) => {
+        const i = intensity / 100;
+        // Romantic Red - nuansa merah sensual
+        return `sepia(${0.5 * i}) saturate(${1 + 0.8 * i}) hue-rotate(${-20 * i}deg) brightness(${1 + 0.05 * i}) contrast(${1 + 0.15 * i})`;
+    },
+    purple: (intensity) => {
+        const i = intensity / 100;
+        // Purple Dream - ungu dreamy
+        return `sepia(${0.4 * i}) saturate(${1 + 1 * i}) hue-rotate(${250 * i}deg) brightness(${1 + 0.1 * i}) contrast(${1 + 0.1 * i})`;
+    },
+    golden: (intensity) => {
+        const i = intensity / 100;
+        // Golden Glow - cahaya emas sensual
+        return `sepia(${0.6 * i}) saturate(${1 + 0.5 * i}) hue-rotate(${-10 * i}deg) brightness(${1 + 0.15 * i}) contrast(${1 + 0.05 * i})`;
     }
 };
 
 function applyFilter() {
     if (currentFilter === 'none') {
         videoPlayer.style.filter = '';
+    } else if (currentFilter === 'pink') {
+        // Pink Muda always 100%
+        videoPlayer.style.filter = filterPresets.pink();
     } else {
         videoPlayer.style.filter = filterPresets[currentFilter](filterIntensity);
     }
-    // Save to localStorage
     localStorage.setItem('videoFilter', JSON.stringify({ filter: currentFilter, intensity: filterIntensity }));
 }
 
@@ -2364,12 +2698,11 @@ if (savedFilter) {
         document.getElementById('filterIntensityValue').textContent = intensity + '%';
         applyFilter();
         
-        // Update active button
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.filter === currentFilter);
         });
         
-        if (currentFilter !== 'none') {
+        if (currentFilter !== 'none' && currentFilter !== 'pink') {
             document.getElementById('filterIntensityRow').style.display = 'flex';
         }
     } catch(e) {}
@@ -2383,7 +2716,8 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.add('active');
         
         const intensityRow = document.getElementById('filterIntensityRow');
-        intensityRow.style.display = currentFilter === 'none' ? 'none' : 'flex';
+        // Hide intensity for none and pink (pink is always 100%)
+        intensityRow.style.display = (currentFilter === 'none' || currentFilter === 'pink') ? 'none' : 'flex';
         
         applyFilter();
     };
@@ -2558,8 +2892,309 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 
+
+// =============================================
+// NO-REPEAT MODE & EXPIRED MESSAGE
+// =============================================
+
+noRepeatToggle.onchange = () => {
+    noRepeatMode = noRepeatToggle.checked;
+    if (!noRepeatMode) {
+        playedVideos = []; // Reset when disabled
+    }
+};
+
+function showExpiredMessage() {
+    alert('Video has expired. Please refresh the website page.');
+    noRepeatToggle.checked = false;
+    noRepeatMode = false;
+    playedVideos = [];
+}
+
+// =============================================
+// VIDEO MODE (LANDSCAPE/PORTRAIT)
+// =============================================
+
+function applyVideoMode(mode) {
+    if (mode === 'portrait') {
+        videoPlayer.style.objectFit = 'contain';
+        videoPlayer.style.maxHeight = '80vh';
+        videoPlayer.style.maxWidth = '60vh';
+        videoPlayer.style.margin = '0 auto';
+    } else {
+        videoPlayer.style.objectFit = 'contain';
+        videoPlayer.style.maxHeight = '600px';
+        videoPlayer.style.maxWidth = '100%';
+        videoPlayer.style.margin = '0';
+    }
+}
+
+videoModeSelect.onchange = () => {
+    const mode = videoModeSelect.value;
+    applyVideoMode(mode);
+    localStorage.setItem('videoMode', mode);
+};
+
+// =============================================
+// EQUALIZER AUDIO (WEB AUDIO API)
+// =============================================
+
+let audioContext = null;
+let sourceNode = null;
+let bassBoostFilter = null;
+let clarityFilter = null;
+let equalizerEnabled = false;
+
+function initAudioEqualizer() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        sourceNode = audioContext.createMediaElementSource(videoPlayer);
+        
+        // Bass Boost Filter (Low frequencies)
+        bassBoostFilter = audioContext.createBiquadFilter();
+        bassBoostFilter.type = 'lowshelf';
+        bassBoostFilter.frequency.value = 200;
+        bassBoostFilter.gain.value = 8; // +8dB bass boost
+        
+        // Clarity Filter (High frequencies)
+        clarityFilter = audioContext.createBiquadFilter();
+        clarityFilter.type = 'highshelf';
+        clarityFilter.frequency.value = 3000;
+        clarityFilter.gain.value = 4; // +4dB clarity boost
+        
+        // Connect nodes
+        sourceNode.connect(bassBoostFilter);
+        bassBoostFilter.connect(clarityFilter);
+        clarityFilter.connect(audioContext.destination);
+    }
+}
+
+equalizerToggle.onchange = () => {
+    equalizerEnabled = equalizerToggle.checked;
+    
+    if (equalizerEnabled) {
+        try {
+            initAudioEqualizer();
+            console.log('Equalizer enabled: Bass Boost + Clarity');
+        } catch (error) {
+            console.error('Error enabling equalizer:', error);
+            alert('Browser Anda tidak mendukung Audio Equalizer');
+            equalizerToggle.checked = false;
+            equalizerEnabled = false;
+        }
+    } else {
+        // Note: Can't disconnect once connected to avoid issues
+        // Just disable by setting gains to 0
+        if (bassBoostFilter && clarityFilter) {
+            bassBoostFilter.gain.value = 0;
+            clarityFilter.gain.value = 0;
+        }
+        console.log('Equalizer disabled');
+    }
+};
+
+
+
+// =============================================
+// WATCH HISTORY SYSTEM
+// =============================================
+
+function addToWatchHistory(videoNumber, videoTitle) {
+    const now = Date.now();
+    const existingIndex = watchHistory.findIndex(h => h.number === videoNumber);
+    
+    if (existingIndex > -1) {
+        // Update existing
+        watchHistory[existingIndex].lastWatched = now;
+        watchHistory[existingIndex].watchCount++;
+    } else {
+        // Add new
+        watchHistory.push({
+            number: videoNumber,
+            title: videoTitle,
+            lastWatched: now,
+            watchCount: 1,
+            progress: 0
+        });
+    }
+    
+    // Keep only last 100 videos
+    if (watchHistory.length > 100) {
+        watchHistory = watchHistory.slice(-100);
+    }
+    
+    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    updateHistoryBadge();
+}
+
+function updateVideoProgress(videoNumber, progress) {
+    const historyItem = watchHistory.find(h => h.number === videoNumber);
+    if (historyItem) {
+        historyItem.progress = Math.floor(progress);
+        localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    }
+}
+
+function formatTimeAgo(timestamp) {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    
+    if (seconds < 60) return 'Baru saja';
+    if (seconds < 3600) return Math.floor(seconds / 60) + ' menit lalu';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + ' jam lalu';
+    if (seconds < 604800) return Math.floor(seconds / 86400) + ' hari lalu';
+    return new Date(timestamp).toLocaleDateString('id-ID');
+}
+
+function renderHistory() {
+    if (watchHistory.length === 0) {
+        historyBody.innerHTML = '<div class="history-empty">Belum ada history tontonan</div>';
+        historyCount.textContent = '0';
+        return;
+    }
+    
+    // Sort by last watched (newest first)
+    const sortedHistory = [...watchHistory].sort((a, b) => b.lastWatched - a.lastWatched);
+    
+    historyBody.innerHTML = '';
+    sortedHistory.forEach(item => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+            <div class="history-item-info">
+                <div class="history-item-title">${item.title}</div>
+                <div class="history-item-meta">
+                    <span>🕐 ${formatTimeAgo(item.lastWatched)}</span>
+                    <span>👁️ ${item.watchCount}x ditonton</span>
+                </div>
+                <div class="history-item-progress">
+                    <div class="history-item-progress-bar" style="width: ${item.progress}%"></div>
+                </div>
+            </div>
+            <div class="history-item-actions">
+                <button class="history-item-btn" onclick="playFromHistory(${item.number})">▶ Putar</button>
+                <button class="history-item-btn danger" onclick="deleteHistoryItem(${item.number})">🗑️</button>
+            </div>
+        `;
+        historyBody.appendChild(historyItem);
+    });
+    
+    historyCount.textContent = watchHistory.length;
+}
+
+window.playFromHistory = (videoNumber) => {
+    const videoIndex = videos.findIndex(v => v.number === videoNumber);
+    if (videoIndex >= 0) {
+        loadVideo(videoIndex);
+        historyModal.classList.remove('show');
+        videoPlayer.play();
+    }
+};
+
+window.deleteHistoryItem = (videoNumber) => {
+    watchHistory = watchHistory.filter(h => h.number !== videoNumber);
+    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    renderHistory();
+    updateHistoryBadge();
+};
+
+function clearAllHistory() {
+    if (confirm('Hapus semua history tontonan?')) {
+        watchHistory = [];
+        localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+        renderHistory();
+        updateHistoryBadge();
+    }
+}
+
+function updateHistoryBadge() {
+    if (watchHistory.length > 0) {
+        historyBtn.innerHTML = `📜 History <span class="history-badge">${watchHistory.length}</span>`;
+    } else {
+        historyBtn.innerHTML = '📜 History';
+    }
+}
+
+// History modal controls
+historyBtn.onclick = () => {
+    historyModal.classList.add('show');
+    renderHistory();
+};
+
+historyCloseBtn.onclick = () => {
+    historyModal.classList.remove('show');
+};
+
+historyModal.onclick = (e) => {
+    if (e.target === historyModal) {
+        historyModal.classList.remove('show');
+    }
+};
+
+historyClearAll.onclick = clearAllHistory;
+
+// Update progress in history every 5 seconds
+setInterval(() => {
+    if (!videoPlayer.paused && videoPlayer.duration > 0) {
+        const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+        const currentVideo = videos[currentVideoIndex];
+        if (currentVideo) {
+            updateVideoProgress(currentVideo.number, progress);
+        }
+    }
+}, 5000);
+
+// =============================================
+// CUSTOM THUMBNAILS (RANDOM FRAME)
+// =============================================
+
+function generateRandomThumbnail(videoSrc) {
+    // Create temporary video element for thumbnail generation
+    const tempVideo = document.createElement('video');
+    tempVideo.src = videoSrc;
+    tempVideo.crossOrigin = 'anonymous';
+    tempVideo.muted = true;
+    tempVideo.playsInline = true;
+    
+    tempVideo.addEventListener('loadedmetadata', function() {
+        // Random time between 10% - 70% of video duration
+        const randomTime = tempVideo.duration * (0.1 + Math.random() * 0.6);
+        tempVideo.currentTime = randomTime;
+    });
+    
+    tempVideo.addEventListener('seeked', function() {
+        try {
+            // Create canvas to capture frame
+            const canvas = document.createElement('canvas');
+            canvas.width = tempVideo.videoWidth;
+            canvas.height = tempVideo.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL and set as poster
+            const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+            videoPlayer.poster = thumbnailUrl;
+            
+            // Cleanup
+            tempVideo.src = '';
+            tempVideo.remove();
+        } catch (error) {
+            console.error('Error generating thumbnail:', error);
+            // Fallback: no poster
+            videoPlayer.poster = '';
+        }
+    });
+    
+    tempVideo.addEventListener('error', function() {
+        console.error('Error loading video for thumbnail');
+        videoPlayer.poster = '';
+    });
+}
+
+
         // Start the app
         initializePlayer();
+        updateHistoryBadge();
 
         // Show welcome message
         console.log('%c🎬 Video Player', 'font-size: 20px; font-weight: bold; color: #ff0000;');
