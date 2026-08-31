@@ -909,8 +909,14 @@
 .filter-btn.filter-rose.active { background: rgba(244,143,177,0.2); border-color: #f48fb1; }
 .filter-btn.filter-sunset { color: #ff6f00; }
 .filter-btn.filter-sunset.active { background: rgba(255,111,0,0.2); border-color: #ff6f00; }
-.filter-btn.filter-midnight { color: #5c6bc0; }
-.filter-btn.filter-midnight.active { background: rgba(92,107,192,0.2); border-color: #5c6bc0; }
+.filter-btn.filter-cream { color: #ffe4b5; }
+.filter-btn.filter-cream.active { background: rgba(255,228,181,0.2); border-color: #ffe4b5; }
+.filter-btn.filter-cold { color: #b3e5fc; }
+.filter-btn.filter-cold.active { background: rgba(179,229,252,0.2); border-color: #b3e5fc; }
+.filter-btn.filter-hot { color: #ff5722; }
+.filter-btn.filter-hot.active { background: rgba(255,87,34,0.2); border-color: #ff5722; }
+.filter-btn.filter-wet { color: #80deea; }
+.filter-btn.filter-wet.active { background: rgba(128,222,234,0.2); border-color: #80deea; }
 
 .filter-intensity {
     display: flex;
@@ -1336,7 +1342,10 @@
         <button class="filter-btn filter-crimson" data-filter="crimson">🔴 Crimson Heat</button>
         <button class="filter-btn filter-rose" data-filter="rose">💗 Soft Rose</button>
         <button class="filter-btn filter-sunset" data-filter="sunset">🌅 Sunset Glow</button>
-        <button class="filter-btn filter-midnight" data-filter="midnight">🌙 Midnight Blue</button>
+        <button class="filter-btn filter-cream" data-filter="cream">🍦 Cream</button>
+        <button class="filter-btn filter-cold" data-filter="cold">❄️ Dingin</button>
+        <button class="filter-btn filter-hot" data-filter="hot">🔥🔥 Warm</button>
+        <button class="filter-btn filter-wet" data-filter="wet">💧 Becek</button>
     </div>
     <div class="filter-intensity" id="filterIntensityRow" style="display:none;">
         <span>Intensitas:</span>
@@ -1375,25 +1384,13 @@
                         <input type="checkbox" id="noRepeatToggle">
                         <span>Jangan putar video yang sudah diputar</span>
                     </label>
-                    <label class="control-item">
-                        <input type="checkbox" id="equalizerToggle">
-                        <span>Equalizer Audio</span>
-                    </label>
                     <label class="control-item" style="gap: 8px;">
-                        <span>Video Orientation:</span>
-                        <select id="videoOrientationSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
-                            <option value="auto">Auto</option>
-                            <option value="landscape">Force Landscape</option>
-                            <option value="portrait">Force Portrait</option>
-                            <option value="fit">Fit to Screen</option>
-                        </select>
-                    </label>
-                    <label class="control-item" style="gap: 8px;">
-                        <span>Voice Changer:</span>
-                        <select id="voiceChangerSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
-                            <option value="normal">Normal</option>
-                            <option value="male">Male Voice</option>
-                            <option value="female">Female Voice</option>
+                        <span>Fit to Screen:</span>
+                        <select id="fitToScreenSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <option value="contain">Contain (Full Video)</option>
+                            <option value="cover">Cover (Fill Screen)</option>
+                            <option value="fill">Fill (Stretch)</option>
+                            <option value="none">None (Original)</option>
                         </select>
                     </label>
                 </div>
@@ -1566,9 +1563,7 @@
         const favoritesBtn = document.getElementById('favoritesBtn');
         const favoriteModeStatus = document.getElementById('favoriteModeStatus');
         const noRepeatToggle = document.getElementById('noRepeatToggle');
-        const equalizerToggle = document.getElementById('equalizerToggle');
-        const videoOrientationSelect = document.getElementById('videoOrientationSelect');
-        const voiceChangerSelect = document.getElementById('voiceChangerSelect');
+        const fitToScreenSelect = document.getElementById('fitToScreenSelect');
         const historyBtn = document.getElementById('historyBtn');
         const historyModal = document.getElementById('historyModal');
         const historyCloseBtn = document.getElementById('historyCloseBtn');
@@ -1705,17 +1700,11 @@ hidePlaylistToggle.onchange = () => {
                 rememberPositionToggle.checked = rememberPosition === 'true';
             }
             
-            // Video orientation
-            const savedOrientation = localStorage.getItem('videoOrientation');
-            if (savedOrientation) {
-                videoOrientationSelect.value = savedOrientation;
-                applyVideoOrientation(savedOrientation);
-            }
-            
-            // Voice changer
-            const savedVoice = localStorage.getItem('voiceChanger');
-            if (savedVoice) {
-                voiceChangerSelect.value = savedVoice;
+            // Fit to Screen
+            const savedFitMode = localStorage.getItem('fitToScreen');
+            if (savedFitMode) {
+                fitToScreenSelect.value = savedFitMode;
+                applyFitToScreen(savedFitMode);
             }
         }
 
@@ -2671,6 +2660,7 @@ const filterPresets = {
     none: () => '',
     warm: (intensity) => {
         const i = intensity / 100;
+        // Panas - warm biasa
         return `sepia(${0.4 * i}) saturate(${1 + 0.6 * i}) brightness(${1 + 0.08 * i}) contrast(${1 + 0.1 * i})`;
     },
     pink: () => {
@@ -2706,10 +2696,25 @@ const filterPresets = {
         // Sunset Glow - orange/amber warm
         return `sepia(${0.5 * i}) saturate(${1 + 0.7 * i}) hue-rotate(${-15 * i}deg) brightness(${1 + 0.1 * i}) contrast(${1 + 0.08 * i})`;
     },
-    midnight: (intensity) => {
+    cream: (intensity) => {
         const i = intensity / 100;
-        // Midnight Blue - biru malam misterius
-        return `sepia(${0.3 * i}) saturate(${1 + 0.5 * i}) hue-rotate(${190 * i}deg) brightness(${0.9 + 0.05 * i}) contrast(${1 + 0.2 * i})`;
+        // Cream - creamy, soft, sensual skin tone (perfect for 18+ content)
+        return `sepia(${0.25 * i}) saturate(${1 + 0.3 * i}) hue-rotate(${20 * i}deg) brightness(${1 + 0.12 * i}) contrast(${0.92 + 0.08 * i})`;
+    },
+    cold: (intensity) => {
+        const i = intensity / 100;
+        // Dingin/Cold - cool blue-white tone
+        return `sepia(${0.1 * i}) saturate(${1 - 0.3 * i}) hue-rotate(${180 * i}deg) brightness(${1 + 0.05 * i}) contrast(${1 + 0.1 * i})`;
+    },
+    hot: (intensity) => {
+        const i = intensity / 100;
+        // Warm (PANAS BANGET) - super intense hot tone, lebih dari "Panas" yang lama
+        return `sepia(${0.8 * i}) saturate(${1 + 1.5 * i}) hue-rotate(${-25 * i}deg) brightness(${1 + 0.2 * i}) contrast(${1 + 0.3 * i})`;
+    },
+    wet: (intensity) => {
+        const i = intensity / 100;
+        // Becek/Wet - wet, glossy, shiny effect (sensual wet look)
+        return `saturate(${1 + 0.8 * i}) brightness(${1 + 0.15 * i}) contrast(${1 + 0.2 * i}) hue-rotate(${-5 * i}deg)`;
     }
 };
 
@@ -2949,217 +2954,67 @@ function showExpiredMessage() {
     playedVideos = [];
 }
 
+
 // =============================================
-// VIDEO ORIENTATION (AUTO-ROTATE/RESPONSIVE)
+// FIT TO SCREEN (NO ZOOM, NO CROP)
 // =============================================
 
-function applyVideoOrientation(mode) {
-    const wrapper = document.querySelector('.video-wrapper');
-    
+function applyFitToScreen(mode) {
     switch(mode) {
-        case 'auto':
-            // Auto - responsive to window/device orientation
+        case 'contain':
+            // Contain - Full video visible, maintain aspect ratio (NO CROP, NO ZOOM)
             videoPlayer.style.objectFit = 'contain';
-            videoPlayer.style.maxHeight = '600px';
-            videoPlayer.style.maxWidth = '100%';
             videoPlayer.style.width = '100%';
             videoPlayer.style.height = 'auto';
-            videoPlayer.style.margin = '0';
-            break;
-            
-        case 'landscape':
-            // Force Landscape - always horizontal
-            videoPlayer.style.objectFit = 'contain';
             videoPlayer.style.maxHeight = '600px';
-            videoPlayer.style.maxWidth = '100%';
-            videoPlayer.style.width = '100%';
-            videoPlayer.style.height = 'auto';
-            videoPlayer.style.margin = '0';
             break;
             
-        case 'portrait':
-            // Force Portrait - vertical centered
-            videoPlayer.style.objectFit = 'contain';
-            videoPlayer.style.maxHeight = '80vh';
-            videoPlayer.style.maxWidth = '60vh';
-            videoPlayer.style.width = 'auto';
-            videoPlayer.style.height = '80vh';
-            videoPlayer.style.margin = '0 auto';
-            videoPlayer.style.display = 'block';
-            break;
-            
-        case 'fit':
-            // Fit to Screen - fill container
+        case 'cover':
+            // Cover - Fill screen, may crop edges slightly
             videoPlayer.style.objectFit = 'cover';
-            videoPlayer.style.maxHeight = 'none';
-            videoPlayer.style.maxWidth = '100%';
             videoPlayer.style.width = '100%';
             videoPlayer.style.height = '600px';
-            videoPlayer.style.margin = '0';
+            videoPlayer.style.maxHeight = '600px';
+            break;
+            
+        case 'fill':
+            // Fill - Stretch to fill (may distort)
+            videoPlayer.style.objectFit = 'fill';
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = '600px';
+            videoPlayer.style.maxHeight = '600px';
+            break;
+            
+        case 'none':
+            // None - Original size
+            videoPlayer.style.objectFit = 'none';
+            videoPlayer.style.width = 'auto';
+            videoPlayer.style.height = 'auto';
+            videoPlayer.style.maxHeight = '600px';
             break;
     }
 }
 
-videoOrientationSelect.onchange = () => {
-    const mode = videoOrientationSelect.value;
-    applyVideoOrientation(mode);
-    localStorage.setItem('videoOrientation', mode);
+fitToScreenSelect.onchange = () => {
+    const mode = fitToScreenSelect.value;
+    applyFitToScreen(mode);
+    localStorage.setItem('fitToScreen', mode);
 };
 
-// Responsive orientation on window resize (for auto mode)
-window.addEventListener('resize', () => {
-    if (videoOrientationSelect.value === 'auto') {
-        applyVideoOrientation('auto');
-    }
-});
-
-// =============================================
-// EQUALIZER AUDIO (BALANCED - TIDAK NGE-BASS)
-// =============================================
-
-let audioContext = null;
-let sourceNode = null;
-let equalizerNode = null;
-let gainNode = null;
-let equalizerEnabled = false;
-let audioInitialized = false;
-
-function initAudioEqualizer() {
-    if (!audioContext) {
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            sourceNode = audioContext.createMediaElementSource(videoPlayer);
-            
-            // Gain node for volume control
-            gainNode = audioContext.createGain();
-            gainNode.gain.value = 1.0;
-            
-            // Equalizer - Multi-band for balanced sound
-            const frequencies = [60, 170, 350, 1000, 3500, 10000];
-            const gains = [2, 3, 2, 3, 4, 3]; // Balanced, not too bassy
-            
-            let lastNode = sourceNode;
-            
-            frequencies.forEach((freq, i) => {
-                const filter = audioContext.createBiquadFilter();
-                filter.type = i === 0 ? 'lowshelf' : i === frequencies.length - 1 ? 'highshelf' : 'peaking';
-                filter.frequency.value = freq;
-                filter.Q.value = 1;
-                filter.gain.value = 0; // Start disabled
-                
-                lastNode.connect(filter);
-                lastNode = filter;
-                
-                if (!equalizerNode) equalizerNode = [];
-                equalizerNode.push(filter);
-            });
-            
-            lastNode.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            audioInitialized = true;
-        } catch (error) {
-            console.error('Error initializing audio:', error);
-            throw error;
-        }
+// Responsive untuk mobile landscape (seperti game)
+function handleOrientationChange() {
+    if (window.matchMedia("(orientation: landscape)").matches && window.innerWidth < 1024) {
+        // Mobile landscape - video fit penuh
+        videoPlayer.style.maxHeight = '100vh';
+    } else {
+        // Desktop atau mobile portrait
+        applyFitToScreen(fitToScreenSelect.value);
     }
 }
 
-function toggleEqualizer(enable) {
-    if (!audioInitialized) {
-        initAudioEqualizer();
-    }
-    
-    if (equalizerNode) {
-        const gains = [2, 3, 2, 3, 4, 3];
-        equalizerNode.forEach((filter, i) => {
-            filter.gain.value = enable ? gains[i] : 0;
-        });
-    }
-    
-    equalizerEnabled = enable;
-}
-
-equalizerToggle.onchange = () => {
-    try {
-        toggleEqualizer(equalizerToggle.checked);
-        console.log(`Equalizer ${equalizerToggle.checked ? 'enabled' : 'disabled'}`);
-    } catch (error) {
-        console.error('Error toggling equalizer:', error);
-        alert('Browser Anda tidak mendukung Audio Equalizer');
-        equalizerToggle.checked = false;
-    }
-};
-
-// =============================================
-// VOICE CHANGER (PITCH SHIFT)
-// =============================================
-
-let pitchShiftNode = null;
-
-function initVoiceChanger() {
-    if (!audioContext) {
-        initAudioEqualizer(); // Initialize audio context first
-    }
-}
-
-function applyVoiceChange(mode) {
-    if (!audioInitialized) {
-        try {
-            initAudioEqualizer();
-        } catch (error) {
-            console.error('Error initializing voice changer:', error);
-            alert('Browser Anda tidak mendukung Voice Changer');
-            voiceChangerSelect.value = 'normal';
-            return;
-        }
-    }
-    
-    // Simple pitch shift using playbackRate
-    // Note: This also affects video speed, so we use subtle changes
-    switch(mode) {
-        case 'normal':
-            videoPlayer.playbackRate = parseFloat(speedBtn.textContent) || 1.0;
-            videoPlayer.preservesPitch = true;
-            break;
-            
-        case 'male':
-            // Male voice - slightly lower pitch
-            videoPlayer.preservesPitch = false;
-            const currentSpeed = parseFloat(speedBtn.textContent) || 1.0;
-            videoPlayer.playbackRate = currentSpeed * 0.95; // 5% slower = deeper
-            break;
-            
-        case 'female':
-            // Female voice - slightly higher pitch
-            videoPlayer.preservesPitch = false;
-            const currentSpeedF = parseFloat(speedBtn.textContent) || 1.0;
-            videoPlayer.playbackRate = currentSpeedF * 1.05; // 5% faster = higher
-            break;
-    }
-    
-    localStorage.setItem('voiceChanger', mode);
-}
-
-voiceChangerSelect.onchange = () => {
-    applyVoiceChange(voiceChangerSelect.value);
-};
-
-// Reset voice when speed changes
-const originalSpeedOptions = document.querySelectorAll('.speed-option');
-originalSpeedOptions.forEach(option => {
-    const originalClick = option.onclick;
-    option.onclick = () => {
-        originalClick?.();
-        // Re-apply voice change after speed change
-        setTimeout(() => {
-            if (voiceChangerSelect.value !== 'normal') {
-                applyVoiceChange(voiceChangerSelect.value);
-            }
-        }, 100);
-    };
-});
-
+// Detect orientation change (mobile)
+window.addEventListener('orientationchange', handleOrientationChange);
+window.addEventListener('resize', handleOrientationChange);
 
 
 // =============================================
