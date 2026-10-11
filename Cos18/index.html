@@ -1,0 +1,3258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosplayer Video Edit</title>
+    
+    <!-- ========== KONFIGURASI VIDEO (EDIT DI SINI) ========== -->
+    <script>
+        // Daftar video - tambahkan nomor baru di sini jika mau nambah video
+        const VIDEO_CONFIG = {
+            folder: 'assets/video/',
+            extension: '.mp4',
+            numbers: Array.from({length: 1}, (_, i) => i + 1),
+        };
+    </script>
+    <!-- ====================================================== -->
+    
+    <style>
+        /* [Semua CSS tetap sama seperti sebelumnya] */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f0f;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .header {
+            background: #212121;
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            padding: 6px 12px;
+            background: #333;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: #444;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 0;
+            min-height: calc(100vh - 70px);
+        }
+
+        .player-section {
+            background: #181818;
+            padding: 20px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        video {
+            width: 100%;
+            display: block;
+            max-height: 600px;
+            background: #000;
+        }
+
+        video::-webkit-media-controls-start-playback-button {
+            display: none !important;
+        }
+
+        /* Overlay untuk loading dan error */
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+            z-index: 5;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .video-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #ff0000;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .controls {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+
+        .video-wrapper:hover .controls {
+            opacity: 1;
+        }
+
+        .progress-container {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress {
+            height: 100%;
+            background: #ff0000;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s;
+            position: relative;
+        }
+
+        .progress-handle {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .progress-bar:hover .progress-handle {
+            opacity: 1;
+        }
+
+        /* Buffer progress */
+        .buffer-progress {
+            position: absolute;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 2px;
+            width: 0%;
+            top: 0;
+            left: 0;
+        }
+
+        /* Tooltip untuk progress bar */
+        .progress-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .progress-container:hover .progress-tooltip {
+            opacity: 1;
+        }
+
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn.active {
+            background: #ff0000;
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Tooltip untuk button */
+        .btn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            z-index: 1000;
+        }
+
+        .time-display {
+            margin-left: auto;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-slider {
+            width: 60px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            border-radius: 2px;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Playback speed control */
+        .speed-control {
+            position: relative;
+        }
+
+        .speed-btn {
+            font-size: 12px;
+            min-width: 45px;
+        }
+
+        .speed-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.95);
+            border-radius: 4px;
+            padding: 8px 0;
+            margin-bottom: 8px;
+            display: none;
+            min-width: 80px;
+            z-index: 1000;
+        }
+
+        .speed-menu.show {
+            display: block;
+        }
+
+        .speed-option {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .speed-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .speed-option.active {
+            background: #ff0000;
+        }
+
+        .info-panel {
+            background: #212121;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .current-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .video-info {
+            font-size: 13px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .shuffle-status {
+            color: #ff0000;
+            font-weight: 500;
+        }
+
+        /* Loop & Autoplay status */
+        .status-badge {
+            padding: 3px 8px;
+            background: #333;
+            border-radius: 3px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .status-badge.active {
+            background: #ff0000;
+        }
+
+        /* Additional controls panel */
+        .additional-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2a2a;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .control-item:hover {
+            background: #333;
+        }
+
+        .control-item input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .playlist-section {
+            background: #212121;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .playlist-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            border: 1px solid #333;
+            border-radius: 20px;
+            background: #0f0f0f;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #666;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #666;
+        }
+
+        .playlist-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .playlist-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .shuffle-btn, .sort-btn, .favorites-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shuffle-btn:hover, .sort-btn:hover, .favorites-btn:hover {
+            background: #333;
+        }
+
+        .shuffle-btn.active, .favorites-btn.active {
+            background: #ff0000;
+            border-color: #ff0000;
+        }
+
+        /* Sort menu */
+        .sort-menu {
+            position: relative;
+        }
+
+        .sort-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: none;
+            min-width: 150px;
+            z-index: 100;
+        }
+
+        .sort-dropdown.show {
+            display: block;
+        }
+
+        .sort-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .sort-option:hover {
+            background: #333;
+        }
+
+        .sort-option.active {
+            background: #ff0000;
+        }
+
+        .playlist {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+        }
+
+        .playlist-item {
+            padding: 10px 12px;
+            margin-bottom: 2px;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .playlist-item:hover {
+            background: #333;
+        }
+
+        .playlist-item.active {
+            background: #333;
+            border-left: 3px solid #ff0000;
+        }
+
+        .playlist-item-number {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            min-width: 35px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .playlist-item.active .playlist-item-number {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .playlist-item-title {
+            flex: 1;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        /* Favorite button in playlist */
+        .favorite-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .favorite-btn:hover {
+            color: #ff0000;
+        }
+
+        .favorite-btn.active {
+            color: #ff0000;
+        }
+
+        .playlist::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .playlist::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .playlist::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .playlist::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Picture in Picture indicator */
+        .pip-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+            z-index: 10000;
+        }
+
+        .pip-indicator.show {
+            display: block;
+        }
+
+        /* Keyboard shortcuts help */
+        .shortcuts-help {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            display: none;
+            z-index: 10000;
+        }
+
+        .shortcuts-help.show {
+            display: block;
+        }
+
+        .shortcuts-help h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .shortcut-list {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .shortcut-key {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .shortcuts-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Light theme */
+        body.light-theme {
+            background: #f5f5f5;
+            color: #000;
+        }
+
+        body.light-theme .header {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        body.light-theme .header h1 {
+            color: #000;
+        }
+
+        body.light-theme .player-section {
+            background: #fff;
+        }
+
+        body.light-theme .info-panel {
+            background: #f0f0f0;
+        }
+
+        body.light-theme .current-title {
+            color: #000;
+        }
+
+        body.light-theme .video-info {
+            color: #666;
+        }
+
+        body.light-theme .playlist-section {
+            background: #f0f0f0;
+            border-left: 1px solid #ddd;
+        }
+
+        body.light-theme .search-input {
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #000;
+        }
+
+        body.light-theme .playlist-item {
+            color: #000;
+        }
+
+        body.light-theme .playlist-item:hover {
+            background: #e0e0e0;
+        }
+
+        body.light-theme .playlist-item.active {
+            background: #e0e0e0;
+        }
+
+        body.light-theme .playlist-item-title {
+            color: #000;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .playlist-section {
+                border-left: none;
+                border-top: 1px solid #333;
+            }
+
+            .control-buttons {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+        }
+
+        /* Icons using Unicode symbols */
+        .icon-play::before { content: "▶"; }
+        .icon-pause::before { content: "❚❚"; }
+        .icon-prev::before { content: "⏮"; }
+        .icon-next::before { content: "⏭"; }
+        .icon-volume-high::before { content: "🔊"; }
+        .icon-volume-low::before { content: "🔉"; }
+        .icon-volume-mute::before { content: "🔇"; }
+        .icon-fullscreen::before { content: "⛶"; }
+        .icon-search::before { content: "🔍"; }
+        .icon-shuffle::before { content: "⇄"; }
+        .icon-loop::before { content: "🔁"; }
+        .icon-pip::before { content: "⧉"; }
+        .icon-favorite::before { content: "♡"; }
+        .icon-favorite.active::before { content: "♥"; }
+
+
+        /* Loading progress indicator */
+        .loading-progress {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+        }
+
+        .progress-bar-loading {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff0000;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Favorite mode indicator */
+        .favorite-mode-indicator {
+            background: #ff0000;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        /* Hide controls when playlist is hidden */
+.video-wrapper.no-controls:hover .controls {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.video-wrapper.no-controls .controls {
+    display: none !important;
+}
+/* Hide controls when playlist is hidden */
+.video-wrapper.no-controls:hover .controls {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.video-wrapper.no-controls .controls {
+    display: none !important;
+}
+/* Filter Video */
+.filter-panel {
+    background: #212121;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.filter-panel-title {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-btn {
+    padding: 5px 12px;
+    border-radius: 15px;
+    border: 1px solid #444;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover { background: #333; }
+.filter-btn.active { border-color: currentColor; }
+.filter-btn.filter-normal { color: #fff; }
+.filter-btn.filter-normal.active { background: #555; }
+.filter-btn.filter-warm { color: #ff7043; }
+.filter-btn.filter-warm.active { background: rgba(255,112,67,0.2); border-color: #ff7043; }
+.filter-btn.filter-pink { color: #f48fb1; }
+.filter-btn.filter-pink.active { background: rgba(244,143,177,0.2); border-color: #f48fb1; }
+.filter-btn.filter-dark { color: #90a4ae; }
+.filter-btn.filter-dark.active { background: rgba(144,164,174,0.2); border-color: #90a4ae; }
+.filter-btn.filter-romantic { color: #e91e63; }
+.filter-btn.filter-romantic.active { background: rgba(233,30,99,0.2); border-color: #e91e63; }
+.filter-btn.filter-golden { color: #ffc107; }
+.filter-btn.filter-golden.active { background: rgba(255,193,7,0.2); border-color: #ffc107; }
+.filter-btn.filter-crimson { color: #c62828; }
+.filter-btn.filter-crimson.active { background: rgba(198,40,40,0.2); border-color: #c62828; }
+.filter-btn.filter-rose { color: #f48fb1; }
+.filter-btn.filter-rose.active { background: rgba(244,143,177,0.2); border-color: #f48fb1; }
+.filter-btn.filter-sunset { color: #ff6f00; }
+.filter-btn.filter-sunset.active { background: rgba(255,111,0,0.2); border-color: #ff6f00; }
+.filter-btn.filter-cream { color: #ffe4b5; }
+.filter-btn.filter-cream.active { background: rgba(255,228,181,0.2); border-color: #ffe4b5; }
+.filter-btn.filter-hot { color: #ff5722; }
+.filter-btn.filter-hot.active { background: rgba(255,87,34,0.2); border-color: #ff5722; }
+.filter-btn.filter-wet { color: #80deea; }
+.filter-btn.filter-wet.active { background: rgba(128,222,234,0.2); border-color: #80deea; }
+.filter-btn.filter-sticky { color: #ffb74d; }
+.filter-btn.filter-sticky.active { background: rgba(255,183,77,0.2); border-color: #ffb74d; }
+
+.filter-intensity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.filter-intensity input[type="range"] {
+    width: 100px;
+    height: 4px;
+    accent-color: #ff0000;
+    cursor: pointer;
+}
+
+/* PiP Autoplay Controls */
+.pip-controls {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    display: none;
+    z-index: 10000;
+    gap: 8px;
+    align-items: center;
+}
+
+.pip-controls.show { display: flex; }
+
+.pip-mini-btn {
+    background: #333;
+    border: none;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.pip-mini-btn:hover { background: #555; }
+
+/* Playlist hidden style */
+.playlist-section.hidden {
+    display: none;
+}
+
+.container.playlist-hidden {
+    grid-template-columns: 1fr;
+}
+/* Tambahkan ini - video fill penuh saat fullscreen */
+.video-wrapper:-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    background: #000 !important;
+}
+
+.video-wrapper:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    background: #000 !important;
+}
+
+.video-wrapper:-webkit-full-screen video {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+}
+
+.video-wrapper:fullscreen video {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    object-fit: contain !important;
+}
+
+/* Expired message overlay */
+.expired-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.expired-message {
+    background: #212121;
+    padding: 30px 40px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.expired-message button {
+    margin-top: 20px;
+    padding: 10px 30px;
+    background: #ff0000;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.expired-message button:hover {
+    background: #cc0000;
+}
+
+/* Watch History Modal */
+.history-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 20px;
+}
+
+.history-modal.show {
+    display: flex;
+}
+
+.history-content {
+    background: #212121;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.history-header {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-header h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.history-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.history-close:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.history-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.history-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.history-body::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+.history-item {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background: #333;
+}
+
+.history-item-info {
+    flex: 1;
+}
+
+.history-item-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.history-item-meta {
+    font-size: 12px;
+    color: #aaa;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.history-item-progress {
+    width: 100%;
+    height: 3px;
+    background: #444;
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.history-item-progress-bar {
+    height: 100%;
+    background: #ff0000;
+    border-radius: 2px;
+}
+
+.history-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.history-item-btn {
+    padding: 6px 12px;
+    background: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-item-btn:hover {
+    background: #444;
+    border-color: #555;
+}
+
+.history-item-btn.danger {
+    background: #660000;
+    border-color: #880000;
+}
+
+.history-item-btn.danger:hover {
+    background: #880000;
+    border-color: #aa0000;
+}
+
+.history-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-clear-all {
+    padding: 8px 16px;
+    background: #660000;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.history-clear-all:hover {
+    background: #880000;
+}
+
+.history-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.history-badge {
+    background: #ff0000;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* Thumbnail loading indicator */
+.thumbnail-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #fff;
+    z-index: 3;
+    pointer-events: none;
+}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Cosplayer Video Edit</h1>
+        <div class="header-controls">
+            <button class="theme-toggle" id="historyBtn">📜 History</button>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="player-section">
+            <div class="video-wrapper">
+                <video id="videoPlayer" preload="auto">
+                    <source id="videoSource" src="" type="video/mp4">
+                    Browser Anda tidak mendukung cosplayer video edit.
+                </video>
+                
+                <div class="video-overlay" id="videoOverlay">
+                    <div class="loading-spinner"></div>
+                </div>
+                
+                <div class="controls">
+                    <div class="progress-container">
+                        <div class="progress-tooltip" id="progressTooltip">0:00</div>
+                        <div class="progress-bar" id="progressBar">
+                            <div class="buffer-progress" id="bufferProgress"></div>
+                            <div class="progress" id="progress">
+                                <div class="progress-handle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="btn icon-prev" id="prevBtn" title="Previous (P)"></button>
+                        <button class="btn icon-play" id="playPauseBtn" title="Play/Pause (Space)"></button>
+                        <button class="btn icon-next" id="nextBtn" title="Next (N)"></button>
+                        <button class="btn icon-shuffle" id="shuffleBtn" title="Shuffle (S)"></button>
+                        <button class="btn icon-loop" id="loopBtn" title="Loop (L)"></button>
+<button class="btn" id="favoriteControlBtn" title="Toggle Favorite (H)">♡</button>
+                        <div class="volume-control">
+                            <button class="btn icon-volume-high" id="muteBtn" title="Mute (M)"></button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70" title="Volume">
+                        </div>
+                        
+                        <div class="speed-control">
+                            <button class="btn speed-btn" id="speedBtn" title="Playback Speed">1x</button>
+                            <div class="speed-menu" id="speedMenu">
+                                <div class="speed-option" data-speed="0.25">0.25x</div>
+                                <div class="speed-option" data-speed="0.5">0.5x</div>
+                                <div class="speed-option" data-speed="0.75">0.75x</div>
+                                <div class="speed-option active" data-speed="1">1x</div>
+                                <div class="speed-option" data-speed="1.25">1.25x</div>
+                                <div class="speed-option" data-speed="1.5">1.5x</div>
+                                <div class="speed-option" data-speed="1.75">1.75x</div>
+                                <div class="speed-option" data-speed="2">2x</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn icon-pip" id="pipBtn" title="Picture in Picture (I)"></button>
+                        <button class="btn icon-fullscreen" id="fullscreenBtn" title="Fullscreen (F)"></button>
+                        
+                        <div class="time-display">
+                            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <!-- Filter Panel -->
+<div class="filter-panel" id="filterPanel">
+    <div class="filter-panel-title">🎨 Filter Video</div>
+    <div class="filter-controls">
+        <button class="filter-btn filter-normal active" data-filter="none">⬜ Normal</button>
+        <button class="filter-btn filter-warm" data-filter="warm">🔥 Panas</button>
+        <button class="filter-btn filter-pink" data-filter="pink">🌸 Pink Muda</button>
+        <button class="filter-btn filter-dark" data-filter="dark">🌑 Gelap</button>
+        <button class="filter-btn filter-romantic" data-filter="romantic">💋 Romantic Red</button>
+        <button class="filter-btn filter-golden" data-filter="golden">✨ Golden Glow</button>
+        <button class="filter-btn filter-crimson" data-filter="crimson">🔴 Crimson Heat</button>
+        <button class="filter-btn filter-rose" data-filter="rose">💗 Soft Rose</button>
+        <button class="filter-btn filter-sunset" data-filter="sunset">🌅 Sunset Glow</button>
+        <button class="filter-btn filter-cream" data-filter="cream">🍦 Cream</button>
+        <button class="filter-btn filter-hot" data-filter="hot">🔥🔥 Warm</button>
+        <button class="filter-btn filter-wet" data-filter="wet">� Becek</button>
+        <button class="filter-btn filter-sticky" data-filter="sticky">🍯 Lengket</button>
+    </div>
+    <div class="filter-intensity" id="filterIntensityRow" style="display:none;">
+        <span>Intensitas:</span>
+        <input type="range" id="filterIntensity" min="0" max="100" value="50">
+        <span id="filterIntensityValue">50%</span>
+    </div>
+</div>
+                <div class="current-title" id="currentTitle">Pilih video untuk diputar</div>
+                <div class="video-info">
+                    <span>Total Video: <span id="totalVideos">Memuat...</span></span>
+                    <div>
+                        <span class="status-badge" id="loopStatus">Loop: OFF</span>
+                        <span class="status-badge" id="shuffleStatus">Shuffle: OFF</span>
+                        <span class="status-badge" id="autoplayStatus">Autoplay: ON</span>
+                        <span class="status-badge favorite-mode-indicator" id="favoriteModeStatus" style="display: none;">Mode Favorit</span>
+                    </div>
+                </div>
+                <div class="additional-controls">
+                    <label class="control-item">
+                        <input type="checkbox" id="autoplayToggle" checked>
+                        <span>Autoplay berikutnya</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="rememberPositionToggle">
+                        <span>Ingat posisi video</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="hidePlaylistToggle">
+                        <span>Sembunyikan daftar video</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="autoFullscreenToggle">
+                        <span>Mode Layar Penuh</span>
+                    </label>
+                    <label class="control-item">
+                        <input type="checkbox" id="noRepeatToggle">
+                        <span>Jangan putar video yang sudah diputar</span>
+                    </label>
+                    <label class="control-item" style="gap: 8px;">
+                        <span>Fit to Screen:</span>
+                        <select id="fitToScreenSelect" style="padding: 4px 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; cursor: pointer;">
+                            <option value="contain">Contain (Full Video)</option>
+                            <option value="fill">Fill (Stretch)</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="playlist-section">
+            <div class="playlist-header">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Cari video...">
+                    <span class="search-icon icon-search"></span>
+                </div>
+                <div class="playlist-title">
+                    <span>Daftar Video</span>
+                    <div class="playlist-controls">
+                        <button class="favorites-btn" id="favoritesBtn">♥ FAVORIT</button>
+                        <button class="shuffle-btn" id="shuffleToggle">🔀 ACAK</button>
+                        <div class="sort-menu">
+                            <button class="sort-btn" id="sortBtn">↕ URUT</button>
+                            <div class="sort-dropdown" id="sortDropdown">
+                                <div class="sort-option active" data-sort="number-asc">Nomor ↑</div>
+                                <div class="sort-option" data-sort="number-desc">Nomor ↓</div>
+                                <div class="sort-option" data-sort="title-asc">Judul A-Z</div>
+                                <div class="sort-option" data-sort="title-desc">Judul Z-A</div>
+                                <div class="sort-option" data-sort="favorites">Favorit</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="playlist">
+                <div id="playlistContainer">
+                    <div class="loading-progress">
+                        <div class="loading-spinner"></div>
+                        <div class="progress-bar-loading">
+                            <div class="progress-fill" id="loadingProgress"></div>
+                        </div>
+                        <div class="progress-text" id="loadingText">Memuat daftar video... (0/106)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PiP Indicator -->
+    <div class="pip-indicator" id="pipIndicator">
+        📺 Mode Picture-in-Picture aktif
+    </div>
+    
+    <!-- PiP Mini Controls -->
+<div class="pip-controls" id="pipControls">
+    <span>📺 PiP</span>
+    <button class="pip-mini-btn" id="pipPrevBtn">⏮</button>
+    <button class="pip-mini-btn" id="pipPlayBtn">▶</button>
+    <button class="pip-mini-btn" id="pipNextBtn">⏭</button>
+    <button class="pip-mini-btn" id="pipAutoplayToggle">Auto: ON</button>
+</div>
+
+
+    <!-- Keyboard Shortcuts Help -->
+    <div class="shortcuts-help" id="shortcutsHelp">
+        <button class="shortcuts-close" id="shortcutsClose">×</button>
+        <h3>⌨️ Keyboard Shortcuts</h3>
+        <div class="shortcut-list">
+            <div class="shortcut-key">Space</div>
+            <div>Play/Pause</div>
+            
+            <div class="shortcut-key">→</div>
+            <div>Maju 5 detik</div>
+            
+            <div class="shortcut-key">←</div>
+            <div>Mundur 5 detik</div>
+            
+            <div class="shortcut-key">↑</div>
+            <div>Volume naik</div>
+            
+            <div class="shortcut-key">↓</div>
+            <div>Volume turun</div>
+            
+            <div class="shortcut-key">M</div>
+            <div>Mute/Unmute</div>
+            
+            <div class="shortcut-key">F</div>
+            <div>Fullscreen</div>
+            
+            <div class="shortcut-key">I</div>
+            <div>Picture in Picture</div>
+            
+            <div class="shortcut-key">N</div>
+            <div>Video berikutnya</div>
+            
+            <div class="shortcut-key">P</div>
+            <div>Video sebelumnya</div>
+            
+            <div class="shortcut-key">S</div>
+            <div>Toggle Shuffle</div>
+            
+            <div class="shortcut-key">L</div>
+            <div>Toggle Loop</div>
+            
+            <div class="shortcut-key">?</div>
+            <div>Tampilkan bantuan ini</div>
+            <div class="shortcut-key">H</div>
+<div>Toggle Favorite</div>
+
+        </div>
+    </div>
+
+    <!-- Watch History Modal -->
+    <div class="history-modal" id="historyModal">
+        <div class="history-content">
+            <div class="history-header">
+                <h2>📜 Watch History</h2>
+                <button class="history-close" id="historyCloseBtn">×</button>
+            </div>
+            <div class="history-body" id="historyBody">
+                <div class="history-empty">Belum ada history tontonan</div>
+            </div>
+            <div class="history-footer">
+                <div>
+                    <span style="color: #aaa; font-size: 12px;">Total: <span id="historyCount">0</span> video</span>
+                </div>
+                <button class="history-clear-all" id="historyClearAll">🗑️ Hapus Semua</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoSource = document.getElementById('videoSource');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const loopBtn = document.getElementById('loopBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const bufferProgress = document.getElementById('bufferProgress');
+        const progressTooltip = document.getElementById('progressTooltip');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const muteBtn = document.getElementById('muteBtn');
+        const speedBtn = document.getElementById('speedBtn');
+        const speedMenu = document.getElementById('speedMenu');
+        const pipBtn = document.getElementById('pipBtn');
+        const pipIndicator = document.getElementById('pipIndicator');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const currentTitle = document.getElementById('currentTitle');
+        const totalVideos = document.getElementById('totalVideos');
+        const searchInput = document.getElementById('searchInput');
+        const playlistContainer = document.getElementById('playlistContainer');
+        const shuffleToggle = document.getElementById('shuffleToggle');
+        const shuffleStatus = document.getElementById('shuffleStatus');
+        const loopStatus = document.getElementById('loopStatus');
+        const autoplayStatus = document.getElementById('autoplayStatus');
+        const autoplayToggle = document.getElementById('autoplayToggle');
+        const rememberVolumeToggle = document.getElementById('rememberVolumeToggle');
+        const rememberPositionToggle = document.getElementById('rememberPositionToggle');
+        const sortBtn = document.getElementById('sortBtn');
+        const sortDropdown = document.getElementById('sortDropdown');
+        const themeToggle = document.getElementById('themeToggle');
+        const shortcutsHelp = document.getElementById('shortcutsHelp');
+        const shortcutsClose = document.getElementById('shortcutsClose');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const loadingText = document.getElementById('loadingText');
+        const favoritesBtn = document.getElementById('favoritesBtn');
+        const favoriteModeStatus = document.getElementById('favoriteModeStatus');
+        const noRepeatToggle = document.getElementById('noRepeatToggle');
+        const fitToScreenSelect = document.getElementById('fitToScreenSelect');
+        const historyBtn = document.getElementById('historyBtn');
+        const historyModal = document.getElementById('historyModal');
+        const historyCloseBtn = document.getElementById('historyCloseBtn');
+        const historyBody = document.getElementById('historyBody');
+        const historyCount = document.getElementById('historyCount');
+        const historyClearAll = document.getElementById('historyClearAll');
+
+        let videos = [];
+        let currentVideoIndex = 0;
+        let filteredVideos = [];
+        let shuffleMode = false;
+        let loopMode = false;
+        let autoplayMode = true;
+        let shuffledIndices = [];
+        let shufflePosition = 0;
+        let currentSort = 'number-asc';
+        let favorites = JSON.parse(localStorage.getItem('videoFavorites') || '[]');
+        let showingFavoritesOnly = false;
+        let clickTimeout = null;
+        const favoriteControlBtn = document.getElementById('favoriteControlBtn');
+        
+        // No-repeat tracking
+        let playedVideos = [];
+        let noRepeatMode = false;
+        
+        // Watch History
+        let watchHistory = JSON.parse(localStorage.getItem('watchHistory') || '[]');
+
+// Toggle favorite untuk video yang sedang diputar
+favoriteControlBtn.onclick = () => {
+    if (videos.length > 0) {
+        const currentVideo = videos[currentVideoIndex];
+        toggleFavorite(currentVideo.number);
+        updateFavoriteControlButton();
+    }
+};
+
+// Function untuk update tampilan tombol favorite control
+function updateFavoriteControlButton() {
+    if (videos.length > 0) {
+        const currentVideo = videos[currentVideoIndex];
+        if (currentVideo.isFavorite) {
+            favoriteControlBtn.classList.add('active');
+            favoriteControlBtn.innerHTML = '❤️';
+        } else {
+            favoriteControlBtn.classList.remove('active');
+            favoriteControlBtn.innerHTML = '♡';
+        }
+    }
+}
+
+const hidePlaylistToggle = document.getElementById('hidePlaylistToggle');
+const playlistSection = document.querySelector('.playlist-section');
+const container = document.querySelector('.container');
+const videoWrapper = document.querySelector('.video-wrapper');
+let savedAutoplayState = autoplayMode;
+
+// Toggle playlist visibility
+hidePlaylistToggle.onchange = () => {
+    if (hidePlaylistToggle.checked) {
+        playlistSection.classList.add('hidden');
+        container.classList.add('playlist-hidden');
+        videoWrapper.classList.add('no-controls');
+        
+        savedAutoplayState = autoplayMode;
+        autoplayMode = true;
+        autoplayToggle.checked = true;
+        autoplayStatus.textContent = 'Autoplay: ON';
+        autoplayStatus.classList.add('active');
+        
+        autoplayToggle.disabled = true;
+        autoplayToggle.parentElement.style.opacity = '0.5';
+        
+        videoPlayer.style.pointerEvents = 'auto';
+        
+        if (videoPlayer.paused && videoPlayer.readyState >= 2) {
+            videoPlayer.play();
+        }
+        
+        // ✅ TAMBAHAN BARU - pastikan PiP autoplay juga aktif
+        pipAutoplay = true;
+        if (document.getElementById('pipAutoplayToggle')) {
+            pipAutoplayToggle.textContent = 'Auto: ON';
+            pipAutoplayToggle.style.background = '#ff0000';
+        }
+        
+    } else {
+        playlistSection.classList.remove('hidden');
+        container.classList.remove('playlist-hidden');
+        videoWrapper.classList.remove('no-controls');
+        
+        autoplayMode = savedAutoplayState;
+        autoplayToggle.checked = savedAutoplayState;
+        autoplayStatus.textContent = savedAutoplayState ? 'Autoplay: ON' : 'Autoplay: OFF';
+        autoplayStatus.classList.toggle('active', savedAutoplayState);
+        
+        autoplayToggle.disabled = false;
+        autoplayToggle.parentElement.style.opacity = '1';
+        
+        videoPlayer.style.pointerEvents = 'auto';
+    }
+};
+
+        // Initialize - Load saved preferences
+        function loadPreferences() {
+            // Theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                themeToggle.textContent = '☀️ Light';
+            }
+
+            // Volume - always remember
+            const savedVolume = localStorage.getItem('volume');
+            if (savedVolume !== null) {
+                videoPlayer.volume = parseFloat(savedVolume);
+                volumeSlider.value = parseFloat(savedVolume) * 100;
+            } else {
+                videoPlayer.volume = 0.7;
+                volumeSlider.value = 70;
+            }
+            videoPlayer.muted = false;
+
+            // Autoplay
+            const savedAutoplay = localStorage.getItem('autoplay');
+            if (savedAutoplay !== null) {
+                autoplayMode = savedAutoplay === 'true';
+                autoplayToggle.checked = autoplayMode;
+            }
+
+            // Remember position
+            const rememberPosition = localStorage.getItem('rememberPosition');
+            if (rememberPosition !== null) {
+                rememberPositionToggle.checked = rememberPosition === 'true';
+            }
+            
+            // Fit to Screen
+            const savedFitMode = localStorage.getItem('fitToScreen');
+            if (savedFitMode) {
+                fitToScreenSelect.value = savedFitMode;
+                applyFitToScreen(savedFitMode);
+            }
+        }
+
+        loadPreferences();
+
+        // Shuffle array function
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Generate shuffled indices based on current context
+        function generateShuffledIndices() {
+            let sourceVideos = showingFavoritesOnly ? 
+                videos.filter(v => v.isFavorite) : videos;
+            
+            const indices = sourceVideos.map(video => videos.indexOf(video));
+            shuffledIndices = shuffleArray(indices);
+            
+            // Pastikan video current ada di posisi pertama
+            const currentIndex = shuffledIndices.indexOf(currentVideoIndex);
+            if (currentIndex > 0) {
+                [shuffledIndices[0], shuffledIndices[currentIndex]] = [shuffledIndices[currentIndex], shuffledIndices[0]];
+            }
+            shufflePosition = 0;
+        }
+
+        // Toggle shuffle mode
+        function toggleShuffle() {
+            shuffleMode = !shuffleMode;
+            
+            if (shuffleMode) {
+                generateShuffledIndices();
+                shuffleBtn.classList.add('active');
+                shuffleToggle.classList.add('active');
+                shuffleStatus.textContent = 'Shuffle: ON';
+                shuffleStatus.classList.add('active');
+            } else {
+                shuffleBtn.classList.remove('active');
+                shuffleToggle.classList.remove('active');
+                shuffleStatus.textContent = 'Shuffle: OFF';
+                shuffleStatus.classList.remove('active');
+            }
+        }
+
+        // Toggle loop mode
+        function toggleLoop() {
+            loopMode = !loopMode;
+            
+            if (loopMode) {
+                loopBtn.classList.add('active');
+                loopStatus.textContent = 'Loop: ON';
+                loopStatus.classList.add('active');
+            } else {
+                loopBtn.classList.remove('active');
+                loopStatus.textContent = 'Loop: OFF';
+                loopStatus.classList.remove('active');
+            }
+        }
+
+        // Toggle autoplay
+        autoplayToggle.onchange = () => {
+            autoplayMode = autoplayToggle.checked;
+            localStorage.setItem('autoplay', autoplayMode);
+            autoplayStatus.textContent = autoplayMode ? 'Autoplay: ON' : 'Autoplay: OFF';
+            autoplayStatus.classList.toggle('active', autoplayMode);
+        };
+
+        // Remember position toggle
+        rememberPositionToggle.onchange = () => {
+            localStorage.setItem('rememberPosition', rememberPositionToggle.checked);
+        };
+
+        // Get next video index based on current context
+        function getNextVideoIndex() {
+            if (loopMode) {
+                return currentVideoIndex;
+            }
+            
+            let sourceVideos = showingFavoritesOnly ? 
+                videos.filter(v => v.isFavorite) : videos;
+            
+            // Filter out played videos if no-repeat mode
+            if (noRepeatMode) {
+                sourceVideos = sourceVideos.filter(v => !playedVideos.includes(videos.indexOf(v)));
+                
+                // Check if all videos played
+                if (sourceVideos.length === 0) {
+                    showExpiredMessage();
+                    return currentVideoIndex;
+                }
+            }
+            
+            if (sourceVideos.length === 0) {
+                return currentVideoIndex;
+            }
+            
+            if (shuffleMode) {
+                // Rebuild shuffle indices from remaining unplayed videos
+                const indices = sourceVideos.map(v => videos.indexOf(v));
+                const shuffled = shuffleArray(indices);
+                return shuffled[0];
+            } else {
+                const currentInSource = sourceVideos.findIndex(v => videos.indexOf(v) === currentVideoIndex);
+                if (currentInSource === -1) {
+                    return videos.indexOf(sourceVideos[0]);
+                }
+                const nextInSource = (currentInSource + 1) % sourceVideos.length;
+                return videos.indexOf(sourceVideos[nextInSource]);
+            }
+        }
+
+        // Get previous video index based on current context
+        function getPrevVideoIndex() {
+            let sourceVideos = showingFavoritesOnly ? 
+                videos.filter(v => v.isFavorite) : videos;
+            
+            if (sourceVideos.length === 0) {
+                return currentVideoIndex;
+            }
+            
+            if (shuffleMode) {
+                shufflePosition = (shufflePosition - 1 + shuffledIndices.length) % shuffledIndices.length;
+                return shuffledIndices[shufflePosition];
+            } else {
+                const currentInSource = sourceVideos.findIndex(v => videos.indexOf(v) === currentVideoIndex);
+                if (currentInSource === -1) {
+                    // Current video not in source, get last from source
+                    return videos.indexOf(sourceVideos[sourceVideos.length - 1]);
+                }
+                const prevInSource = (currentInSource - 1 + sourceVideos.length) % sourceVideos.length;
+                return videos.indexOf(sourceVideos[prevInSource]);
+            }
+        }
+
+        // Detect available videos with batch processing
+        async function detectAvailableVideosQuick() {
+            const availableVideos = VIDEO_CONFIG.numbers.map(num => ({
+                number: num,
+                title: `Video ${num}`,
+                src: `${VIDEO_CONFIG.folder}${num}${VIDEO_CONFIG.extension}`,
+                isFavorite: favorites.includes(num)
+            }));
+            
+            // Faster loading - reduced delay
+            for (let i = 0; i <= VIDEO_CONFIG.numbers.length; i++) {
+                const percentage = (i / VIDEO_CONFIG.numbers.length) * 100;
+                loadingProgress.style.width = percentage + '%';
+                loadingText.textContent = `Memuat daftar video... (${i}/${VIDEO_CONFIG.numbers.length})`;
+                
+                if (i < VIDEO_CONFIG.numbers.length) {
+                    await new Promise(resolve => setTimeout(resolve, 2)); // Reduced from 10ms to 2ms
+                }
+            }
+            
+            return availableVideos;
+        }
+
+        // Sort videos
+        function sortVideos(videos, sortType) {
+            const sorted = [...videos];
+            
+            switch(sortType) {
+                case 'number-asc':
+                    sorted.sort((a, b) => a.number - b.number);
+                    break;
+                case 'number-desc':
+                    sorted.sort((a, b) => b.number - a.number);
+                    break;
+                case 'title-asc':
+                    sorted.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'title-desc':
+                    sorted.sort((a, b) => b.title.localeCompare(a.title));
+                    break;
+                case 'favorites':
+                    sorted.sort((a, b) => {
+                        if (a.isFavorite && !b.isFavorite) return -1;
+                        if (!a.isFavorite && b.isFavorite) return 1;
+                        return a.number - b.number;
+                    });
+                    break;
+            }
+            
+            return sorted;
+        }
+
+        // Initialize videos
+        async function initializePlayer() {
+            try {
+                videos = await detectAvailableVideosQuick();
+                
+                videos = sortVideos(videos, currentSort);
+                filteredVideos = [...videos];
+                
+                totalVideos.textContent = videos.length;
+                renderPlaylist();
+                
+                if (videos.length > 0) {
+                    const lastPlayed = localStorage.getItem('lastPlayedVideo');
+                    if (lastPlayed && rememberPositionToggle.checked) {
+                        const lastIndex = videos.findIndex(v => v.number === parseInt(lastPlayed));
+                        currentVideoIndex = lastIndex >= 0 ? lastIndex : Math.floor(Math.random() * videos.length);
+                    } else {
+                        currentVideoIndex = Math.floor(Math.random() * videos.length);
+                    }
+                    
+                    loadVideo(currentVideoIndex);
+                    videoPlayer.pause();
+                    updatePlayPauseIcon();
+                } else {
+                    playlistContainer.innerHTML = '<div class="no-results">Tidak ada video ditemukan di folder assets/video/</div>';
+                }
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                playlistContainer.innerHTML = '<div class="no-results">Error memuat video</div>';
+            }
+        }
+
+        // Toggle favorite
+        function toggleFavorite(videoNumber) {
+            const index = favorites.indexOf(videoNumber);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(videoNumber);
+            }
+            
+            localStorage.setItem('videoFavorites', JSON.stringify(favorites));
+            
+            // Update video data
+            const video = videos.find(v => v.number === videoNumber);
+            if (video) {
+                video.isFavorite = !video.isFavorite;
+            }
+            
+            // Update shuffle indices if in shuffle mode
+            if (shuffleMode) {
+                generateShuffledIndices();
+            }
+            
+            // Re-apply current filter
+            if (showingFavoritesOnly) {
+                showFavorites();
+            } else {
+                renderPlaylist();
+            }
+        }
+
+        // Show favorites only
+        function showFavorites() {
+            showingFavoritesOnly = !showingFavoritesOnly;
+            
+            if (showingFavoritesOnly) {
+                filteredVideos = videos.filter(v => v.isFavorite);
+                favoritesBtn.classList.add('active');
+                favoriteModeStatus.style.display = 'inline-block';
+                searchInput.value = '';
+                
+                // Update shuffle indices untuk favorit saja
+                if (shuffleMode) {
+                    generateShuffledIndices();
+                }
+            } else {
+                filteredVideos = [...videos];
+                favoritesBtn.classList.remove('active');
+                favoriteModeStatus.style.display = 'none';
+                
+                // Update shuffle indices untuk semua video
+                if (shuffleMode) {
+                    generateShuffledIndices();
+                }
+            }
+            
+            renderPlaylist();
+        }
+
+        // Favorites button
+        favoritesBtn.onclick = showFavorites;
+
+        // Render playlist
+        function renderPlaylist() {
+            playlistContainer.innerHTML = '';
+            
+            if (filteredVideos.length === 0) {
+                const message = showingFavoritesOnly ? 
+                    'Belum ada video favorit. Klik ♥ pada video untuk menambahkan favorit.' : 
+                    'Tidak ada video ditemukan';
+                playlistContainer.innerHTML = `<div class="no-results">${message}</div>`;
+                return;
+            }
+            
+            filteredVideos.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'playlist-item';
+                if (videos[currentVideoIndex] === video) {
+                    item.classList.add('active');
+                }
+                item.innerHTML = `
+                    <div class="playlist-item-number">${video.number}</div>
+                    <div class="playlist-item-title">${video.title}</div>
+                    <button class="favorite-btn icon-favorite ${video.isFavorite ? 'active' : ''}" data-number="${video.number}"></button>
+                `;
+                
+                item.onclick = (e) => {
+                    if (!e.target.classList.contains('favorite-btn')) {
+                        const videoIndex = videos.indexOf(video);
+                        loadVideo(videoIndex);
+                        
+                        if (shuffleMode) {
+                            // Update shuffle position
+                            const shuffleIndex = shuffledIndices.indexOf(videoIndex);
+                            if (shuffleIndex !== -1) {
+                                shufflePosition = shuffleIndex;
+                            }
+                        }
+                    }
+                };
+                
+                // Favorite button
+                const favBtn = item.querySelector('.favorite-btn');
+                favBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleFavorite(video.number);
+                };
+                
+                playlistContainer.appendChild(item);
+            });
+        }
+
+        // Load video
+        function loadVideo(index) {
+            if (index < 0 || index >= videos.length) return;
+            
+            currentVideoIndex = index;
+            const video = videos[index];
+            
+            // Add to played list if no-repeat mode
+            if (noRepeatMode && !playedVideos.includes(index)) {
+                playedVideos.push(index);
+            }
+            
+            // Add to watch history
+            addToWatchHistory(video.number, video.title);
+            
+            videoOverlay.classList.add('show');
+            
+            videoSource.src = video.src;
+            videoPlayer.load();
+            
+            videoPlayer.muted = false;
+            videoPlayer.volume = volumeSlider.value / 100;
+            
+            if (rememberPositionToggle.checked) {
+                const savedPosition = localStorage.getItem(`videoPosition_${video.number}`);
+                if (savedPosition) {
+                    videoPlayer.currentTime = parseFloat(savedPosition);
+                }
+            }
+            
+            videoPlayer.addEventListener('loadeddata', function showFirstFrame() {
+                if (!rememberPositionToggle.checked || !localStorage.getItem(`videoPosition_${video.number}`)) {
+                    videoPlayer.currentTime = 0.1;
+                }
+                videoOverlay.classList.remove('show');
+                videoPlayer.removeEventListener('loadeddata', showFirstFrame);
+            });
+
+            videoPlayer.addEventListener('error', function(e) {
+                console.error('Error loading video:', e);
+                currentTitle.textContent = `Error: ${video.title}`;
+                videoOverlay.classList.remove('show');
+            });
+
+            currentTitle.textContent = video.title;
+            localStorage.setItem('lastPlayedVideo', video.number);
+            
+            updateMuteIcon();
+            renderPlaylist();
+            updateFavoriteControlButton();
+        }
+
+        // Update play/pause icon
+        function updatePlayPauseIcon() {
+            if (videoPlayer.paused) {
+                playPauseBtn.className = 'btn icon-play';
+            } else {
+                playPauseBtn.className = 'btn icon-pause';
+            }
+        }
+
+        // Event listeners
+        shuffleBtn.onclick = toggleShuffle;
+        shuffleToggle.onclick = toggleShuffle;
+        loopBtn.onclick = toggleLoop;
+
+        playPauseBtn.onclick = () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        };
+
+        nextBtn.onclick = () => {
+    const wasPlaying = !videoPlayer.paused;
+    const nextIndex = getNextVideoIndex();
+    loadVideo(nextIndex);
+    
+    // Jika playlist hidden, SELALU play video berikutnya
+    // Jika playlist visible, hanya play jika video sebelumnya sedang playing
+    if (hidePlaylistToggle.checked || wasPlaying) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoad() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoad);
+        });
+    }
+};
+
+prevBtn.onclick = () => {
+    const wasPlaying = !videoPlayer.paused;
+    const prevIndex = getPrevVideoIndex();
+    loadVideo(prevIndex);
+    
+    // Jika playlist hidden, SELALU play video sebelumnya
+    // Jika playlist visible, hanya play jika video sebelumnya sedang playing
+    if (hidePlaylistToggle.checked || wasPlaying) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoad() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoad);
+        });
+    }
+};
+
+        // Video element single/double click
+        // Video element single/double click
+videoPlayer.onclick = (e) => {
+    if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+        // Double click - fullscreen (selalu bisa)
+        if (!document.fullscreenElement) {
+            videoPlayer.requestFullscreen().catch(err => {
+                console.error('Fullscreen error:', err);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    } else {
+        clickTimeout = setTimeout(() => {
+            clickTimeout = null;
+            // Single click - hanya play/pause jika playlist TIDAK hidden
+            if (!hidePlaylistToggle.checked) {
+                if (videoPlayer.paused) {
+                    videoPlayer.play();
+                } else {
+                    videoPlayer.pause();
+                }
+            }
+            // Jika playlist hidden, single click tidak melakukan apa-apa
+        }, 250);
+    }
+};
+
+        // Video events
+        videoPlayer.onplay = updatePlayPauseIcon;
+        videoPlayer.onpause = updatePlayPauseIcon;
+
+        videoPlayer.ontimeupdate = () => {
+            if (videoPlayer.duration) {
+                const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+                progress.style.width = percent + '%';
+                currentTimeEl.textContent = formatTime(videoPlayer.currentTime);
+            }
+        };
+
+        // Auto play next
+        // Auto play next (ini sudah ada, pastikan tidak diubah)
+videoPlayer.onended = () => {
+    if (autoplayMode && !loopMode) {
+        nextBtn.click();
+    } else if (loopMode) {
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+    }
+};
+
+        // Progress bar
+        videoPlayer.onloadedmetadata = () => {
+            durationEl.textContent = formatTime(videoPlayer.duration);
+        };
+
+        // Buffer progress
+        videoPlayer.onprogress = () => {
+            if (videoPlayer.buffered.length > 0) {
+                const buffered = videoPlayer.buffered.end(videoPlayer.buffered.length - 1);
+                const duration = videoPlayer.duration;
+                if (duration > 0) {
+                    bufferProgress.style.width = (buffered / duration * 100) + '%';
+                }
+            }
+        };
+
+        // Progress bar click and hover
+        progressBar.onclick = (e) => {
+            if (videoPlayer.duration) {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                videoPlayer.currentTime = percent * videoPlayer.duration;
+            }
+        };
+
+        progressBar.onmousemove = (e) => {
+            if (videoPlayer.duration) {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                const time = percent * videoPlayer.duration;
+                progressTooltip.textContent = formatTime(time);
+                progressTooltip.style.left = `${e.clientX - rect.left}px`;
+            }
+        };
+
+        // Volume
+        volumeSlider.oninput = () => {
+            videoPlayer.volume = volumeSlider.value / 100;
+            videoPlayer.muted = false;
+            updateMuteIcon();
+            
+            // Always save volume
+            localStorage.setItem('volume', videoPlayer.volume);
+        };
+
+        muteBtn.onclick = () => {
+            videoPlayer.muted = !videoPlayer.muted;
+            updateMuteIcon();
+        };
+
+        function updateMuteIcon() {
+            if (videoPlayer.muted || videoPlayer.volume === 0) {
+                muteBtn.className = 'btn icon-volume-mute';
+            } else if (videoPlayer.volume < 0.5) {
+                muteBtn.className = 'btn icon-volume-low';
+            } else {
+                muteBtn.className = 'btn icon-volume-high';
+            }
+        }
+
+        // Playback speed
+        speedBtn.onclick = () => {
+            speedMenu.classList.toggle('show');
+        };
+
+        document.querySelectorAll('.speed-option').forEach(option => {
+            option.onclick = () => {
+                const speed = parseFloat(option.dataset.speed);
+                videoPlayer.playbackRate = speed;
+                speedBtn.textContent = `${speed}x`;
+                // Update active state
+                document.querySelectorAll('.speed-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                option.classList.add('active');
+                
+                speedMenu.classList.remove('show');
+            };
+        });
+
+        // Close speed menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!speedBtn.contains(e.target) && !speedMenu.contains(e.target)) {
+                speedMenu.classList.remove('show');
+            }
+        });
+
+        // Picture in Picture
+        pipBtn.onclick = async () => {
+            try {
+                if (document.pictureInPictureElement) {
+                    await document.exitPictureInPicture();
+                } else {
+                    await videoPlayer.requestPictureInPicture();
+                }
+            } catch (error) {
+                console.error('PiP error:', error);
+                alert('Browser Anda tidak mendukung Picture-in-Picture');
+            }
+        };
+
+        videoPlayer.addEventListener('enterpictureinpicture', () => {
+            pipIndicator.classList.add('show');
+            pipBtn.classList.add('active');
+        });
+
+        videoPlayer.addEventListener('leavepictureinpicture', () => {
+            pipIndicator.classList.remove('show');
+            pipBtn.classList.remove('active');
+        });
+
+        // Fullscreen
+        fullscreenBtn.onclick = () => {
+            if (!document.fullscreenElement) {
+                videoPlayer.requestFullscreen().catch(err => {
+                    console.error('Fullscreen error:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        // Search
+        searchInput.oninput = () => {
+            const query = searchInput.value.toLowerCase();
+            
+            // Reset favorites view if searching
+            if (query && showingFavoritesOnly) {
+                showingFavoritesOnly = false;
+                favoritesBtn.classList.remove('active');
+                favoriteModeStatus.style.display = 'none';
+            }
+            
+            filteredVideos = videos.filter(video => 
+                video.title.toLowerCase().includes(query) ||
+                video.number.toString().includes(query)
+            );
+            renderPlaylist();
+        };
+
+        // Sort functionality
+        sortBtn.onclick = () => {
+            sortDropdown.classList.toggle('show');
+        };
+
+        document.querySelectorAll('.sort-option').forEach(option => {
+            option.onclick = () => {
+                currentSort = option.dataset.sort;
+                
+                // Update active state
+                document.querySelectorAll('.sort-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                option.classList.add('active');
+                
+                // Sort videos
+                videos = sortVideos(videos, currentSort);
+                
+                // Apply current filter
+                if (showingFavoritesOnly) {
+                    filteredVideos = videos.filter(video => video.isFavorite);
+                } else {
+                    // Apply search filter if active
+                    const query = searchInput.value.toLowerCase();
+                    if (query) {
+                        filteredVideos = videos.filter(video => 
+                            video.title.toLowerCase().includes(query) ||
+                            video.number.toString().includes(query)
+                        );
+                    } else {
+                        filteredVideos = [...videos];
+                    }
+                }
+                
+                renderPlaylist();
+                sortDropdown.classList.remove('show');
+            };
+        });
+
+        // Close sort dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!sortBtn.contains(e.target) && !sortDropdown.contains(e.target)) {
+                sortDropdown.classList.remove('show');
+            }
+        });
+
+        // Theme toggle
+        themeToggle.onclick = () => {
+            document.body.classList.toggle('light-theme');
+            
+            if (document.body.classList.contains('light-theme')) {
+                themeToggle.textContent = '☀️ Light';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeToggle.textContent = '🌙 Dark';
+                localStorage.setItem('theme', 'dark');
+            }
+        };
+
+        // Shortcuts help close
+        shortcutsClose.onclick = () => {
+            shortcutsHelp.classList.remove('show');
+        };
+
+        // Close shortcuts help when clicking outside
+        shortcutsHelp.onclick = (e) => {
+            if (e.target === shortcutsHelp) {
+                shortcutsHelp.classList.remove('show');
+            }
+        };
+
+        // Format time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Keyboard shortcuts
+        document.onkeydown = (e) => {
+            // Ignore if typing in search box
+            if (e.target === searchInput) return;
+            
+            // Ignore if shortcuts help is open and pressing Escape
+            if (shortcutsHelp.classList.contains('show') && e.key === 'Escape') {
+                shortcutsHelp.classList.remove('show');
+                return;
+            }
+            
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                    e.preventDefault();
+                    playPauseBtn.click();
+                    break;
+                    
+                case 'arrowright':
+                    e.preventDefault();
+                    videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + 5);
+                    break;
+                    
+                case 'arrowleft':
+                    e.preventDefault();
+                    videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 5);
+                    break;
+                    
+                case 'arrowup':
+                    e.preventDefault();
+                    videoPlayer.volume = Math.min(1, videoPlayer.volume + 0.1);
+                    volumeSlider.value = videoPlayer.volume * 100;
+                    videoPlayer.muted = false;
+                    updateMuteIcon();
+                    localStorage.setItem('volume', videoPlayer.volume);
+                    break;
+                    
+                case 'arrowdown':
+                    e.preventDefault();
+                    videoPlayer.volume = Math.max(0, videoPlayer.volume - 0.1);
+                    volumeSlider.value = videoPlayer.volume * 100;
+                    updateMuteIcon();
+                    localStorage.setItem('volume', videoPlayer.volume);
+                    break;
+                    
+                case 'm':
+                    e.preventDefault();
+                    muteBtn.click();
+                    break;
+                    
+                case 'f':
+                    e.preventDefault();
+                    fullscreenBtn.click();
+                    break;
+                    
+                case 'i':
+                    e.preventDefault();
+                    pipBtn.click();
+                    break;
+                    
+                case 'h':
+    e.preventDefault();
+    favoriteControlBtn.click();
+    break;
+
+                    
+                case 'n':
+    e.preventDefault();
+    const wasPlayingNext = !videoPlayer.paused;
+    const nextIndex = getNextVideoIndex();
+    loadVideo(nextIndex);
+    if (wasPlayingNext) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoadNext() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoadNext);
+        });
+    }
+    break;
+    
+case 'p':
+    e.preventDefault();
+    const wasPlayingPrev = !videoPlayer.paused;
+    const prevIndex = getPrevVideoIndex();
+    loadVideo(prevIndex);
+    if (wasPlayingPrev) {
+        videoPlayer.addEventListener('loadeddata', function playOnLoadPrev() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', playOnLoadPrev);
+        });
+    }
+    break;
+
+                case 's':
+                    e.preventDefault();
+                    toggleShuffle();
+                    break;
+                    
+                case 'l':
+                    e.preventDefault();
+                    toggleLoop();
+                    break;
+                    
+                case '?':
+                    e.preventDefault();
+                    shortcutsHelp.classList.toggle('show');
+                    break;
+                    
+                case 'escape':
+                    e.preventDefault();
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
+                    if (speedMenu.classList.contains('show')) {
+                        speedMenu.classList.remove('show');
+                    }
+                    if (sortDropdown.classList.contains('show')) {
+                        sortDropdown.classList.remove('show');
+                    }
+                    break;
+                    
+                // Number keys for speed control
+                case '1':
+                    e.preventDefault();
+                    videoPlayer.playbackRate = 1;
+                    speedBtn.textContent = '1x';
+                    document.querySelectorAll('.speed-option').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.speed === '1');
+                    });
+                    break;
+                    
+                case '2':
+                    e.preventDefault();
+                    videoPlayer.playbackRate = 2;
+                    speedBtn.textContent = '2x';
+                    document.querySelectorAll('.speed-option').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.speed === '2');
+                    });
+                    break;
+                    
+                case '0':
+                    e.preventDefault();
+                    videoPlayer.currentTime = 0;
+                    break;
+            }
+        };
+
+        // Double click to fullscreen (sudah dihandle di onclick handler)
+
+        // Prevent context menu on video
+        videoPlayer.oncontextmenu = (e) => {
+            e.preventDefault();
+            return false;
+        };
+
+        // Show loading overlay when video is loading
+        videoPlayer.addEventListener('waiting', () => {
+            videoOverlay.classList.add('show');
+        });
+
+        videoPlayer.addEventListener('canplay', () => {
+            videoOverlay.classList.remove('show');
+        });
+
+        // Handle video errors
+        videoPlayer.addEventListener('error', (e) => {
+            console.error('Video error:', e);
+            videoOverlay.classList.remove('show');
+            
+            // Try to skip to next video if current fails
+            if (autoplayMode) {
+                setTimeout(() => {
+                    nextBtn.click();
+                }, 2000);
+            }
+        });
+
+        // Update autoplay status on load
+        autoplayStatus.textContent = autoplayMode ? 'Autoplay: ON' : 'Autoplay: OFF';
+        autoplayStatus.classList.toggle('active', autoplayMode);
+
+        // Media Session API for media controls
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => {
+                videoPlayer.play();
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+                videoPlayer.pause();
+            });
+
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                prevBtn.click();
+            });
+
+            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                nextBtn.click();
+            });
+
+            navigator.mediaSession.setActionHandler('seekbackward', () => {
+                videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 10);
+            });
+
+            navigator.mediaSession.setActionHandler('seekforward', () => {
+                videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + 10);
+            });
+
+            // Update metadata when video changes
+            videoPlayer.addEventListener('loadedmetadata', () => {
+                const video = videos[currentVideoIndex];
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: video.title,
+                    artist: 'Cosplayer Video Edit',
+                    album: 'My Videos',
+                });
+            });
+        }
+
+        // Visibility change - pause when tab is hidden (optional)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Optionally pause video when tab is hidden
+                // videoPlayer.pause();
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            // Save current video position
+            if (rememberPositionToggle.checked) {
+                const video = videos[currentVideoIndex];
+                localStorage.setItem(`videoPosition_${video.number}`, videoPlayer.currentTime);
+            }
+        });
+        
+        // =============================================
+// FILTER VIDEO SYSTEM
+// =============================================
+
+let currentFilter = 'none';
+let filterIntensity = 50;
+
+// Filter presets with new filters
+const filterPresets = {
+    none: () => '',
+    warm: (intensity) => {
+        const i = intensity / 100;
+        // Panas - warm biasa
+        return `sepia(${0.4 * i}) saturate(${1 + 0.6 * i}) brightness(${1 + 0.08 * i}) contrast(${1 + 0.1 * i})`;
+    },
+    pink: () => {
+        // Pink Muda: 100% fixed intensity, LEBIH SUBTLE - pink medium tapi video asli masih jelas
+        return `sepia(0.15) saturate(1.3) hue-rotate(310deg) brightness(1.05) contrast(0.98)`;
+    },
+    dark: (intensity) => {
+        const i = intensity / 100;
+        return `brightness(${1 - 0.5 * i}) contrast(${1 + 0.3 * i}) saturate(${1 - 0.2 * i})`;
+    },
+    romantic: (intensity) => {
+        const i = intensity / 100;
+        // Romantic Red - nuansa merah sensual
+        return `sepia(${0.5 * i}) saturate(${1 + 0.8 * i}) hue-rotate(${-20 * i}deg) brightness(${1 + 0.05 * i}) contrast(${1 + 0.15 * i})`;
+    },
+    golden: (intensity) => {
+        const i = intensity / 100;
+        // Golden Glow - cahaya emas sensual
+        return `sepia(${0.6 * i}) saturate(${1 + 0.5 * i}) hue-rotate(${-10 * i}deg) brightness(${1 + 0.15 * i}) contrast(${1 + 0.05 * i})`;
+    },
+    crimson: (intensity) => {
+        const i = intensity / 100;
+        // Crimson Heat - merah gelap intens
+        return `sepia(${0.7 * i}) saturate(${1 + 1.2 * i}) hue-rotate(${-30 * i}deg) brightness(${0.95 + 0.05 * i}) contrast(${1 + 0.25 * i})`;
+    },
+    rose: (intensity) => {
+        const i = intensity / 100;
+        // Soft Rose - rose/mawar lembut romantis
+        return `sepia(${0.35 * i}) saturate(${1 + 0.6 * i}) hue-rotate(${320 * i}deg) brightness(${1 + 0.08 * i}) contrast(${0.98 + 0.02 * i})`;
+    },
+    sunset: (intensity) => {
+        const i = intensity / 100;
+        // Sunset Glow - orange/amber warm
+        return `sepia(${0.5 * i}) saturate(${1 + 0.7 * i}) hue-rotate(${-15 * i}deg) brightness(${1 + 0.1 * i}) contrast(${1 + 0.08 * i})`;
+    },
+    cream: (intensity) => {
+        const i = intensity / 100;
+        // Cream - creamy, soft, sensual skin tone (perfect for 18+ content)
+        return `sepia(${0.25 * i}) saturate(${1 + 0.3 * i}) hue-rotate(${20 * i}deg) brightness(${1 + 0.12 * i}) contrast(${0.92 + 0.08 * i})`;
+    },
+    hot: (intensity) => {
+        const i = intensity / 100;
+        // Warm (PANAS BANGET) - super intense hot tone, lebih dari "Panas" yang lama
+        return `sepia(${0.8 * i}) saturate(${1 + 1.5 * i}) hue-rotate(${-25 * i}deg) brightness(${1 + 0.2 * i}) contrast(${1 + 0.3 * i})`;
+    },
+    wet: (intensity) => {
+        const i = intensity / 100;
+        // Becek/Wet - wet, glossy, shiny effect (sensual wet look)
+        return `saturate(${1 + 0.8 * i}) brightness(${1 + 0.15 * i}) contrast(${1 + 0.2 * i}) hue-rotate(${-5 * i}deg)`;
+    },
+    sticky: (intensity) => {
+        const i = intensity / 100;
+        // Lengket/Sticky - sticky, glossy, honey-like effect (sensual sticky look)
+        return `sepia(${0.35 * i}) saturate(${1 + 0.9 * i}) brightness(${1 + 0.18 * i}) contrast(${1 + 0.15 * i}) hue-rotate(${10 * i}deg)`;
+    }
+};
+
+function applyFilter() {
+    if (currentFilter === 'none') {
+        videoPlayer.style.filter = '';
+    } else if (currentFilter === 'pink') {
+        // Pink Muda always 100%
+        videoPlayer.style.filter = filterPresets.pink();
+    } else {
+        videoPlayer.style.filter = filterPresets[currentFilter](filterIntensity);
+    }
+    localStorage.setItem('videoFilter', JSON.stringify({ filter: currentFilter, intensity: filterIntensity }));
+}
+
+// Load saved filter
+const savedFilter = localStorage.getItem('videoFilter');
+if (savedFilter) {
+    try {
+        const { filter, intensity } = JSON.parse(savedFilter);
+        currentFilter = filter;
+        filterIntensity = intensity;
+        document.getElementById('filterIntensity').value = intensity;
+        document.getElementById('filterIntensityValue').textContent = intensity + '%';
+        applyFilter();
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+        });
+        
+        if (currentFilter !== 'none' && currentFilter !== 'pink') {
+            document.getElementById('filterIntensityRow').style.display = 'flex';
+        }
+    } catch(e) {}
+}
+
+// Filter button click
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.onclick = () => {
+        currentFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const intensityRow = document.getElementById('filterIntensityRow');
+        // Hide intensity for none and pink (pink is always 100%)
+        intensityRow.style.display = (currentFilter === 'none' || currentFilter === 'pink') ? 'none' : 'flex';
+        
+        applyFilter();
+    };
+});
+
+// Filter intensity slider
+document.getElementById('filterIntensity').oninput = (e) => {
+    filterIntensity = parseInt(e.target.value);
+    document.getElementById('filterIntensityValue').textContent = filterIntensity + '%';
+    applyFilter();
+};
+
+
+// =============================================
+// PiP AUTOPLAY & CONTROLS
+// =============================================
+
+const pipControls = document.getElementById('pipControls');
+const pipPlayBtn = document.getElementById('pipPlayBtn');
+const pipNextBtn = document.getElementById('pipNextBtn');
+const pipPrevBtn = document.getElementById('pipPrevBtn');
+const pipAutoplayToggle = document.getElementById('pipAutoplayToggle');
+
+let pipAutoplay = true;
+
+// Update PiP play button
+function updatePipPlayBtn() {
+    pipPlayBtn.textContent = videoPlayer.paused ? '▶' : '❚❚';
+}
+
+videoPlayer.onplay = () => {
+    updatePlayPauseIcon();
+    updatePipPlayBtn();
+};
+
+videoPlayer.onpause = () => {
+    updatePlayPauseIcon();
+    updatePipPlayBtn();
+};
+
+// PiP Controls
+pipPlayBtn.onclick = () => {
+    if (videoPlayer.paused) {
+        videoPlayer.play();
+    } else {
+        videoPlayer.pause();
+    }
+};
+
+pipNextBtn.onclick = () => {
+    const nextIndex = getNextVideoIndex();
+    loadVideo(nextIndex);
+    videoPlayer.addEventListener('loadeddata', function autoPlayPip() {
+        videoPlayer.play();
+        videoPlayer.removeEventListener('loadeddata', autoPlayPip);
+    });
+};
+
+pipPrevBtn.onclick = () => {
+    const prevIndex = getPrevVideoIndex();
+    loadVideo(prevIndex);
+    videoPlayer.addEventListener('loadeddata', function autoPlayPip() {
+        videoPlayer.play();
+        videoPlayer.removeEventListener('loadeddata', autoPlayPip);
+    });
+};
+
+pipAutoplayToggle.onclick = () => {
+    pipAutoplay = !pipAutoplay;
+    pipAutoplayToggle.textContent = `Auto: ${pipAutoplay ? 'ON' : 'OFF'}`;
+    pipAutoplayToggle.style.background = pipAutoplay ? '#ff0000' : '#333';
+};
+
+// PiP Enter/Leave - override existing handlers
+videoPlayer.addEventListener('enterpictureinpicture', () => {
+    pipIndicator.classList.add('show');
+    pipBtn.classList.add('active');
+    pipControls.classList.add('show'); // Tampilkan PiP controls
+    
+    // Force autoplay ON saat masuk PiP
+    if (!autoplayMode) {
+        autoplayMode = true;
+    }
+});
+
+videoPlayer.addEventListener('leavepictureinpicture', () => {
+    pipIndicator.classList.remove('show');
+    pipBtn.classList.remove('active');
+    pipControls.classList.remove('show'); // Sembunyikan PiP controls
+});
+
+// Override onended untuk support PiP autoplay
+videoPlayer.onended = () => {
+    const isPiP = !!document.pictureInPictureElement;
+    
+    if (loopMode) {
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+        return;
+    }
+    
+    // Auto next jika: autoplayMode aktif ATAU sedang dalam PiP dengan pipAutoplay aktif
+    if (autoplayMode || (isPiP && pipAutoplay)) {
+        const nextIndex = getNextVideoIndex();
+        loadVideo(nextIndex);
+        videoPlayer.addEventListener('loadeddata', function autoPlayNext() {
+            videoPlayer.play();
+            videoPlayer.removeEventListener('loadeddata', autoPlayNext);
+        });
+    }
+};
+
+// =============================================
+// MODE LAYAR PENUH OTOMATIS
+// =============================================
+
+const autoFullscreenToggle = document.getElementById('autoFullscreenToggle');
+let savedAutoplayStateFS = autoplayMode;
+
+autoFullscreenToggle.onchange = () => {
+    const wrapper = document.querySelector('.video-wrapper');
+    
+    if (autoFullscreenToggle.checked) {
+        // Masuk fullscreen pada video-wrapper (agar controls tetap ada)
+        const fsRequest = wrapper.requestFullscreen || 
+                          wrapper.webkitRequestFullscreen || 
+                          wrapper.mozRequestFullScreen;
+        if (fsRequest) {
+            fsRequest.call(wrapper).catch(err => {
+                console.error('Fullscreen error:', err);
+                autoFullscreenToggle.checked = false;
+            });
+        }
+        
+        // Simpan & paksa autoplay ON
+        savedAutoplayStateFS = autoplayMode;
+        autoplayMode = true;
+        autoplayToggle.checked = true;
+        autoplayStatus.textContent = 'Autoplay: ON';
+        autoplayStatus.classList.add('active');
+        
+        // Auto play jika sedang pause
+        if (videoPlayer.paused && videoPlayer.readyState >= 2) {
+            videoPlayer.play();
+        }
+        
+    } else {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    }
+};
+
+// Ganti/extend fullscreenchange listener yang sudah ada
+document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement) {
+        fullscreenBtn.style.transform = 'rotate(45deg)';
+    } else {
+        fullscreenBtn.style.transform = 'rotate(0deg)';
+        
+        // Jika keluar fullscreen dari tombol browser/back
+        if (autoFullscreenToggle.checked) {
+            autoFullscreenToggle.checked = false;
+            
+            // Kembalikan autoplay state
+            autoplayMode = savedAutoplayStateFS;
+            autoplayToggle.checked = savedAutoplayStateFS;
+            autoplayStatus.textContent = savedAutoplayStateFS ? 'Autoplay: ON' : 'Autoplay: OFF';
+            autoplayStatus.classList.toggle('active', savedAutoplayStateFS);
+        }
+    }
+});
+
+
+
+// =============================================
+// NO-REPEAT MODE & EXPIRED MESSAGE
+// =============================================
+
+noRepeatToggle.onchange = () => {
+    noRepeatMode = noRepeatToggle.checked;
+    if (!noRepeatMode) {
+        playedVideos = []; // Reset when disabled
+    }
+};
+
+function showExpiredMessage() {
+    alert('Video has expired. Please refresh the website page.');
+    noRepeatToggle.checked = false;
+    noRepeatMode = false;
+    playedVideos = [];
+}
+
+
+// =============================================
+// FIT TO SCREEN (NO ZOOM, NO CROP)
+// =============================================
+
+function applyFitToScreen(mode) {
+    switch(mode) {
+        case 'contain':
+            // Contain - Full video visible, maintain aspect ratio (NO CROP, NO ZOOM)
+            videoPlayer.style.objectFit = 'contain';
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = 'auto';
+            videoPlayer.style.maxHeight = '600px';
+            break;
+            
+        case 'fill':
+            // Fill - Stretch to fill (may distort)
+            videoPlayer.style.objectFit = 'fill';
+            videoPlayer.style.width = '100%';
+            videoPlayer.style.height = '600px';
+            videoPlayer.style.maxHeight = '600px';
+            break;
+    }
+}
+
+fitToScreenSelect.onchange = () => {
+    const mode = fitToScreenSelect.value;
+    applyFitToScreen(mode);
+    localStorage.setItem('fitToScreen', mode);
+};
+
+// Responsive untuk mobile landscape (seperti game)
+function handleOrientationChange() {
+    if (window.matchMedia("(orientation: landscape)").matches && window.innerWidth < 1024) {
+        // Mobile landscape - video fit penuh
+        videoPlayer.style.maxHeight = '100vh';
+    } else {
+        // Desktop atau mobile portrait
+        applyFitToScreen(fitToScreenSelect.value);
+    }
+}
+
+// Detect orientation change (mobile)
+window.addEventListener('orientationchange', handleOrientationChange);
+window.addEventListener('resize', handleOrientationChange);
+
+
+// =============================================
+// WATCH HISTORY SYSTEM
+// =============================================
+
+function addToWatchHistory(videoNumber, videoTitle) {
+    const now = Date.now();
+    const existingIndex = watchHistory.findIndex(h => h.number === videoNumber);
+    
+    if (existingIndex > -1) {
+        // Update existing
+        watchHistory[existingIndex].lastWatched = now;
+        watchHistory[existingIndex].watchCount++;
+    } else {
+        // Add new
+        watchHistory.push({
+            number: videoNumber,
+            title: videoTitle,
+            lastWatched: now,
+            watchCount: 1,
+            progress: 0
+        });
+    }
+    
+    // Keep only last 100 videos
+    if (watchHistory.length > 100) {
+        watchHistory = watchHistory.slice(-100);
+    }
+    
+    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    updateHistoryBadge();
+}
+
+function updateVideoProgress(videoNumber, progress) {
+    const historyItem = watchHistory.find(h => h.number === videoNumber);
+    if (historyItem) {
+        historyItem.progress = Math.floor(progress);
+        localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    }
+}
+
+function formatTimeAgo(timestamp) {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    
+    if (seconds < 60) return 'Baru saja';
+    if (seconds < 3600) return Math.floor(seconds / 60) + ' menit lalu';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + ' jam lalu';
+    if (seconds < 604800) return Math.floor(seconds / 86400) + ' hari lalu';
+    return new Date(timestamp).toLocaleDateString('id-ID');
+}
+
+function renderHistory() {
+    if (watchHistory.length === 0) {
+        historyBody.innerHTML = '<div class="history-empty">Belum ada history tontonan</div>';
+        historyCount.textContent = '0';
+        return;
+    }
+    
+    // Sort by last watched (newest first)
+    const sortedHistory = [...watchHistory].sort((a, b) => b.lastWatched - a.lastWatched);
+    
+    historyBody.innerHTML = '';
+    sortedHistory.forEach(item => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+            <div class="history-item-info">
+                <div class="history-item-title">${item.title}</div>
+                <div class="history-item-meta">
+                    <span>🕐 ${formatTimeAgo(item.lastWatched)}</span>
+                    <span>👁️ ${item.watchCount}x ditonton</span>
+                </div>
+                <div class="history-item-progress">
+                    <div class="history-item-progress-bar" style="width: ${item.progress}%"></div>
+                </div>
+            </div>
+            <div class="history-item-actions">
+                <button class="history-item-btn" onclick="playFromHistory(${item.number})">▶ Putar</button>
+                <button class="history-item-btn danger" onclick="deleteHistoryItem(${item.number})">🗑️</button>
+            </div>
+        `;
+        historyBody.appendChild(historyItem);
+    });
+    
+    historyCount.textContent = watchHistory.length;
+}
+
+window.playFromHistory = (videoNumber) => {
+    const videoIndex = videos.findIndex(v => v.number === videoNumber);
+    if (videoIndex >= 0) {
+        loadVideo(videoIndex);
+        historyModal.classList.remove('show');
+        videoPlayer.play();
+    }
+};
+
+window.deleteHistoryItem = (videoNumber) => {
+    watchHistory = watchHistory.filter(h => h.number !== videoNumber);
+    localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+    renderHistory();
+    updateHistoryBadge();
+};
+
+function clearAllHistory() {
+    if (confirm('Hapus semua history tontonan?')) {
+        watchHistory = [];
+        localStorage.setItem('watchHistory', JSON.stringify(watchHistory));
+        renderHistory();
+        updateHistoryBadge();
+    }
+}
+
+function updateHistoryBadge() {
+    if (watchHistory.length > 0) {
+        historyBtn.innerHTML = `📜 History <span class="history-badge">${watchHistory.length}</span>`;
+    } else {
+        historyBtn.innerHTML = '📜 History';
+    }
+}
+
+// History modal controls
+historyBtn.onclick = () => {
+    historyModal.classList.add('show');
+    renderHistory();
+};
+
+historyCloseBtn.onclick = () => {
+    historyModal.classList.remove('show');
+};
+
+historyModal.onclick = (e) => {
+    if (e.target === historyModal) {
+        historyModal.classList.remove('show');
+    }
+};
+
+historyClearAll.onclick = clearAllHistory;
+
+// Update progress in history every 5 seconds
+setInterval(() => {
+    if (!videoPlayer.paused && videoPlayer.duration > 0) {
+        const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+        const currentVideo = videos[currentVideoIndex];
+        if (currentVideo) {
+            updateVideoProgress(currentVideo.number, progress);
+        }
+    }
+}, 5000);
+
+// =============================================
+// CUSTOM THUMBNAILS (RANDOM FRAME) - FIXED
+// =============================================
+
+function generateRandomThumbnail(videoSrc) {
+    // Remove old poster first
+    videoPlayer.poster = '';
+    
+    // Create canvas for thumbnail
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Create temporary video for thumbnail capture
+    const tempVideo = document.createElement('video');
+    tempVideo.src = videoSrc;
+    tempVideo.crossOrigin = 'anonymous';
+    tempVideo.muted = true;
+    tempVideo.playsInline = true;
+    tempVideo.preload = 'metadata';
+    
+    let thumbnailGenerated = false;
+    
+    tempVideo.addEventListener('loadedmetadata', function onMetadata() {
+        if (thumbnailGenerated) return;
+        
+        // Random time between 10% - 70% of duration
+        const duration = tempVideo.duration;
+        if (duration && !isNaN(duration)) {
+            const randomTime = duration * (0.1 + Math.random() * 0.6);
+            tempVideo.currentTime = randomTime;
+        }
+    });
+    
+    tempVideo.addEventListener('seeked', function onSeeked() {
+        if (thumbnailGenerated) return;
+        thumbnailGenerated = true;
+        
+        try {
+            // Set canvas size to video dimensions
+            canvas.width = tempVideo.videoWidth || 640;
+            canvas.height = tempVideo.videoHeight || 360;
+            
+            // Draw video frame to canvas
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL
+            const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+            
+            // Set as poster (will show before play)
+            videoPlayer.poster = thumbnailUrl;
+            
+            console.log('✅ Thumbnail generated successfully');
+        } catch (error) {
+            console.error('Error generating thumbnail:', error);
+            videoPlayer.poster = '';
+        } finally {
+            // Cleanup
+            tempVideo.pause();
+            tempVideo.src = '';
+            tempVideo.remove();
+        }
+    });
+    
+    tempVideo.addEventListener('error', function onError(e) {
+        console.error('Error loading video for thumbnail:', e);
+        videoPlayer.poster = '';
+        tempVideo.remove();
+    });
+    
+    // Timeout fallback (5 seconds)
+    setTimeout(() => {
+        if (!thumbnailGenerated) {
+            console.warn('Thumbnail generation timeout');
+            videoPlayer.poster = '';
+            tempVideo.src = '';
+            tempVideo.remove();
+        }
+    }, 5000);
+}
+
+// Generate thumbnail on video load
+videoPlayer.addEventListener('loadstart', function() {
+    const currentVideo = videos[currentVideoIndex];
+    if (currentVideo && currentVideo.src) {
+        generateRandomThumbnail(currentVideo.src);
+    }
+});
+
+// Clear poster when playing
+videoPlayer.addEventListener('play', function() {
+    // Keep poster visible until video actually starts playing
+    setTimeout(() => {
+        if (!videoPlayer.paused) {
+            videoPlayer.removeAttribute('poster');
+        }
+    }, 100);
+});
+
+
+        // Start the app
+        initializePlayer();
+        updateHistoryBadge();
+
+        // Show welcome message
+        console.log('%c🎬 Cosplayer Video Edit', 'font-size: 20px; font-weight: bold; color: #ff0000;');
+        console.log('%cTekan ? untuk melihat keyboard shortcuts', 'font-size: 12px; color: #666;');
+    </script>
+</body>
+</html>
